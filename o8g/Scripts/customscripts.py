@@ -2055,7 +2055,7 @@ def BurnOutChoice(cardChoice):
 def chkHenryMoran(type):
    if type == 'lowball':
       for card in table:
-         if card.Name == 'Henry Moran' and card.controller == me and card.orientation == Rot0:
+         if card.Name == 'Henry Moran' and card.controller == me and card.orientation == Rot0 and card.highlight != DrawHandColor:
             notify(":> {} is about to reveal a cheating hand in lowball, so {} is booting and forcing them to reveal the top 5 cards of their deck instead".format(me,card))
             boot(card, silent = True)
             for c in table:
