@@ -1473,25 +1473,28 @@ def CustomScript(card, action = 'PLAY'): # Scripts that are complex and fairly u
       notify('{} takes control over {} till the end of the shootout'.format(card.controller, targetDude[0].name))
       return 
    elif card.name == 'House of Many Faiths':
-      tmd = findTarget('DemiAutoTargeted-atDude-targetMine-choose1')
+      tmd = findTarget('DemiAutoTargeted-atBlessed-targetMine-choose1')
       tmDude = tmd[0]
       hostCards = eval(getGlobalVariable('Host Cards'))
+      if len(hostCards) == 0:
+         notify("You do not have any attachments in play.")
+         return 'Abort'
       if not len([Card(att_id) for att_id in hostCards if hostCards[att_id] == tmDude._id and re.search(r'Miracle',Card(att_id).Keywords)]):
          notify("You have to chose a dude with Miracle to use this ability")
          return 'Abort'
       if len(me.hand) and len(me.piles['Discard Pile']):
-         handDiscard = askCard([c for c in me.hand],"Choose which card to discard from your hand")
+         handDiscard = askCard([c for c in me.hand],"Choose which card to move to your deck from your hand")
          handDiscard.moveTo(me.piles['Deck'])
-         cardFromDiscard = askCard([ c for c in me.piles['Discard Pile']])
+         cardFromDiscard = askCard([ c for c in me.piles['Discard Pile']],"Choose which card move to deck from your discard")
          cardFromDiscard.moveTo(me.piles['Deck'])
          me.Deck.shuffle()
-         notify('{} put {} and {} that was fetched from discard into their deck.'.format(me, handDiscard, cardFromDiscard))
+         notify('{} put {} from hand and {} that was fetched from discard into their deck.'.format(me, handDiscard, cardFromDiscard))
       else:
          notify ("You have to have a cards in hand and in discard pile to use this ability!")
          return 'Abort'
-      ModifyStatus('MoveTarget-moveToTown Square', '', card, tmDude)
+      ModifyStatus('MoveTarget-moveToTown Square', '', card, [tmDude])
       boot(tmDude, forced = 'unboot')
-      tmDude.markers[mdict['PermInfluencePlus']] += 1
+      tmDude.markers[mdict['InfluencePlus']] += 1
       notify("{} moves {} to Town Squere unboots them and gives them noon influence.")
    elif card.name == "Jonah's Alliance":
       tmd = findTarget('DemiAutoTargeted-atDude-targetMine-choose1')
@@ -1542,7 +1545,44 @@ def CustomScript(card, action = 'PLAY'): # Scripts that are complex and fairly u
                TokensX('Put1BulletNoonPlus', '',tmpDude)
             notify('{} increased {} bullets by {} skill rating'.format(me, tmpDude.name, tpDude))
             return
-
+   elif card.name == 'Roberto Muratore':
+      tCard = findTarget('DemiAutoTargeted-atGadget_and_Experimental-targetMine-choose1',choiceTitle = 'Choose an experimental gadget to boot.')
+      if not len(tCard) or tCard[0].orientation != Rot0:
+         notify("You need to boot experimental gadget to use this ability.")
+         return 'Abort'
+      tDeed = findTarget('DemiAutoTargeted-atDeed-choose1', choiceTitle = 'Choose a deed with 1 control point.')
+      control = compileCardStat(tDeed[0], stat = 'Control')
+      if not len(tDeed) or control == 0:
+         notify("You need a deed with 1 control point to use this ability.")
+         return 'Abort'
+      boom = pull()[1] 
+      counter = 0
+      if boom == 'Diamonds' or boom == 'Hearts':
+         counter += 1
+      boom = pull()[1] 
+      if boom == 'Diamonds' or boom == 'Hearts':
+         counter += 1
+      if counter == 0:
+         notify('Nothing happens as you pulled black suits only.')
+         return
+      elif counter == 1:
+         tDeed[0].markers[mdict['ControlPlus']] += 1
+         notify('One of your pulls was red, so {} gains one control point until the end of Sundown.'.format(tDeed[0].name))
+      elif counter == 2:
+         tDeed[0].markers[mdict['PermControlPlus']] += 1
+         notify('Two of your pulls were red, so {} gains one permanent control point.'.format(tDeed[0].name))
+   elif card.name == 'Adelaide Rose':
+      tCard = findTarget('DemiAutoTargeted-atGadget-onAttachment-isUnbooted-choose1',choiceTitle = 'Choose a gadget to boot.')      
+      topd = findTarget('DemiAutoTargeted-atDude-isParticipating-targetOpponents-choose1')
+      topDude = topd[0]
+      TokensX('Put1BulletShootoutMinus', '', topDude) 
+      if re.search(r'Experimental',tCard.Keywords): 
+         tmpd = findTarget('DemiAutoTargeted-atDude-targetMine-isParticipating-choose1','Choose your dude to give them +1 bullets unitl the end of the shootout.')
+         tmpDude = tmpd[0]
+         TokensX('Put1BulletShootoutPlus', '', tmpDude) 
+         notify('{} used {} ability to give {} bullet penalty and {} bullet bunus.'.format(me, card.name, topDude.name, tmpDude.name, ))
+         return
+      notify('{} used {} ability to give {} bullet penalty.'.format(me, card.name, topDude.name))
 
 
 
@@ -1637,7 +1677,7 @@ def markerEffects(Time = 'Start'):
          if (Time == 'ShootoutEnd'
                and (re.search(r'Huckleberry',marker[0]))):
                   TokensX('Remove999'+marker[0], marker[0] + ':', card)
-                  ModifyStatus('SendHomeBootedTarget-DemiAutoTargeted-atDude', '',card, card)
+                  ModifyStatus('SendHomeBootedTarget-DemiAutoTargeted-atDude', '',card, [card])
 
          if Time == 'High Noon' and re.search(r'UpkeepPrePaid',marker[0]) and card.controller == me: # Tax Office reduction effects removal
             modProd(card, -card.markers[marker], True)

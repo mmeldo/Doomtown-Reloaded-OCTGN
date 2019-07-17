@@ -818,7 +818,12 @@ def reduceCost(card, action = 'PLAY', fullCost = 0, dryRun = False, reversePlaye
                 count = maxBounty
                 multiplier = 1 
                 
-                        
+            elif card.name == "Wyatt Earp":
+               count = len([c for c in pl.piles['Boot Hill'] if c.Type == 'Dude' and c.Outfit == 'Law Dogs'])
+               multiplier = 2
+            elif card.name == 'Dr. Gregory Tremane':            
+               count = len([c for c in table if re.search(r'Gadget',c.Keywords) and c.controller == me])
+               multiplayer = 1
          else:
             count = num(reductionSearch.group(1))
             targetCards = findTarget(autoS,card = card)

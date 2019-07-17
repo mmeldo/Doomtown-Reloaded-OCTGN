@@ -5397,7 +5397,7 @@ ae22bba2-cf1e-4038-b7bb-1d3429c10015
 -----
 
 +++++
-GR0B1R0:BootTarget-DemiAutoTargeted-atRanch-targetMine-isCost$$MoveTarget-DemiAutoTargeted-atDude-choose1-moveToDeed_or_Town Square_or_Outfit
+GR0B1R0:BootTarget-DemiAutoTargeted-atRanch-targetMine-choose1-isCost$$MoveTarget-DemiAutoTargeted-atDude-choose1-moveToDeed_or_Town Square_or_Outfit
 
 
 .....
@@ -5917,72 +5917,72 @@ Enrique Dos Santos
 -----
 af6e568e-9008-0fa9-818c-ebc155a697e5
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B0R0:SimplyAnnounce{Your opponent dudes cannot join the shootout until after posses are formed.}
 
 .....
 Reverend Endicott
 -----
 537bca8b-1a35-c942-fe78-d44ae3c27527
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B0R0:Put1Bounty-DemiAutoTargeted-atDude-targetOpponents-choose1
 
 .....
 Sgt. Elijah Clay
 -----
 95288f06-e928-1467-80b5-3fba16475b57
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+
 
 .....
 Wyatt Earp
 -----
 1f793cbc-37f2-4185-65ee-c29746d44d5f
 -----
-onPlay:
+onPay:ReduceSCostPlay
 +++++
-GR0B0R0:
+GR0B0R0:AceTarget-DemiAutoTargeted-atDude-isParticipating-targetOpponents-choose1
 
 .....
 Eli Leatherwood
 -----
 b53b350e-2933-5856-d09a-2f809d4aa786
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+
 
 .....
 Roberto Muratore
 -----
 9a364e65-b1f3-bc1b-f5ff-22af20d5f484
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B0R0:CustomScript
 
 .....
 Adelaide Rose
 -----
 761e1121-6b53-6f8f-7ae7-a21957d97b76
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B0R0:CustomScript
 
 .....
 Dr. Gregory Tremane
 -----
 8788feb4-409c-1048-afb6-f4d11453255c
 -----
-onPlay:
+onPay:ReduceSCostPlay
 +++++
-GR0B0R0:
+GR0B0R0:BootTarget-DemiAutoTargeted-atGadget-choose1-isCost$$SendHomeBootedTarget-DemiAutoTargeted-atDude-isParticipating-targetOpponents-choose1
 
 .....
 Big Nose Kate
