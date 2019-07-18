@@ -362,7 +362,7 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
       notify("{} fetched {} using Murdered in Tombstone ability and discarded".format(me, card.name, choicehand)) 
       opponents = [pl for pl in getActivePlayers() if (pl != me or len(getActivePlayers()) == 1)]
       for opponent in opponents:
-         remoteCall(opponent,'Murdered',card)
+         remoteCall(opponent,'Murdered',[card])
       return
    elif card.name == "Burn 'Em Out":
       opponents = [player for player in getPlayers() if player != me or len(getPlayers()) == 1]
@@ -371,7 +371,7 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
          choice = SingleChoice("Choose player ", [pl.name for pl in opponents])
          if choice == None: return 'ABORT'
          else: player = opponents[choice]         
-      remoteCall(player,'BurnOut',card)
+      remoteCall(player,'BurnOut',[card])
    elif card.name == 'Heist':
       mark = Card(eval(getGlobalVariable('Mark')))
       production = compileCardStat(mark, stat = 'Production')
@@ -1462,7 +1462,7 @@ def CustomScript(card, action = 'PLAY'): # Scripts that are complex and fairly u
       for card in table:
          if card.controller == me:
             if card.model == 'cd31eabe-e2d8-49f7-b4de-16ee4fedf3c1': # The cheatin' icon
-               remoteCall(player,'Huckleberry',card)
+               remoteCall(player,'Huckleberry',[])
             
       targetDude= findTarget('DemiAutoTargeted-atDude-targetOpponents-isParticipating-choose1', choiceTitle = "Choose a dude that will be controlled by your opponent till the end of the shootout.")
       if targetDude[0].highlight == AttackColor:
@@ -1526,7 +1526,7 @@ def CustomScript(card, action = 'PLAY'): # Scripts that are complex and fairly u
          return
    elif card.name =='Doc Holliday':
       tpd = findTarget('DemiAutoTargeted-atDude-isParticipating-choose1', choiceTitle = 'Choose a skilled dude that ranking will be used for bullet bonus.')
-      tpDude = topd[0]
+      tpDude = tpd[0]
       skillCheck = fetchSkills(tpDude)
       tmpd = findTarget('DemiAutoTargeted-atDude-targetMine-isParticipating-choose1', choiceTitle = 'Choose a dude that receives a bonus')
       tmpDude = tmpd[0]
@@ -2185,7 +2185,7 @@ def Murdered(card):
       else: return
       notify("{} fetched {} using Murdered in Tombstone ability and discarded {}".format(me, card.name, choicehand)) 
       return
-def Huckleberry(card):
+def Huckleberry():
    targetDude= findTarget('DemiAutoTargeted-atDude-targetMine-isParticipating-choose1', choiceTitle = "Choose a dude that will be controlled by your opponent till the end of the shootout.")
    if targetDude[0].highlight == AttackColor:
       targetDude[0].highlight = DefendColor   
@@ -2193,7 +2193,7 @@ def Huckleberry(card):
       targetDude[0].highlight = AttackColor
    TokensX('Put1Shootout:Huckleberry', '', targetDude[0])
 
-   notify('{} takes control over {} till the end of the shootout'.format(card.controller, targetDude[0].name))
+   notify('{} takes control over {} till the end of the shootout'.format(targetDude[0].controller, targetDude[0].name))
    return 
 '''
 #target opponents participating dude
