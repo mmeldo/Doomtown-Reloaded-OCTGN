@@ -1,0 +1,20 @@
+# This is a main workflow for pull requests
+
+name: PR check
+
+on:
+  pull_request:
+    branches: master
+
+jobs:
+  o8build:
+    runs-on: [windows-latest]
+
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE
+    - name: git checkout
+      uses: actions/checkout@v2
+    - name: Run o8build
+      working-directory: .\internal
+      shell: cmd
+      run: o8build.exe --directory=..\o8g
