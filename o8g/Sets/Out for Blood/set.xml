@@ -113,9 +113,9 @@
 		         <property name="Rank" value="" />
 		         <property name="Suit" value="" />
 		         <property name="Type" value="Legend" />
-		         <property name="Cost" value="" />
+		         <property name="Cost" value="1" />
 		         <property name="Upkeep" value="" />
-		         <property name="Production" value="0" />
+		         <property name="Production" value="" />
 		         <property name="Bullets" value="" />
 		         <property name="Bullet Bonus" value="" />
 		         <property name="Draw Type" value="" />
