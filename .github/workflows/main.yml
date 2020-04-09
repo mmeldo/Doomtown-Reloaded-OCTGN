@@ -24,7 +24,7 @@ jobs:
     - name: Run a one-line script
       working-directory: .\internal
       shell: cmd
-      run: o8build.exe --directory=.\o8g
+      run: o8build.exe --directory=..\o8g
 
     # Runs a set of commands using the runners shell
     - name: Run a multi-line script
