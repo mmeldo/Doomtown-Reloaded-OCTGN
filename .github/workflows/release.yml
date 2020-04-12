@@ -13,18 +13,13 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE
     - uses: actions/checkout@v2
+    - uses: olegtarasov/get-tag@v2
+      id: tagName      
     # Runs a o8build to create nupkg
     - name: Run o8build
       working-directory: .\internal
       shell: cmd
       run: o8build.exe --directory=..\o8g
-      
-  deploy:
-    runs-on: [windows-latest]
-    needs: release_build
-    steps:
-    - uses: olegtarasov/get-tag@v2
-      id: tagName
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
@@ -35,4 +30,4 @@ jobs:
       uses: warrenbuckley/Setup-Nuget@v1
 
     - name: Nuget Push to MyGet
-      run: nuget push .\o8g\Doomtown-Reloaded-${{ steps.tagName.outputs.tag }}.nupkg ${{ secrets.MYGET_API_KEY }} -Source https://www.myget.org/F/octgngamedirectory/api/v2/package
+      run: nuget push .\o8g\Doomtown-Reloaded-${{ steps.tagName.outputs.tag }}.nupkg ${{ secrets.MYGET_API_KEY }} -Source https://www.myget.org/F/octgngamedirectory/api/v2/package      
