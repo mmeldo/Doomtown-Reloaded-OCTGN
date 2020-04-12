@@ -13,8 +13,6 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE
     - uses: actions/checkout@v2
-    - uses: olegtarasov/get-tag@v2
-      id: tagName
     # Runs a o8build to create nupkg
     - name: Run o8build
       working-directory: .\internal
@@ -25,6 +23,8 @@ jobs:
     runs-on: [windows-latest]
     needs: release_build
     steps:
+    - uses: olegtarasov/get-tag@v2
+      id: tagName
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
