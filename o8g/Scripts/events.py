@@ -2,11 +2,22 @@ import re
 import collections
 import time
 
-def chkTwoSided():
+def validateOnLoad():
    mute()
-   #confirm('test1')
    if table.isTwoSided(): information(":::WARNING::: This game is NOT designed to be played on a two-sided table. Things will not look right!! Please start a new game and unckeck the appropriate button.")
+   for player in getPlayers():
+      try: playerVersion = remoteCall(player, 'chkVersions', gameVersion)
+      except: 
+          playerVersion = "N/A"
+      if playerVersion:
+          information(":::ERROR::: Player {}'s game version {} is incompatible with your version {}. Make sure all players have compatible version before starting the play!".format(player.name, playerVersion, gameVersion))
    fetchCardScripts()
+
+def chkVersions(version):
+   versionNumbers = version.split(".")
+   myVersionNumbers = gameVersion.split(".")
+   if versionNumbers[0] != myVersionNumbers[0] or versionNumbers[1] != myVersionNumbers[1]: return gameVersion
+   return None
 
 def checkDeck(args):
    mute()
@@ -52,6 +63,29 @@ def checkDeck(args):
                notify("-> Deck of {} is _NOT_ OK!".format(player))
                information("We have found illegal cards in your deck. Please load a legal deck!")
    # WiP Checking deck legality. 
+
+def chkClickedCard(args):
+   card = args.card
+   mouseButton = args.mouseButton
+   keysDown = args.keysDown
+   debugNotify("card: {}, mouseButton: {}, keysDown: {}".format(card,mouseButton,keysDown))
+   mute()
+   if card.group != table: return
+   if len(keysDown) == 1 and (keysDown[0] == "LeftAlt" or keysDown[0] == "RightAlt"):
+       if card.model == "554d7494-0000-43fa-8a40-a960ec32a69e":
+           # Putting here try catch blok in case update for card selection is not in this OCTGN client version 
+           # TODO should be removed once the selection update is available
+           try: clearSelection()
+           except: debugNotify("::WARNING:: This version of OCTGN client does not support clearing of the selection!")
+           card.select()
+           ootDeeds = getCardsFromProperties(card, 'ootDeeds')
+           for deed in ootDeeds:
+               highlightLocation(deed, False)
+       else: 
+           highlightLocation(card)
+   elif len(keysDown) == 2 and ("LeftAlt" in keysDown or "RightAlt" in keysDown) and ("LeftShift" in keysDown or "RightShift" in keysDown):
+       if card == TownSquareToken or card.Type == 'Deed' or card.Type == 'Outfit':
+           showAdjacentLocations(card)
    
 def chooseSide(silent = False): # Called from many functions to check if the player has chosen a side for this game.
    mute()
@@ -93,10 +127,8 @@ def checkMovedCards(args):
          if card.Type == 'Outfit': 
             card.moveTo(me.hand)
             update()
-            setup(group = table)
-         
-         else: playcard(card, retainPos = True)
-         
+            setup(group = table)       
+         else: playcard(card, retainPos = True)   
       elif fromGroup == me.Deck and toGroup == table and card.owner == me: # If the player moves a card into the table from their Deck we assume they are revealing it as a pull or draw hand replacement.
          card.highlight = DrawHandColor
          notify("{} reveals a {} of {}".format(me,fullrank(card.Rank), fullsuit(card.Suit)))
@@ -109,11 +141,36 @@ def checkMovedCards(args):
                notify(":> {} was attached to {}".format(card,hostCard))
       elif fromGroup == table and toGroup != table and card.owner == me: # If the player dragged a card manually from the table to their discard pile...
          clearAttachLinks(card) # If the card was manually removed from play then we simply take care of any attachments
+         if card.type == 'Deed': clearDeedFromLocations(card)
+         if card.type == 'Dude': removeDudeFromLocation(card, updateDude = True)
          reCalculate(notification = 'silent')
       elif fromGroup == table and toGroup == table and card.controller == me: # If the player dragged a card manually to a different location on the table, we want to re-arrange the attachments
+         if card.Type == 'Dude':
+             for c in table:
+                 if c.Type == 'Deed' or c.Type == 'Outfit' or c == TownSquareToken:
+                     cardx, cardy = card.position
+                     if card.orientation == Rot90:
+                         finaly = cardy + card.height - (card.width / 2)
+                         finalx = cardx + (card.height / 2)
+                     else:
+                         finaly = cardy + (card.height / 2)
+                         finalx = cardx + (card.width / 2)
+                     cx, cy = c.position
+                     if finalx > cx and finalx < cx + c.width and finaly > cy and finaly < cy + c.height:
+                         if c == getDudeLocation(card): continue
+                         if confirm("Do you want to move {} to location {}?".format(card.name, c.name)):
+                             move(card, targetCards = [c])
+                             break
+                         else: card.moveToTable(args.xs[iter], args.ys[iter])
          if card.Type == 'Dude' or card.Type == 'Deed' or card.Type == 'Outfit': 
-            update()
-            orgAttachments(card) 
+             update()
+             orgAttachments(card) 
+
+def chkControllerChanged(args):
+    if args.card.Type == 'Deed' or args.card.Type == 'Dude':
+        if args.card.controller != args.card.owner: args.card.highlight = args.card.controller.color
+        else: args.card.highlight = None
+        reCalculate(notification = 'silent', checkDeeds = False)
 
 def chkMarkerChanges(args):
    mute()

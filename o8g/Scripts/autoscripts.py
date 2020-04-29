@@ -500,8 +500,9 @@ def TokensX(Autoscript, announceText, card, targetCards = None, notification = N
          #if counterIcon and counterIcon.group(1) == 'plusOne':             # See https://github.com/kellyelton/OCTGN/issues/446
          #   token = ("{}".format(action.group(3)),"aa261722-e12a-41d4-a475-3cc1043166a7")         
          #else:
-         rndGUID = rnd(1,8)
-         token = ("{}".format(action.group(3)),"00000000-0000-0000-0000-00000000000{}".format(rndGUID)) #This GUID is one of the builtin ones
+         #rndGUID = rnd(1,8)
+         # Do not use random .. in that case we cannot check if there is such marker
+         token = ("{}".format(action.group(3)),"00000000-0000-0000-0000-000000000002") #This GUID is one of the builtin ones
    count = num(action.group(2))
    multiplier = per(Autoscript, card, n, targetCards, notification)
    debugNotify("About to check type of module for {}".format(action.group(1)),3)
@@ -1113,7 +1114,7 @@ def ModifyStatus(Autoscript, announceText, card, targetCards = None, notificatio
    targetCardlist = '' # A text field holding which cards are going to get tokens.
    extraTXT = ''
    SentHomeCount = 0
-   action = re.search(r'\b(Boot|Unboot|SendHomeBooted|Discard|Ace|Return|Play|SendToBottom|SendToDraw|Takeover|Participate|Unparticipate|Callout|Move|Rehost)(Target|Host|Multi|Myself)[-to]*([A-Z][A-Za-z&_ ]+)?', Autoscript)
+   action = re.search(r'\b(Boot|Unboot|SendHome|SendHomeBooted|Discard|Ace|Return|Play|SendToBottom|SendToDraw|Takeover|Participate|Unparticipate|Callout|Move|Rehost)(Target|Host|Multi|Myself)[-to]*([A-Z][A-Za-z&_ ]+)?', Autoscript)
    if action.group(2) == 'Myself': 
       del targetCards[:] # Empty the list, just in case.
       targetCards.append(card)
@@ -1198,36 +1199,37 @@ def ModifyStatus(Autoscript, announceText, card, targetCards = None, notificatio
                notify(":::ERROR::: No valid moveTarget. Aborting!")
                return 'ABORT'
             if moveTarget.group(1) == 'Here': # If the moveTarget is "Here", then we try to figure out the current card's location and set it as the destination.
-               if card.Type == 'Dude' or card.Type == 'Deed' or card.Type == 'Outfit': possibleTargets = [card]
+               if card.Type == 'Dude': possibleTargets = [getDudeLocation(card)]
+               elif card.Type == 'Deed' or card.Type == 'Outfit': possibleTargets = [card]
                elif card.Type == 'Action': 
                   notify(":::ERROR::: Bad Script. Actions should never 'moveToHere'. Aborting!")
                   return 'ABORT'
                else:
-                  possibleTargets = [fetchHost(card)]
+                  host = fetchHost(card)
+                  if host:
+                      if host.Type == 'Dude': possibleTargets = [getDudeLocation(host)]
+                      elif host.Type == 'Deed' or host.Type == 'Outfit': possibleTargets = [host]
             else:
                possibleTargets = findTarget("DemiAutoTargeted-at{}-choose1".format(moveTarget.group(1)), card = targetCard,choiceTitle = "Choose which location you're moving to",ignoreCardList = [targetCard])
+               if len(possibleTargets) > 0 and (possibleTargets[0].Type == 'Goods' or possibleTargets[0].Type == 'Spell'): 
+                   host = fetchHost(possibleTargets[0])
+                   possibleTargets = []
+                   if host.Type == 'Deed' or host.Type == 'Outfit': possibleTargets = [host]
                if not len(possibleTargets): 
                   notify(":::ERROR::: No valid Target to move to found. Aborting!")
                   return 'ABORT'
-            x,y = possibleTargets[0].position
-            if targetCard.controller == me: targetCard.moveToTable(x + cardDistance(), y)
-            else: remoteCall(targetCard.controller,'moveCard',[targetCard, x + -cardDistance(), y])
-            orgAttachments(targetCard)
-            if possibleTargets[0].type == 'Deed': extraTXT = " to {}".format(possibleTargets[0])
-            else: extraTXT = " to {}'s location".format(possibleTargets[0])
-         elif action.group(1) == 'SendHomeBooted' and targetCard.group == table:
-            SentHomeCount += 1 # We increase that so that we place the send home card away from each other
-            for c in table: 
-               if c.Type == 'Outfit' and c.controller == targetCard.controller: 
-                  home = c
-                  break
-            x,y = home.position
-            if targetCard.controller == me: targetCard.moveToTable(x + cardDistance() * SentHomeCount, y)
-            else: 
-               remoteCall(targetCard.controller,'moveCard',[targetCard,x - cardDistance() * SentHomeCount, y])
+            allowBooted = True
+            if re.search(r'-bootedNotAllowed',Autoscript): allowBooted = False
+            if targetCard.controller == me: move(targetCard, targetCards = possibleTargets, needToBoot = False, allowBooted = allowBooted)
+            else: remoteCall(targetCard.controller,'move',[targetCard, 0, 0, False, possibleTargets, False, allowBooted])
+            extraTXT = " to {}".format(possibleTargets[0])
+         elif (action.group(1) == 'SendHomeBooted' or action.group(1) == 'SendHome') and targetCard.group == table:
+            shouldBoot = True
+            if action.group(1) == 'SendHome': shouldBoot = None
+            if re.search(r'-doNotBoot', Autoscript): shouldBoot = False
+            if targetCard.controller == me: moveHome(targetCard, shouldBoot)
+            else: remoteCall(targetCard.controller,'moveHome',[targetCard, shouldBoot])
             if targetCard.highlight == AttackColor or targetCard.highlight == DefendColor: leavePosse(targetCard)
-            if not re.search(r'-doNotBoot',Autoscript): boot(targetCard,silent = True, forced = 'boot')
-            orgAttachments(targetCard)
          elif action.group(1) == 'Takeover':
             targetPLs = ofwhom(Autoscript, card.controller)
             claimCard(targetCard,targetPLs[0])

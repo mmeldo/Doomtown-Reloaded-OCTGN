@@ -2099,7 +2099,7 @@ Flight of the Lepus
 -----
 3e1d8cfb-03b1-433a-a7ae-b12f124fb7ef
 -----
-onPlay:SendHomeBootedMulti-doNotBoot-Targeted-atDude-isParticipating-targetMine-onlyInShootouts-noTargetingError$$SendHomeBootedMulti-Targeted-atDude-isParticipating-targetOpponents-onlyInShootouts-noTargetingError||onPlay:SendHomeBootedMulti-doNotBoot-Targeted-atDude-onlyInNoon
+onPlay:SendHomeMulti-doNotBoot-Targeted-atDude-isParticipating-targetMine-onlyInShootouts-noTargetingError$$SendHomeBootedMulti-Targeted-atDude-isParticipating-targetOpponents-onlyInShootouts-noTargetingError||onPlay:SendHomeMulti-doNotBoot-Targeted-atDude-onlyInNoon
 +++++
 
 .....
@@ -2493,7 +2493,7 @@ Mazatl
 -----
 
 +++++
-GR0B0R0:MoveMyself-moveToDeed_or_Town Square_or_Outfit
+GR0B0R0:MoveMyself-moveToTotem
 .....
 Marcia Ridge
 -----
@@ -4573,7 +4573,7 @@ Absalom Hotchkiss
 -----
 
 +++++
-GR0B0R0:MoveTarget-Targeted-atDude-targetMine-moveToAbsalom Hotchkiss
+GR0B0R0:MoveTarget-Targeted-atDude-targetMine-moveToHere
 .....
 The Caretaker
 -----
@@ -4853,7 +4853,7 @@ Fears No Owls
 -----
 
 +++++
-GR0B0R0:MoveTarget-DemiAutoTargeted-atDude-targetMine-choose1-moveToDeed_or_Holy Groung
+GR0B0R0:MoveTarget-DemiAutoTargeted-atDude-targetMine-choose1-moveToTotem_or_Holy Ground
 .....
 Black Owl
 -----
@@ -5415,7 +5415,7 @@ ae22bba2-cf1e-4038-b7bb-1d3429c10024
 -----
 
 +++++
-GR0B1R0:Put1Rowdy Ike
+GR0B1R0:Put1Rowdy Ike-DemiAutoTargeted-atDeed-choose1
 
 
 .....
@@ -5818,7 +5818,7 @@ Father Diamond
 -----
 
 +++++
-GR0B0R0:Lose1Ghost Rock-isCost$$Gain1Ghost-onOpponent$$MoveTarget-Targeted-atDude-isMine-moveToOutfit$$MoveMyself-moveToDeed_or_Town Square_or_Outfit
+GR0B0R0:Lose1Ghost Rock-isCost$$Gain1Ghost-onOpponent$$SendHomeTarget-Targeted-atDude-isMine$$MoveMyself-moveToDeed_or_Town Square_or_Outfit
 
 .....
 Master Shou

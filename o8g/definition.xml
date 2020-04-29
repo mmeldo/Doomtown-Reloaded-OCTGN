@@ -4,7 +4,7 @@
       name="Doomtown-Reloaded" 
       id="b440d120-025a-4fbe-9f8d-3873acacb37b" 
       octgnVersion="3.2.75.0"
-      version="1.19.2.1" 
+      version="1.19.3.6"
       markersize="16"
       tags="western deadlands poker maneuvering multiplayer"
       description="Doomtown Rides again! The award winning game of poker gunfights and spatial maneuvering is back.
@@ -14,7 +14,7 @@
       &#xd;(This game definition contains significant automation of cards and common actions to reduce tediousness amd speed up play.)"
       setsurl="http://octgn.gamersjudgement.com/wordpress/doomtown/sets/"
       gameurl="http://octgn.gamersjudgement.com/wordpress/doomtown"
-      authors="Db0"
+      authors="Db0, trimm"
       iconurl="https://raw.github.com/db0/Doomtown-Reloaded-OCTGN/master/DTR_logo.jpg"
       scriptVersion="3.1.0.2"
       usetwosidedtable="False">
@@ -30,10 +30,12 @@
       <script src="Scripts/CardScripts.py" />
 	</scripts> 
    <events>
-	   <event name="OnTableLoaded" action="chkTwoSided" />
+	   <event name="OnTableLoaded" action="validateOnLoad" />
 	   <event name="OnDeckLoaded" action="checkDeck" />
 	   <event name="OnCardsMoved" action="checkMovedCards" />
 	   <event name="OnMarkerChanged" action="chkMarkerChanges" />
+	   <event name="OnCardClicked" action="chkClickedCard" />
+	   <event name="OnCardControllerChanged" action="chkControllerChanged" />
 	   <event name="OnPlayerGlobalVariableChanged" action="checkPlayerGlobalVars" />
    </events>
    <fonts>
@@ -49,7 +51,7 @@
      <globalvariable name="Shootout" value="False" />      
      <globalvariable name="Mark" value="None" />      
      <globalvariable name="Job Active" value="False" />      
-     <globalvariable name="Phase" value="0" />      
+     <globalvariable name="Phase" value="0" />
    </globalvariables>
 	<card back="Card/back.jpg" front="Card/front.jpg" width="90" height="126" cornerRadius="3">
 		<property name="Rank" type="String" hidden="False" ignoreText="False" textKind="Free"  />
@@ -70,21 +72,19 @@
       
       <size name="button" width="50" height="50" front="Card/button-back.jpg" back="Card/button-front.jpg"/>
       <size name="townsquare" width="444" height="250" front="Card/button-back.jpg" back="Card/button-front.jpg"/>
+	  <size name="outoftown" width="600" height="150" front="Card/button-back.jpg" back="Card/button-front.jpg"/>
 	</card>
 	<table name="Table" visibility="undefined" ordered="False" width="1250" height="750" background="Background/background.jpg" board="Background/board.png" backgroundStyle="uniformToFill">
-	   <cardaction menu="Smart Action (Callout/Posse/Boot...)" default="True" execute="defaultAction" />
-      <cardaction menu="Use Card Ability" default="False" shortcut="Ctrl+Z" execute="useAbility" />
-		<cardaction menu="Boot/Unboot" default="False" execute="boot" />
-		<cardaction menu="Inspect Card" shortcut="Ctrl+I" execute="inspectCard" />
+		<!--   *** Group actions ***  -->
 		<groupaction menu="Inspect Target Card" default="False" shortcut="Ctrl+I" execute="inspectTarget" />
 		<groupaction menu="Pay Upkeep / Receive Production." default="False" shortcut="Ctrl+U" execute="upkeep" />
 		<groupaction menu="Move to Next phase." default="False" shortcut="Ctrl+Enter" execute="nextPhase" />
 		<groupactions menu="Game...">
 			<groupaction menu="Setup starting cards &amp; hand" default="False" shortcut="Ctrl+Shift+S" execute="setup" />
-         <groupaction menu="Announce Mulligan Order" shortcut="Ctrl+Shift+M" default="False" execute="announceMulliganOrder" />
+			<groupaction menu="Announce Mulligan Order" shortcut="Ctrl+Shift+M" default="False" execute="announceMulliganOrder" />
 			<groupaction menu="Download Sets Card Images." shortcut="Ctrl+G" default="False" execute="download_o8c" />
-         <groupaction menu="Debug" default="False" shortcut="Ctrl+Shift+D" execute="TrialError" /> 
-         <groupaction menu="Reconnect" default="False" shortcut="Ctrl+Shift+Q" execute="reconnect" /> 
+			<groupaction menu="Debug" default="False" shortcut="Ctrl+Shift+D" execute="TrialError" />
+			<groupaction menu="Reconnect" default="False" shortcut="Ctrl+Shift+Q" execute="reconnect" />
 		</groupactions>
 		<groupactions menu="Phases...">
 			<groupaction menu="Jump to Gamblin' Phase." default="False" shortcut="F1" execute="goToGamblin" />
@@ -95,65 +95,76 @@
 		</groupactions>
 		<groupaction menu="Announce Pass." default="False" shortcut="Ctrl+Space" execute="Pass" />
 		<groupaction menu="Announce Ready." default="False" shortcut="Ctrl+R" execute="Ready" />
-		<groupaction menu="Spawn Gunslinger Token." default="False" execute="spawnGunslinger" />
-		<groupaction menu="Spawn Nature Token." default="False" execute="spawnNature" />
-		<groupaction menu="Spawn Ancestor Spirit Token." default="False" execute="spawnAncestor" />
+		<groupactions menu="Spawn...">
+			<groupaction menu="Spawn Gunslinger Token." default="False" execute="spawnGunslinger" />
+			<groupaction menu="Spawn Nature Token." default="False" execute="spawnNature" />
+			<groupaction menu="Spawn Ancestor Spirit Token." default="False" execute="spawnAncestor" />
+		</groupactions>
 		<groupaction menu="Show Hand Rank Guide" default="False" execute="HandRankGuide" />
-      <cardactions menu="Posse/Job/Callout reactions...">
-         <cardaction menu="Join Attacking/Job Posse." default="False" shortcut="Ctrl+Shift+J" execute="joinAttack" />
-         <cardaction menu="Accept Call Out." default="False" shortcut="F5" execute="defend" />
-         <cardaction menu="Refuse / Run Home Booted." default="False" shortcut="Esc" execute="refuseCallout" />
-         <cardaction menu="Join Defending Posse." default="False" shortcut="Ctrl+Shift+D" execute="joinDefence" />
-         <cardaction menu="Remove from Posse." default="False" shortcut="Ctrl+N" execute="leavePosse" />
-      </cardactions>
-      <cardaction menu="Announce move without booting." default="False" shortcut="Ctrl+M" execute="move" />
-      <cardaction menu="Announce move by booting." default="False" shortcut="Ctrl+B" execute="moveBoot" />
-      <cardaction menu="Call out target dude." default="False" shortcut="Ctrl+Shift+C" execute="callout" />
-      <cardaction menu="Trade Goods to target dude." default="False" shortcut="Ctrl+T" execute="tradeGoods" />
-      <cardaction menu="Mark as Harrowed." default="False" shortcut="Alt+H" execute="addHarrowedMarker" />
-		<cardactions menu="Deed-Specific">
-			<cardaction menu="Announce as target location." default="False" shortcut="Ctrl+L" execute="locationTarget" />
-			<cardaction menu="Take Over (Become the owner of the deed)." default="False" shortcut="Alt+D" execute="takeOver" />
-		</cardactions>
 		<groupactions menu="Targeted Actions...">
-         <cardaction menu="Ace Target card" default="False" shortcut="Alt+Ctrl+A" execute="aceTarget" />
-         <cardaction menu="Discard Target card" default="False" shortcut="Ctrl+Del" execute="discardTarget" />
-         <groupaction menu="Increase Target's Bounty." default="False" shortcut="Alt+Ctrl+W" execute="plusBounty" />
+			<groupaction menu="Ace Target card" default="False" shortcut="Alt+Ctrl+A" execute="aceTarget" />
+			<groupaction menu="Discard Target card" default="False" shortcut="Ctrl+Del" execute="discardTarget" />
+			<groupaction menu="Increase Target's Bounty." default="False" shortcut="Alt+Ctrl+W" execute="plusBounty" />
 			<groupaction menu="Increase Target's Production by 1." default="False" shortcut="Alt+Ctrl+P" execute="plusProd" />
-		</groupactions>      
-		<cardactions menu="Markers...">
-         <cardaction menu="Increase Wanted Bounty." default="False" shortcut="Alt+W" execute="plusBounty" />
-         <cardaction menu="Decrease Wanted Bounty." default="False" shortcut="Alt+Shift+W" execute="minusBounty" />
-			<cardaction menu="Permanently Increase Influence by 1" default="False" shortcut="Alt+Ctrl+I" execute="plusPermInfluence" />
-			<cardaction menu="Increase Influence by 1" default="False" shortcut="Alt+I" execute="plusInfluence" />
-			<cardaction menu="Decrease Influence by 1" default="False" shortcut="Alt+Shift+I" execute="minusInfluence" />
-			<cardaction menu="Permanently Increase Control by 1" default="False" shortcut="Alt+Ctrl+C" execute="plusPermControl" />
-			<cardaction menu="Increase Control by 1." default="False" shortcut="Alt+C" execute="plusControl" />
-			<cardaction menu="Decrease Control by 1." default="False" shortcut="Alt+Shift+C" execute="minusControl" />
-			<cardaction menu="Increase Production by 1." default="False" shortcut="Alt+P" execute="plusProd" />
-			<cardaction menu="Decrease Production by 1." default="False" shortcut="Alt+Shift+P" execute="minusProd" />
-			<cardaction menu="Increase Bullets by 1 until Sundown." default="False" shortcut="Alt+B" execute="plusBulletNoon" />
-			<cardaction menu="Increase Bullets by 1 for this Shootout." default="False" shortcut="Alt+N" execute="plusBulletShootout" />
-			<cardaction menu="Permanenty Increase Bullets by 1." default="False" shortcut="Alt+Ctrl+B" execute="plusPermBullet" />
-			<cardaction menu="Decrease Bullets by 1 until Sundown." default="False" shortcut="Alt+Shift+B" execute="minusBulletNoon" />
-			<cardaction menu="Decrease Bullets by 1 for this Shootout." default="False" shortcut="Alt+Shift+N" execute="minusBulletShootout" />
-			<cardaction menu="Add Ghost Rock." default="False" shortcut="Alt+G" execute="plusGR" />
-			<cardaction menu="Remove Ghost Rock." default="False" shortcut="Alt+Shift+G" execute="minusGR" />
-			<cardaction menu="Increase Value." default="False" shortcut="Alt+V" execute="plusValue" />
-			<cardaction menu="Decrease Value." default="False" shortcut="Alt+Shift+V" execute="minusValue" />
-			<cardaction menu="Set Value." default="False" shortcut="Alt+Ctrl+V" execute="setValue" />
-			<cardaction menu="Add Markers" default="False" shortcut="Alt+M" batchExecute="addMarker" />
-		</cardactions>
-      <groupactions menu="Manual Actions...">
-         <groupaction menu="Accept Call out/Defend Job." default="False" shortcut="F5" execute="defend" />
-         <groupaction menu="Refuse Call out." default="False" shortcut="Esc" execute="refuseCallout" />
-         <groupaction menu="Win Lowball" default="False" shortcut="Ctrl+W" execute="winLowball"/>
-		</groupactions>      
+		</groupactions>
+		<groupactions menu="Manual Actions...">
+			<groupaction menu="Accept Call out/Defend Job." default="False" shortcut="F5" execute="defend" />
+			<groupaction menu="Refuse Call out." default="False" shortcut="Esc" execute="refuseCallout" />
+			<groupaction menu="Win Lowball" default="False" shortcut="Ctrl+W" execute="winLowball"/>
+		</groupactions>
 		<groupaction menu="Re-Calculate your total influence &amp; control" default="False" shortcut="Ctrl+C" execute="reCalculate" />
+		<groupaction menu="Organize Street" default="False" shortcut="" execute="organizeStreet" />
 		<groupaction menu="Sundown Refresh (Unboot cards / Refill Hand)" default="False" shortcut="Ctrl+S" execute="NightfallUnboot" />
-		<cardaction menu="Mark card as unbootable" default="False" execute="doesNotUnboot" />
-		<cardaction menu="Ace card(s)" default="False" shortcut="Ctrl+A" execute="ace" />
-		<cardaction menu="Discard card(s)" default="False" shortcut="Del" execute="discard" />
+
+		<!--   *** Card actions ***  -->
+		<cardaction menu="Smart Action (Callout/Posse/Boot...)" default="True" execute="defaultAction" showIf="checkSmartAction" />
+		<cardaction menu="Use Card Ability" default="False" shortcut="Ctrl+Z" execute="useAbility" showIf="isPlayable" />
+		<cardaction menu="Boot/Unboot" default="False" execute="boot" showIf="isPlayable" />
+		<cardaction menu="Inspect Card" shortcut="Ctrl+I" execute="inspectCard" />
+		<cardaction menu="Organize Location" shortcut="Alt+L" execute="organizeLocation" showIf="isOrganizable"/>
+		<cardaction menu="Show/Hide Adjacent Locations" shortcut="" execute="showAdjacentLocations" />
+		<cardactions menu="Markers...">
+			<cardaction menu="Increase Wanted Bounty." default="False" shortcut="Alt+W" execute="plusBounty" showIf="areDudes" />
+			<cardaction menu="Decrease Wanted Bounty." default="False" shortcut="Alt+Shift+W" execute="minusBounty" showIf="areDudes" />
+			<cardaction menu="Permanently Increase Influence by 1" default="False" shortcut="Alt+Ctrl+I" execute="plusPermInfluence" showIf="areDudes" />
+			<cardaction menu="Increase Influence by 1" default="False" shortcut="Alt+I" execute="plusInfluence" showIf="areDudes" />
+			<cardaction menu="Decrease Influence by 1" default="False" shortcut="Alt+Shift+I" execute="minusInfluence" showIf="areDudes" />
+			<cardaction menu="Permanently Increase Control by 1" default="False" shortcut="Alt+Ctrl+C" execute="plusPermControl" showIf="isPlayable" />
+			<cardaction menu="Increase Control by 1." default="False" shortcut="Alt+C" execute="plusControl" showIf="isPlayable" />
+			<cardaction menu="Decrease Control by 1." default="False" shortcut="Alt+Shift+C" execute="minusControl" showIf="isPlayable" />
+			<cardaction menu="Increase Production by 1." default="False" shortcut="Alt+P" execute="plusProd" showIf="isPlayable" />
+			<cardaction menu="Decrease Production by 1." default="False" shortcut="Alt+Shift+P" execute="minusProd" showIf="isPlayable" />
+			<cardaction menu="Increase Bullets by 1 until Sundown." default="False" shortcut="Alt+B" execute="plusBulletNoon" showIf="areDudes" />
+			<cardaction menu="Increase Bullets by 1 for this Shootout." default="False" shortcut="Alt+N" execute="plusBulletShootout" showIf="areDudes" />
+			<cardaction menu="Permanenty Increase Bullets by 1." default="False" shortcut="Alt+Ctrl+B" execute="plusPermBullet" showIf="isPlayable" />
+			<cardaction menu="Decrease Bullets by 1 until Sundown." default="False" shortcut="Alt+Shift+B" execute="minusBulletNoon" showIf="isPlayable" />
+			<cardaction menu="Decrease Bullets by 1 for this Shootout." default="False" shortcut="Alt+Shift+N" execute="minusBulletShootout" showIf="isPlayable" />
+			<cardaction menu="Add Ghost Rock." default="False" shortcut="Alt+G" execute="plusGR" showIf="isPlayable" />
+			<cardaction menu="Remove Ghost Rock." default="False" shortcut="Alt+Shift+G" execute="minusGR" showIf="isPlayable" />
+			<cardaction menu="Increase Value." default="False" shortcut="Alt+V" execute="plusValue" showIf="isPlayable" />
+			<cardaction menu="Decrease Value." default="False" shortcut="Alt+Shift+V" execute="minusValue" showIf="isPlayable" />
+			<cardaction menu="Set Value." default="False" shortcut="Alt+Ctrl+V" execute="setValue" showIf="isPlayable" />
+			<cardaction menu="Add Markers" default="False" shortcut="Alt+M" batchExecute="addMarker" showIf="isPlayable" />
+		</cardactions>
+		<cardaction menu="Mark card as unbootable" default="False" execute="doesNotUnboot" showIf="isPlayable" />
+		<cardaction menu="Ace card(s)" default="False" shortcut="Ctrl+A" execute="ace" showIf="isPlayable" />
+		<cardaction menu="Discard card(s)" default="False" shortcut="Del" execute="discard" showIf="isPlayable" />		
+		<!--       Card actions Dudes             -->
+		<cardactions menu="Posse/Job/Callout reactions...">
+			<cardaction menu="Join Attacking/Job Posse." default="False" shortcut="Ctrl+Shift+J" execute="joinAttack" showIf="areDudes"/>
+			<cardaction menu="Accept Call Out." default="False" shortcut="F5" execute="defend" showIf="areDudes"/>
+			<cardaction menu="Refuse / Run Home Booted." default="False" shortcut="Esc" execute="refuseCallout" showIf="areDudes"/>
+			<cardaction menu="Join Defending Posse." default="False" shortcut="Ctrl+Shift+D" execute="joinDefence" showIf="areDudes"/>
+			<cardaction menu="Remove from Posse." default="False" shortcut="Ctrl+N" execute="leavePosse" showIf="areDudes" />
+		</cardactions>
+		<cardaction menu="Move to Location." default="False" shortcut="Ctrl+M" execute="move" showIf="areDudes" />
+		<cardaction menu="Move to Town Square." default="False" shortcut="Ctrl+B" execute="moveTownSquare" showIf="areDudes" />
+		<cardaction menu="Call out target dude." default="False" shortcut="Ctrl+Shift+C" execute="callout" showIf="areDudes" />
+		<cardaction menu="Trade Goods to target dude." default="False" shortcut="Ctrl+T" execute="tradeGoods" showIf="areDudes" />
+		<cardaction menu="Mark as Harrowed." default="False" shortcut="Alt+H" execute="addHarrowedMarker" showIf="areDudes" />
+		<!--       Card actions Deeds             -->
+		<cardaction menu="Take Over (Become the owner of the deed)." default="False" shortcut="Alt+D" execute="takeOver" showIf="areDeedsOrOutfit" />
+		<cardaction menu="Insert below target." default="False" shortcut="" execute="insertBelowTarget" showIf="areDeedsOrOutfit" />
 	</table>
 	<player summary="GR:{#GhostRock} | Inf:{#Influence} | CP:{#Control}">
       <globalvariable name="Hand Rank" value="N/A" /> 

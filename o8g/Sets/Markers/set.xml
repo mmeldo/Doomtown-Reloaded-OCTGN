@@ -72,7 +72,7 @@
       <property name="Outfit" value="" />
       <property name="Text" value="You do not have to boot when moving from the Town Square to an adjacent location, except your home." />
       <property name="Instructions" value="" />
-   </card>
+   </card>  
    <card id="851b726b-3b0c-43df-bbd7-710b5a0ffbf6" name="Hand Ranks Guide">
       <property name="Rank" value="" />
       <property name="Suit" value="" />
@@ -121,5 +121,21 @@
       <property name="Text" value="" />
       <property name="Instructions" value="" />
    </card>
+   <card id="554d7494-0000-43fa-8a40-a960ec32a69e" name="Out of Town" size="outoftown">
+      <property name="Rank" value="" />
+      <property name="Suit" value="" />
+      <property name="Type" value="Token" />
+      <property name="Cost" value="" />
+      <property name="Upkeep" value="" />
+      <property name="Production" value="" />
+      <property name="Bullets" value="" />
+      <property name="Bullet Bonus" value="" />
+      <property name="Draw Type" value="" />
+      <property name="Influence" value="" />
+      <property name="Control" value="" />
+      <property name="Outfit" value="" />
+      <property name="Text" value="This area holds Out of Town deeds. You can select all Out of Town deeds with their dudes by Alt + Click." />
+      <property name="Instructions" value="" />
+   </card>    
   </cards>
 </set>

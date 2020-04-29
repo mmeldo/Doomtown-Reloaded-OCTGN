@@ -25,6 +25,8 @@ posSideCount = 0 # Used to automatically place in-town deeds
 negSideCount = 0 # Same as above
 handsize = 5 # Used when automatically refilling your hand
 OutfitCard = None
+OutOfTownToken = None
+TownSquareToken = None
 PlayerColor = "#" # Variable with the player's unique colour.
 
 harrowedDudes = {} # Which dudes are harrowed
@@ -134,11 +136,7 @@ def completeJob():
       else: jobPosse = [c for c in table if c.highlight == InitiateColor]
       iter = 0
       for card in jobPosse: # at the end of jobs, we send the leader's posse home booted
-         card.orientation = Rot90
-         if playeraxis == Xaxis: card.moveToTable(homeDistance(card) + (playerside * cwidth(card,-4)) + (iter * cardDistance()), 0)
-         elif playeraxis == Yaxis: card.moveToTable(0,homeDistance(card) + (playerside * cheight(card,-4)) + (iter * cardDistance()))
-         orgAttachments(card)            
-         iter += 1
+         moveHome(card, True)
          card.markers[mdict['BulletShootoutPlus']] = 0 # We need to clear these to prevent job effects from taking them into account. E.g. Desolation row.
          card.markers[mdict['BulletShootoutMinus']] = 0 
          card.markers[mdict['ValueShootoutPlus']] = 0 
@@ -170,7 +168,7 @@ def defaultAction(card, x = 0, y = 0):
    leadingPosse = [c for c in table if c.highlight == InitiateColor]
    if card.model == 'c421c742-c920-4cad-9f72-032c3378191e': # If the player has double-clicked the lowball card, we assume they are the ones that won lowball.
       if confirm("Did you win this round's lowball?"): winLowball()
-   if card.model == 'ac0b08ed-8f78-4cff-a63b-fa1010878af9': # If the player has double-clicked the Town Square card, we assume it's a mistake
+   if card.type == 'Token': # If the player has double-clicked the Town Square card or other token, we assume it's a mistake
       pass
    elif card.highlight == DrawHandColor: 
       card.highlight = None
@@ -201,7 +199,7 @@ def defaultAction(card, x = 0, y = 0):
 def setup(group,x=0,y=0):
 # This function is usually the first one the player does. It will setup their home and cards on the left or right of the playfield 
 # It will also setup the starting Ghost Rock for the player according to the cards they bring in play, as well as their influence and CP.
-   global OutfitCard # Import some necessary variables we're using around the game.
+   global OutfitCard, OutOfTownToken, TownSquareToken # Import some necessary variables we're using around the game.
    debugNotify(">>> setup()")
    mute()
    if me.getGlobalVariable('playerOutfit') != 'None' and not confirm("Are you sure you want to setup for a new game? (This action should only be done after a table reset)"): return # We make sure the player intended to start a new game
@@ -212,16 +210,28 @@ def setup(group,x=0,y=0):
          else: break
    chooseSide() # The classic place where the players choose their side.
    me.Deck.shuffle() # First let's shuffle our deck now that we have the chance.
-   if len([c for c in table if c.name == 'Town Square']) == 0: # Only create a Town Square token if there's not one in the table until now
-      TSL = table.create("ac0b08ed-8f78-4cff-a63b-fa1010878af9",-170,-50, 1, True) # Create a Town Square card in the middle of the table.
-      TSL.anchor = True
-      #TSR = table.create("72f6c0a9-e4f6-4b17-9777-185f88187ad7",-1,0, 1, True) # Create a Right Town Square card in the middle of the table.
+   tstList = [c for c in table if c.name == 'Town Square']
+   if len(tstList) == 0: # Only create a Town Square token if there's not one in the table until now
+      TownSquareToken = table.create("ac0b08ed-8f78-4cff-a63b-fa1010878af9",-170,-50, 1, True) # Create a Town Square card in the middle of the table.
+      TownSquareToken.anchor = True
+   else: TownSquareToken = tstList[0]
    for card in me.hand: # For every card in the player's hand... (which should be an outfit and a bunch of dudes usually)
       if card.Type == "Outfit" :  # First we do a loop to find an play the outfit, (in case the player managed to mess the order somehow)
          placeCard(card,'SetupHome')
+         card.filter = "#22{}".format(me.color[1:])
          me.GhostRock += num(card.properties['Cost']) # Then we add its starting Ghost Rock to the bank
-         me.setGlobalVariable('playerOutfit',card.Outfit)
+         me.setGlobalVariable('playerOutfit',card._id)
          OutfitCard = card # We make a note of the outfit the player is playing today (used later for upkeep)
+         outfitX, outfitY = OutfitCard.position
+         if playeraxis == Xaxis:
+            if playerside == 1:
+                ootX = outfitX
+                ootY = outfitY - 400
+            else: 
+                ootX = outfitX - 600 + cwidth(OutfitCard)
+                ootY = outfitY + 400 + cheight(OutfitCard)
+         OutOfTownToken = table.create("554d7494-0000-43fa-8a40-a960ec32a69e", ootX, ootY, 1, False) # Create a Out of town token on top of each player
+         OutOfTownToken.anchor = False  
          concat_home = '{}'.format(card) # And we save the name.
    if me.getGlobalVariable('playerOutfit') == 'None': # If we haven't found an outfit in the player's hand, we assume they made some mistake and break out.
       whisper(":::ERROR:::  You need to have an outfit card in your hand before you try to setup the game. Please reset the board, load a valid deck and try again.")
@@ -274,6 +284,10 @@ def setup(group,x=0,y=0):
             payCost(card.Cost) # Pay the cost of the dude
             attachCard(card,hostCard)
             concat_other = ', attaches {} to {}'.format(card,hostCard) # And we create a special concat string to use later for the notification.
+         elif card.Type == "Deed":
+            placeCard(card,'PlaceDeed')
+            payCost(card.Cost) # We pay the cost 
+            concat_other = ', has setup Core deed {}'.format(card)
          else:
             placeCard(card,'SetupOther')
             payCost(card.Cost) # We pay the cost 
@@ -281,7 +295,7 @@ def setup(group,x=0,y=0):
    reCalculate(notification = 'silent')
    if dudecount == 0: concat_dudes = 'and has no starting dudes. ' # In case the player has no starting dudes, we change the notification a bit.
    refill() # We fill the player's play hand to their hand size (usually 5)
-   notify("{} is playing {} {} {}Starting Ghost Rock is {} and starting influence is {}.".format(me, concat_home, concat_other, concat_dudes, me.GhostRock, me.Influence))  
+   notify("{} is playing {} {} {} Starting Ghost Rock is {} and starting influence is {}.".format(me, concat_home, concat_other, concat_dudes, me.GhostRock, me.Influence))  
    # And finally we inform everyone of the player's outfit, starting dudes & other cards, starting ghost rock and influence.
    
 def Pass(group, x = 0, y = 0): # Player says pass. A very common action.
@@ -353,6 +367,8 @@ def ace(card, x = 0, y = 0, silent = False): # Ace a card. I.e. kill it and send
       if card.highlight != DummyColor: notify("{} has aced {}.".format(me, card))
       else: notify("{} has cleared the resident effect of {}.".format(me, card))
    clearAttachLinks(card,'Ace')
+   if card.Type == 'Dude': removeDudeFromLocation(card, updateDude = True)
+   if card.Type == 'Deed': clearDeedFromLocations(card)
    card.moveTo(cardowner.piles['Boot Hill']) # Cards aced need to be sent to their owner's boot hill
    reCalculate(notification = 'silent')
    debugNotify("<<< ace()") #Debug
@@ -371,7 +387,7 @@ def aceTarget(table = table, x = 0, y = 0, silent = False, targetCards = None):
       else: ace(card, silent = silent)
       
 def discard(card, x = 0, y = 0, silent = False): # Discard a card.
-   if card.model == 'ac0b08ed-8f78-4cff-a63b-fa1010878af9': return
+   if card.type == 'Token': return
    if card.controller != me: 
       remoteCall(card.controller,"discard",[card])
       return
@@ -385,6 +401,8 @@ def discard(card, x = 0, y = 0, silent = False): # Discard a card.
          if card.highlight != DummyColor: notify("{} has discarded {}.".format(me, card))
          else: notify("{} has cleared the resident effect of {}.".format(me, card))
    clearAttachLinks(card,'Discard')
+   if card.Type == 'Dude': removeDudeFromLocation(card, updateDude = True)
+   if card.Type == 'Deed': clearDeedFromLocations(card)
    reCalculate(notification = 'silent')
    if (card.highlight == EventColor and re.search('Ace this card', card.Text)) or (card.Type == 'Joker' and card.highlight == DrawHandColor and card.model != 'e2e638ff-27cb-4704-b324-bd318dc9170a' and card.model != '57039087-1868-4430-a94b-fb7eedeb04a5'): # If the card being discarded was an event in a lowball hand or a joker in a draw hand
       if len(card.markers):
@@ -443,12 +461,12 @@ def upkeep(group = table, x = 0, y = 0): # Automatically receive production and 
       gr = num(card.Production) + fetchCustomProduction(card) - cardUpkeep + card.markers[mdict['ProdPlus']] - card.markers[mdict['ProdMinus']]
       # Grab its production value (usually 0 for most non-deeds) then 
       # add the amount of any +production markers you have on the card and remove the amount of any -production markers you have on the card.
-      if (card.Outfit != me.getGlobalVariable('playerOutfit') and # If a non-drifter dude is not from the player's outfit, 
+      if (card.Outfit != OutfitCard.Outfit and # If a non-drifter dude is not from the player's outfit, 
          card.Outfit != 'Drifter' and 
          card.Outfit != 'DR' and  # they need to play an extra GR upkeep per influence.
-         card.Type == 'Dude' and
-         num(card.Influence) + card.markers[mdict['InfluencePlus']] - card.markers[mdict['InfluenceMinus']] > 0): 
-         gr -= (num(card.Influence) + card.markers[mdict['InfluencePlus']] - card.markers[mdict['InfluenceMinus']])
+         card.Type == 'Dude'):
+         cardInfluence = compileCardStat(card, stat = 'Influence')
+         if cardInfluence > 0: gr -= cardInfluence
       if gr > 0: # If we still have any production left after removing jailbroken penalties, 
                  # then we increment the total production we have for this turn 
                  # and add the name of the card to our concatenated string of all the cards that produced this turn
@@ -568,11 +586,12 @@ def inspectTarget(table, x = 0, y = 0): # This function shows the player the car
          if c.Text == '': information("{} has no text".format(c.name))
          else: information("{}".format(c.Text))
    
-def reCalculate(group = table, x = 0, y = 0, notification = 'loud', remote = False): 
+def reCalculate(group = table, x = 0, y = 0, notification = 'loud', remote = False, checkDeeds = True): 
 # This function will calculate the amount of influence and Control you have on the table and update your counters.
    mute()
-   if not remote and notification == 'loud': 
-      for player in fetchAllOpponents(): remoteCall(player,'reCalculate',[table,0,0,notification,True])
+   if not remote: 
+      if checkDeeds: checkDeedsControl()
+      for player in fetchAllOpponents(): remoteCall(player,'reCalculate',[table,0,0,notification,True,False])
    influence = 0 
    control = 0
    count = 0
@@ -935,15 +954,27 @@ def takeOver(card, x = 0, y = 0):
       card.highlight = me.color
       notify("Ownership of {} has passed to {}".format(card, me))
          
-def locationTarget(card, x = 0, y = 0): # A function to let others know where you are moving. 
-                                        # Unfortunately one cannot initiate card actions on cards they do not control.
-                                        # Which prevents us from doing much with this. 
-                                        # At the future I'd like to automatically read the locations coordinates and move dudes to an appropriate.
-                                        # location, but this requires that one can init actions on cards they do not control.
-   mute()
-   if card.Type == "Deed" or card.Type == "Outfit":
-      notify("{} announces {} as the location.".format(me, card))
-      card.target
+def insertBelowTarget(card, x = 0, y = 0):
+   targetCards = [c for c in table if c.targetedBy and c.targetedBy == me]
+   if not targetCards: return
+   inserted = False
+   deedsAbove = getCardsFromProperties(OutfitCard, 'Above')
+   if deedsAbove and targetCards[0] in deedsAbove: 
+       insertIdToCardProperty(OutfitCard, targetCards[0]._id, card._id, 'Above')
+       inserted = True
+   else:
+       deedsBelow = getCardsFromProperties(OutfitCard, 'Below')
+       if targetCards[0] in deedsBelow:
+            insertIdToCardProperty(OutfitCard, targetCards[0]._id, card._id, 'Below') 
+            inserted = True
+   if inserted:
+       if confirm("Deed {} was inserted below {}. Do you want to reorganize street?".format(card.name, targetCards[0].name)):
+           organizeStreet(table)   
+       targetCards[0].target(False)
+
+def checkDeedsControl():
+    for c in table:
+        if c.Type == 'Deed': determineControl(c)
         
 #---------------------------------------------------------------------------
 # Dude actions
@@ -1015,17 +1046,52 @@ def callout(card, x = 0, y = 0, silent = False, targetDudes = None): # Notifies 
    else: whisper(":::ERROR::: You can only initiate a call-out with a dude")
    return successCallout
 
-def move(card, x = 0, y = 0): # Notifies that this dude is moving without booting
+def move(card, x = 0, y = 0, silent = False, targetCards = None, needToBoot = None, allowBooted = False): # Notifies that this dude is moving without booting
    mute()
+   if not card: return
    if card.Type == "Dude":
-      notify("{} is moving without booting.".format(card))
-      if card.orientation == Rot90: notify("(Remember that you need a card effect to move while booted)".format(card))
+      origin = None;
+      if card.properties['Occupying'] and card.properties['Occupying'] != "": origin = Card(eval(card.properties['Occupying']))
+      if not targetCards: targetCards = [c for c in table if c.targetedBy and c.targetedBy == me]
+      if not targetCards:
+          targetCards = findTarget("DemiAutoTargeted-atDeed_or_Town Square_or_Outfit-choose1", choiceTitle = "Where do you want to move?", ignoreCardList = [origin])
+          if not targetCards: return
+      destination = targetCards[0]
+      if origin == destination: 
+          if needToBoot: card.orientation = Rot90
+          return
+      if needToBoot == None:
+          if not allowBooted and card.orientation == Rot90 and not confirm("{} is already booted. Proceed anyway?".format(card.name)): return
+          if destination.name == 'Out of Town' and destination.Type == 'Token': return
+          if not areLocationsAdjacent(origin, destination):
+              needToBoot = True
+          else:
+              if origin == TownSquareToken:
+                  if destination == OutfitCard:
+                      needToBoot = True
+              elif origin != OutfitCard: needToBoot = True
+      if needToBoot: 
+          notify("{} is booting to move to {}.".format(card,destination))
+          card.orientation = Rot90
+      else:
+          notify("{} is moving to {} without booting.".format(card,destination))
+      removeDudeFromLocation(card, origin)
+      dudecount = len(getCardsControlledByMe(destination, 'Occupants'))
+      placeCard(card, 'MoveDude', dudecount, destination)
+      orgAttachments(card)
+      addDudeToLocation(destination, card)
+      determineControl(origin)
+      determineControl(destination)
       
-def moveBoot(card, x = 0, y = 0): # Notifies that this dude is moving by booting
+def moveTownSquare(card, x = 0, y = 0): # Notifies that this dude is moving by booting
    mute()
-   if card.orientation == Rot0 and card.Type == "Dude":
-         notify("{} is booting to move.".format(card))
-         card.orientation = Rot90
+   townSquareList = [TownSquareToken]
+   move(card, targetCards = townSquareList)
+
+def moveHome(card, booted = False):
+   mute()
+   dudeHomeCardList = [Card(eval(card.controller.getGlobalVariable('playerOutfit')))]
+   move(card, targetCards = dudeHomeCardList, needToBoot = booted)
 
 def tradeGoods(card, x = 0, y = 0): 
    mute()
@@ -1098,9 +1164,11 @@ def defend(card = None, x = 0, y = 0): # Same as the defending posse but with di
       if card and card != table : cardTXT = card # If the player double clicked a card to accept, or there's a dude as a mark, we announce that it's the one defending
       else: cardTXT = me # Otherwise we announce it's the player defending.
       if getGlobalVariable('Job Active') != 'False':
-         notify("{} is defending against this job. A shootout is breaking out!".format(cardTXT))
+         notify("{} is defending against this job. A shootout is breaking out! Do not forget to move dudes in your posse to Leader's location".format(cardTXT))
       else:
-         notify("{} has accepted the call out. A shootout is breaking out!".format(cardTXT))
+         notify("{} has accepted the call out. A shootout is breaking out! Do not forget to move dudes in your posse to Leader's location".format(cardTXT))
+      for player in getPlayers():
+         remoteCall(player, "notifyBar", ["#B1560F", "Shootout starts! Do not forget to move dudes in your posse to Leader's location |"])
       if card and card != table : # If the player just pressed F5 to accept, but the mark is not a dude, then we don't highlight anything.
          joinDefence(card, silent = True)
       goToShootout(silent = True)
@@ -1116,10 +1184,7 @@ def refuseCallout(focus = None, x = 0, y = 0): # Boots the dude and moves him to
          return # If the dude is booted, they cannot refuse without a card effect
       else:
          notify("{} has turned yella and run home to hide.".format(chickenDude))
-         chickenDude.orientation = Rot90 # If they refure boot them...
-         if playeraxis == Xaxis: chickenDude.moveToTable(homeDistance(chickenDude) + (playerside * cwidth(chickenDude,-4)), 0) # ...and move them where we expect the player's home to be.
-         elif playeraxis == Yaxis: chickenDude.moveToTable(0,homeDistance(chickenDude) + (playerside * cheight(chickenDude,-4)))
-         orgAttachments(chickenDude)
+         moveHome(chickenDude, True)
          setGlobalVariable('Mark','None') # Finally we clear the Called Out variable
          clearShootout()
 
@@ -1127,10 +1192,7 @@ def runAway(card, x = 0, y = 0): # Same as above pretty much but also clears the
    if card.Type == "Dude" : 
       mute ()
       notify("{} is running away from the shootout.".format(card))
-      card.orientation = Rot90
-      if playeraxis == Xaxis: card.moveToTable(homeDistance(card) + (playerside * cwidth(card,-4)), 0)
-      elif playeraxis == Yaxis: card.moveToTable(0,homeDistance(card) + (playerside * cheight(card,-4)))
-      orgAttachments(card)
+      moveHome(card, True)
       card.highlight = None
       
 def leavePosse(card, x = 0, y = 0): # Same as above pretty much but also clears the shootout highlights.
@@ -1216,6 +1278,9 @@ def playcard(card,retainPos = False,costReduction = 0, preHost = None, scripted 
    reduction = reduceCost(card, action = 'PLAY', fullCost = num(card.Cost))
    if card.Type == "Dude":
       if not scripted: chkHighNoon()
+      if getCardsFromProperties(card, 'Occupying') == []: 
+          if retainPos and confirm("Do you want to hire {}?".format(card.name)):
+              retainPos = False
       if chkGadgetCraft(card):
          if not retainPos: 
             if OutfitCard.Name == 'Den of Thieves' and re.search(r'Grifter', card.Keywords):
@@ -1223,16 +1288,25 @@ def playcard(card,retainPos = False,costReduction = 0, preHost = None, scripted 
                notify("{} reduces cost of {} by 1.".format(OutfitCard, card))
             if payCost(num(card.Cost) - costReduction - reduction, loud) == 'ABORT' : return # Check if the player can pay the cost. If not, abort.
             placeCard(card,'HireDude')
-         notify("{} has hired {}.".format(me, card)) # Inform of the new hire      
+         notify("{} has hired {}.".format(me, card)) # Inform of the new hire    
+      if getCardsFromProperties(card, 'Occupying') == []:
+         placeLocations = findTarget("DemiAutoTargeted-atDeed_or_Town Square_or_Outfit-choose1", choiceTitle = "Where do you want to place the dude?")
+         if not placeLocations: addDudeToLocation(TownSquareToken, card)
+         else: addDudeToLocation(placeLocations[0], card)
    elif card.Type == "Legend":
       hostCard=findHost(card)
       attachCard(card, hostCard)
    elif card.Type == "Deed" :
       if not scripted: chkHighNoon()
+      if getDeedPositionOnStreet(card) == None:
+         ootDeeds = getCardsFromProperties(OutOfTownToken, 'ootDeeds')
+         if not card in ootDeeds: 
+             if retainPos and confirm("Do you want to acquire {}?".format(card.name)):
+                  retainPos = False             
       if chkGadgetCraft(card):
          if not retainPos: 
             if payCost(num(card.Cost) - costReduction - reduction, loud) == 'ABORT' : return # Check if the player can pay the cost. If not, abort.
-            placeCard(card,'BuyDeed')
+            placeCard(card,'PlaceDeed')
          notify("{} has acquired the deed to {}.".format(me, card))
    elif card.Type == "Goods" or card.Type == "Spell" or (card.Type == "Action" and re.search(r'Condition',card.Keywords) and not re.search(r'(Noon [jJ]ob:|Noon [jJ]ob, Boot:|Noon, [jJ]ob:)',card.Text)): # If we're bringing in any goods, just remind the player to pull for gadgets.
       if card.Type != "Action" and not scripted: chkHighNoon()
@@ -1678,4 +1752,41 @@ def winLowball(group = table, x = 0,y = 0, winner = me): # A function which sets
          card.highlight = None
    if getGlobalVariable('Phase') == '1': goToUpkeep()
    debugNotify("<<< winLowball()")
-      
+
+def organizeStreet(group, x = 0,y = 0):
+    global negSideCount, posSideCount
+    negSideCount = 0
+    posSideCount = 0
+    organizeLocation(OutfitCard)
+    for deed in getCardsFromProperties(OutfitCard, 'Above'):
+        placeCard(deed, 'OrganizeDeed')
+    for deed in getCardsFromProperties(OutfitCard, 'Below'):
+        placeCard(deed, 'OrganizeDeed')
+
+def organizeLocation(card, x = 0, y = 0):
+    if card == TownSquareToken: return
+    if card == OutOfTownToken:
+        for deed in getCardsFromProperties(card, 'ootDeeds'):
+            placeCard(deed, 'OrganizeDeed')
+    for player in getPlayers():
+        remoteCall(player, 'organizeLocationByPlayer',[card])
+
+def organizeLocationByPlayer(card):
+        count = 0
+        dudesHere = getCardsControlledByMe(card, 'Occupants')
+        for dude in dudesHere:
+            placeCard(dude, 'MoveDude', count, card)
+            count += 1
+
+def showAdjacentLocations(card, x = 0, y = 0):
+    locations = []
+    if card.properties['adjacentShown'] == 'True': 
+        card.arrow(card, False)
+        card.properties['adjacentShown'] = 'False'
+        return
+    for cardOnTable in table:
+        if cardOnTable.type == 'Deed' or cardOnTable.type == 'Outfit' or cardOnTable == TownSquareToken:
+            if areLocationsAdjacent(card, cardOnTable):
+                debugNotify(">> Adjacent")
+                card.properties['adjacentShown'] = 'True'
+                card.arrow(cardOnTable)

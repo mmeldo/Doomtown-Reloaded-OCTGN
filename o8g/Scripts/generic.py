@@ -551,27 +551,19 @@ def getActivePlayers():
    return [player for player in getPlayers() if len(player.Deck) > 0 or len(player.piles['Discard Pile']) > 0 or len(player.hand) > 0]
    
 def claimCard(card, player = me): # Requests the controller of a card to pass control to another player (script runner by default)
-   if card.controller != player: # If the card is already ours, we do not need to do anything.
+   debugNotify("Player {}({}) is claiming card {} from controller {}({}).".format(player, player._id, card, card.controller, card.controller._id)) 
+   if card.controller == me:
+       giveCard(card, player)
+   elif card.controller != player: # If the card is already ours, we do not need to do anything.
       prevController = card.controller
-      prevGroup = card.group
       remoteCall(card.controller,'giveCard', [card,player])
-       # We make sure all network calls have completed before continuing.
-      count = 0
-      while card.controller != player: 
-         rnd(1,10)
-         update()
-         debugNotify("iteration {}. Controller is {} and it should be {}".format(count,card.controller, player), 4)
-         count += 1
-         if count >= 10:
-            debugNotify(":::ERROR::: claimCard() failed. Card controller still {} instead of {}. Giving up".format(card.controller.name,player)) # This always seems to fail (https://github.com/kellyelton/OCTGN/issues/416#issuecomment-31157031)
-            return
-      #if prevGroup == table: autoscriptOtherPlayers('{}:CardTakeover:{}'.format(player,prevController),card)
+      notify("Controller of card {} has been changed from {} to {}.".format(card, prevController, player))
    
 def giveCard(card,player,pile = None): # Passes control of a card to a given player.
    mute()
    if card.group == table: 
       prevController = card.controller
-      card.setController(player)
+      card.controller = player
       autoscriptOtherPlayers('{}:CardTakeover:{}'.format(player,prevController),card)
    else: 
       if pile: card.moveTo(pile) # If we pass a pile variable, it means we likely want to return the card to its original location (say after an aborted capture)
@@ -596,7 +588,7 @@ def grabPileControl(pile, player = me):
 def passPileControl(pile,player):
    mute()
    update()
-   pile.setController(player)
+   pile.controller = player
    
 def fetchHost(card):
    host = None
@@ -604,6 +596,60 @@ def fetchHost(card):
    hostID = hostCards.get(card._id,None)
    if hostID: host = Card(hostID) 
    return host
+
+def getCardsFromProperties(card, propertyName):
+   propertyCardsStr = card.properties[propertyName]
+   debugNotify("{} property for card {}: {}".format(propertyName, card, propertyCardsStr))
+   if propertyCardsStr == None or propertyCardsStr == '': return []
+   cardIds = propertyCardsStr.split('|')
+   resultCards = [Card(eval(cardId)) for cardId in cardIds]   
+   return resultCards
+
+def getCardsControlledByMe(card, propertyName):
+   cards = getCardsFromProperties(card, propertyName)
+   mineCards = [card for card in cards if card.controller == me]
+   return mineCards
+
+def addIdToCardProperty(card, cardId, propertyName):
+   propertyStr = card.properties[propertyName]
+   if propertyStr == None or propertyStr == '':
+      card.properties[propertyName] = str(cardId)
+      return
+   card.properties[propertyName] = "{}|{}".format(propertyStr, cardId)
+   debugNotify("Card id {} added to property {} of card {}".format(cardId, propertyName, card))
+
+def numOfCardIdsInProperty(card, propertyName):
+   propertyStr = card.properties[propertyName]
+   cardIds = propertyStr.split('|')
+   return len(cardIds)
+
+def removeIdFromCardProperty(card, cardId, propertyName):
+   propertyStr = card.properties[propertyName]
+   cardIds = propertyStr.split('|')
+   if str(cardId) in cardIds: cardIds.remove(str(cardId))
+   else: return
+   if len(cardIds) == 0:
+       card.properties[propertyName] = ""
+       return
+   newPropertyStr = cardIds[0]
+   for newCardId in cardIds[1:]:
+       newPropertyStr += "|{}".format(newCardId)
+   card.properties[propertyName] = newPropertyStr
+   debugNotify("Card id {} removed from property {} of card {}".format(cardId, propertyName, card))
+
+def insertIdToCardProperty(card, cardId, cardIdToInsert, propertyName):
+   propertyStr = card.properties[propertyName]
+   cardIds = propertyStr.split('|')
+   if str(cardId) in cardIds: 
+       index = cardIds.index(str(cardId))
+       if index == len(cardIds) - 1: cardIds.append(str(cardIdToInsert))
+       else: cardIds.insert(index + 1, str(cardIdToInsert))
+   else: return
+   newPropertyStr = cardIds[0]
+   for newCardId in cardIds[1:]:
+       newPropertyStr += "|{}".format(newCardId)
+   card.properties[propertyName] = newPropertyStr
+   debugNotify("Card id {} inserted after id {} in property {} of card {}".format(cardIdToInsert, cardId, propertyName, card))
          
 #---------------------------------------------------------------------------
 # Card Placement functions
@@ -627,36 +673,75 @@ def cheight(card = None, divisor = 10):
    else: offset = CardHeight / divisor
    return (CardHeight + offset)
 
-def placeCard(card,type = None, dudecount = 0):
+def placeCard(card,type = None, dudecount = 0, destination = None):
 # This function automatically places a card on the table according to what type of card is being placed
 # It is called by one of the various custom types and each type has a different value depending on if the player is on the X or Y axis.
-   global strikeCount, posSideCount, negSideCount
+   global strikeCount, posSideCount, negSideCount, OutOfTownToken
    if playeraxis == Xaxis:
       if type == 'HireDude' or (type == None and card.Type == 'Dude'):
+         # TODO M2 check other dudes that can go to other locations (or use script?)
+         dudecount = len(getDudesAtLocation(OutfitCard))
          # Move the dude next to where we expect the player's home card to be.
-         card.moveToTable(homeDistance(card) + (playerside * cwidth(card,-4)), 0)
-      if type == 'BuyDeed' or (type == None and card.Type == 'Deed'):
+         card.moveToTable(homeDistance(card) + cardDistance(card) + playerside * (dudecount * cwidth(card)), 0)
+         addDudeToLocation(OutfitCard, card)
+      if type == 'PlaceDeed' or type == 'OrganizeDeed' or (type == None and card.Type == 'Deed'):
          if re.search('Out of Town', card.Keywords): # Check if we're bringing out an out of town deed
-            card.moveToTable(homeDistance(card) + 2 * cardDistance(card), (-1 * cheight(card,4) * 2) + strikeCount * cheight(card))
-            strikeCount += 1 # Increment this counter. Extra out of town deeds will be placed below the previous ones.
+            ootDeeds = getCardsFromProperties(OutOfTownToken, 'ootDeeds')
+            if ootDeeds: numOotDeeds = len(ootDeeds)
+            else: numOotDeeds = 0
+            if not card in ootDeeds: addIdToCardProperty(OutOfTownToken, card._id, 'ootDeeds')
+            ootX, ootY = OutOfTownToken.position
+            card.moveToTable(ootX + 10 + (5 + cwidth(card) * numOotDeeds), ootY + 10 * playerside)
          else:
-            if confirm("Do you want to place this deed on the bottom side of your street?"): # If it's a city deed, then ask the player where they want it.
+            if type == 'OrganizeDeed':
+                if findDeedOnStreet(card, 'Above') != None: choice = 1
+                elif findDeedOnStreet(card, 'Below') != None: choice = 2
+            else:
+                # If it's a city deed, then ask the player where they want it.
+                choice = askChoice("Where do you want to place deed {}?".format(card.name), choices = ["Above","Below"])
+            if choice == 2: 
                negSideCount += 1 #If it's on the bottom, increment the counter...
+               if type != 'OrganizeDeed': addIdToCardProperty(OutfitCard, card._id, 'Below')
                card.moveToTable(homeDistance(card), negSideCount * cheight(card)) # ...and put the deed below all other deeds already there.
             else:
                posSideCount += 1 # Same as above but going upwards from home.
+               if type != 'OrganizeDeed': addIdToCardProperty(OutfitCard, card._id, 'Above')
                card.moveToTable(homeDistance(card), -1 * (posSideCount * cheight(card)))     
+         if type == "OrganizeDeed": organizeLocation(card)
       if type == 'SetupHome':
          card.moveToTable(homeDistance(card), 0) # We move it to one side depending on what side the player chose.
       if type == 'SetupDude':
          card.moveToTable(homeDistance(card) + cardDistance(card) + playerside * (dudecount * cwidth(card)), 0) 
+         addDudeToLocation(OutfitCard, card)
          # We move them behind the house
       if type == 'SetupOther':
          card.moveToTable(playerside * (cwidth(card,4) * 3), playerside * -1 * cheight(card)) # We move the card around the player's area.      
+      if type == 'MoveDude':
+         destX, destY = destination.position
+         if re.search('Out of Town', destination.Keywords):
+             card.moveToTable(destX, destY - playerside * (5 - destination.height) * (dudecount + 1)) # Place your dudes below out of town deeds
+         elif destination.model == "ac0b08ed-8f78-4cff-a63b-fa1010878af9":
+             tsCards = getCardsControlledByMe(destination, 'Occupants')
+             if tsCards and len(tsCards) > 0:
+                 botX, botY = tsCards[0].position
+                 for tsCard in tsCards[1:]:
+                     x, y = tsCard.position
+                     if y > botY: 
+                         botX = x
+                         botY = y
+                 botY += cheight(card) + 2
+             else:
+                 botX = destX + 2
+                 botY = destY + 2
+                 if playerside == 1: botX = destX + destination.width - cwidth(card) - 2
+             card.moveToTable(botX, botY) # Place your dudes below out of town deeds
+         else:
+             card.moveToTable(destX + playerside * ((dudecount + 1) * cwidth(card) + 2), destY) # We move the card around the player's area. 
+
    elif playeraxis == Yaxis:
       if type == 'HireDude' or (type == None and card.Type == 'Dude'):# Hire dudes on your home + one card height - 20% of a card height
          card.moveToTable(0,homeDistance(card) + (playerside * cheight(card,-4)))
-      if type == 'BuyDeed' or (type == None and card.Type == 'Deed'): 
+      if type == 'PlaceDeed' or (type == None and card.Type == 'Deed'): 
          if re.search('Out of Town', card.Keywords): # Check if we're bringing out an out of town deed
             card.moveToTable((playerside * cwidth(card,4) * 5) + strikeCount * cwidth(card) * playerside, homeDistance(card) + cardDistance(card))
             strikeCount += 1 
@@ -714,10 +799,32 @@ def delCard(card,wait = False):
                if count == 10: break
          except: pass # This means the card has been deleted.
       
-def moveCard(card,x,y):
-   mute()
-   card.moveToTable(x, y)
-
 def setPlayerVariable(var,value):
    mute()
    me.setGlobalVariable(var,value)
+
+def areDeedsOrOutfit(card, x = 0, y = 0, silent = False, forced =  None):
+    for checkCard in card:
+        if checkCard.type != 'Deed' and checkCard.type != 'Outfit': return False
+    return True
+
+def areDudes(card, x = 0, y = 0, silent = False, forced =  None):
+    for checkCard in card:
+        if checkCard.type != 'Dude': return False
+    return True
+
+def isPlayable(card, x = 0, y = 0, silent = False, forced =  None):
+    for checkCard in card:
+        if checkCard.type == 'Token': return False
+    return True
+
+def isOrganizable(card, x = 0, y = 0, silent = False, forced =  None):
+    for checkCard in card:
+        if checkCard.type != 'Deed' and checkCard.type != 'Outfit' and checkCard != OutOfTownToken: return False
+    return True
+
+def checkSmartAction(card, x = 0, y = 0, silent = False, forced =  None):
+    for checkCard in card:
+        if checkCard.type == 'Token' and checkCard.model != 'c421c742-c920-4cad-9f72-032c3378191e': # If the player has double-clicked the Town Square card or other token, we assume it's a mistake
+            return False
+    return True

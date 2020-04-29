@@ -400,7 +400,135 @@ def getKeywords(card): # A function which combines the existing card keywords, w
       keywords += '{}-'.format(KW)
    debugNotify("<<< getKeywords() by returning: {}.".format(keywords[:-1]), 3)
    return keywords[:-1] # We need to remove the trailing dash '-'
-   
+
+#---------------------------------------------------------------------------
+# Location Functions
+#---------------------------------------------------------------------------
+def getDudeLocation(dude):
+   locationId = dude.properties['Occupying']
+   if locationId and locationId != "":
+       return Card(eval(locationId))
+
+def addDudeToLocation(card, dude):
+   dude.properties['Occupying'] = "{}".format(card._id)
+   addIdToCardProperty(card, dude._id, 'Occupants')
+
+def removeDudeFromLocation(dude, location = None, updateDude = False):
+   if location == None: location = getDudeLocation(dude)
+   if location == None: return
+   if updateDude: dude.properties['Occupying'] = ""
+   removeIdFromCardProperty(location, dude._id, 'Occupants')
+
+def getDudesAtLocation(card):
+   occupants = getCardsFromProperties(card, 'Occupants');
+   return occupants
+
+# This is not exactly index in the list, but position above or below the outfit
+def getDeedPositionOnStreet(card):
+   if card.Type != 'Deed' and card.Type != 'Outfit': return
+   if card.Type == 'Outfit':
+       return 0
+   locationOutfitCard = Card(eval(card.owner.getGlobalVariable('playerOutfit')))
+   deedsAbove = getCardsFromProperties(locationOutfitCard, 'Above')
+   if card in deedsAbove: return deedsAbove.index(card) + 1
+   deedsBelow = getCardsFromProperties(locationOutfitCard, 'Below')
+   if card in deedsBelow: return (deedsBelow.index(card) + 1) * -1
+   debugNotify("Deed {} was not found on the street!")
+
+def areLocationsAdjacent(location1, location2):
+   debugNotify(">>> Adjacent locations - location1: {}, location2: {}".format(location1, location2))
+   if not location1 or not location2: return False
+   hostCards = eval(getGlobalVariable('Host Cards'))
+   attachmentsList1 = [cID for cID in hostCards if hostCards[cID] == location1._id and Card(cID).name == "Spirit Trail"]
+   if len(attachmentsList1) > 0:
+       attachmentsList2 = [cID for cID in hostCards if hostCards[cID] == location2._id and Card(cID).name == "Spirit Trail"]
+       if len(attachmentsList2) > 0: return True
+   if (re.search(r'Out of Town', location1.Keywords) or re.search(r'Out of Town', location2.Keywords)):
+       if location1.name == 'Surveyor\'s Office' or location2.name == 'Surveyor\'s Office':
+           return True;
+       return False;
+   if location1.name == 'Town Square' or location2.name == 'Town Square':
+       if location1.name == 'Maza Gang Hideout' or location2.name == 'Maza Gang Hideout':
+           return False;
+       return True;
+   if (location1.Type != 'Deed' and location1.Type != 'Outfit') or (location2.Type != 'Deed' and location2.Type != 'Outfit'): return False
+   if location1.name == '\"Open Wound\"' and location2.name == '\"Open Wound\"': return True
+   # Special cases needs to go before this if ^
+   if location1.owner == location2.owner:
+       position1 = getDeedPositionOnStreet(location1)
+       position2 = getDeedPositionOnStreet(location2)
+       if position1 + 1 == position2 or position1 - 1 == position2:
+           return True;
+       return False;
+
+def findDeedOnStreet(card, direction = 'Above'):
+   if card.Type != 'Deed' and card.Type != 'Outfit' and re.search('Out of Town', card.Keywords): return
+   deedsInDirection = getCardsFromProperties(OutfitCard, direction)
+   if not deedsInDirection or len(deedsInDirection) == 0: return
+   if not card in deedsInDirection: return
+   return deedsInDirection.index(card)
+
+def highlightLocationUsingFilter(card, removeHighlight = False):
+   debugNotify("Deed {} with type {} has filter: {}".format(card, card.Type, card.filter))
+   if card.Type != 'Deed' and card.Type != 'Outfit': return
+   transparency = "44"
+   deedfilterString = "#{}00ff00"
+   dudefilterString = "#{}ff0000"
+   if removeHighlight or card.filter == deedfilterString.format(''): 
+      deedfilterString = "#00000000"
+      dudefilterString = "#00000000"
+   card.filter = deedfilterString.format(transparency)
+   dudesHere = getDudesAtLocation(card)
+   for dude in dudesHere:
+      dude.filter = dudefilterString.format(transparency)
+
+def highlightLocation(card, clear = True):
+   if card.Type != 'Deed' and card.Type != 'Outfit': return
+   if clear:
+       # Putting here try catch blok in case update for card selection is not in this OCTGN client version 
+       # TODO should be removed once the selection update is available
+       try: clearSelection()
+       except: notifyDebug("::DEBUG:: This version of OCTGN client does not support clearing of the selection!")
+   card.select()
+   dudesHere = getDudesAtLocation(card)
+   for dude in dudesHere:
+       dude.select()
+
+def clearDeedFromLocations(card):
+   if card == None: return
+   for dude in getDudesAtLocation(card):
+       moveHome(dude, False)
+   removeIdFromCardProperty(OutOfTownToken, card._id, 'ootDeeds')
+   removeIdFromCardProperty(OutfitCard, card._id, 'Above')
+   removeIdFromCardProperty(OutfitCard, card._id, 'Below')
+
+def determineControl(card): 
+    if not card: return
+    playersStats = {}
+    originalController = card.controller
+    playerWithMost = card.owner
+    controllingPlayer = card.owner
+    determinator = 'Influence'
+    ikeRowdy = card.markers['Rowdy Ike', '00000000-0000-0000-0000-000000000002']
+    if ikeRowdy or re.search(r'Rowdy', card.Keywords) or card.name == "Dead Dog Tavern" or card.name == "The Oriental Saloon": determinator = 'Bullets'
+    for dude in getDudesAtLocation(card):
+        amount = compileCardStat(dude, stat = determinator)
+        if (amount < 1) : continue
+        if playersStats.has_key(dude.controller._id): playersStats[dude.controller._id] += amount
+        else: playersStats[dude.controller._id] = amount
+        debugNotify("Dude controller inf: {}, Player with most Inf: {}".format(playersStats.get(dude.controller._id), playersStats.get(playerWithMost._id)))
+        if dude.controller == playerWithMost:
+            controllingPlayer = dude.controller
+        elif playersStats.get(dude.controller._id) > playersStats.get(playerWithMost._id): 
+            playerWithMost = dude.controller
+            controllingPlayer = dude.controller
+        elif playersStats.get(dude.controller._id) == playersStats.get(playerWithMost._id): 
+            controllingPlayer = card.owner
+        debugNotify("{} {}: {} | Overall: {}".format(dude, amount, determinator, playersStats))
+    if controllingPlayer != originalController: 
+        if controllingPlayer != card.owner: notify("{} broke into {} and has taken control from the {}.".format(controllingPlayer, card, originalController))
+        else: notify("{} has wrestled control of {} back from {}.".format(controllingPlayer, card, originalController))
+        card.controller = controllingPlayer
    
 #---------------------------------------------------------------------------
 # Counter Manipulation
@@ -638,6 +766,9 @@ def makeChoiceListfromCardList(cardList,includeText = False, includeGroup = Fals
       hostCards = eval(getGlobalVariable('Host Cards'))
       attachmentsList = [Card(cID).name for cID in hostCards if hostCards[cID] == T._id]
       if len(attachmentsList) >= 1: cAttachments = '\nAttachments:' + str(attachmentsList)
+      elif T.Type == 'Goods' or T.Type == 'Spell': 
+          host = fetchHost(T)
+          cAttachments = '\nAttached To:' + host.name + "(" + host.owner.name + ")"
       else: cAttachments = ''
       if includeGroup: cGroup = '\n' + T.group.name # Include group is used to inform the player where the card resides in cases where they're selecting cards from multiple groups.
       else: cGroup = ''
@@ -770,7 +901,7 @@ def orgAttachments(card,facing = 'Same'):
       debugNotify("Moving {}, Iter = {}".format(attachment,attNR), 4)
    card.sendToFront() # Because things don't work as they should :(
    for c in table:
-      if c.model == "ac0b08ed-8f78-4cff-a63b-fa1010878af9": 
+      if c.model == "ac0b08ed-8f78-4cff-a63b-fa1010878af9" or c.model == "554d7494-0000-43fa-8a40-a960ec32a69e": 
          sendBack(c) # We always send the Town Square to the back so that it doesn't hide our attachments
          break
    if debugVerbosity >= 4: # Checking Final Indices
