@@ -502,8 +502,18 @@ def clearDeedFromLocations(card):
    removeIdFromCardProperty(OutfitCard, card._id, 'Above')
    removeIdFromCardProperty(OutfitCard, card._id, 'Below')
 
+def determineCardLocation(targetCard):
+   if targetCard.Type == 'Dude': return getDudeLocation(targetCard)
+   elif targetCard.Type == 'Deed' or targetCard.Type == 'Outfit': return targetCard
+   elif targetCard.Type == 'Action': return
+   else:
+      host = fetchHost(targetCard)
+      if host:
+          if host.Type == 'Dude': return getDudeLocation(host)
+          elif host.Type == 'Deed' or host.Type == 'Outfit': return host
+
 def determineControl(card): 
-    if not card: return
+    if not card or card.Type == 'Outfit': return
     playersStats = {}
     originalController = card.controller
     playerWithMost = card.owner

@@ -1052,6 +1052,7 @@ def move(card, x = 0, y = 0, silent = False, targetCards = None, needToBoot = No
    if card.Type == "Dude":
       origin = None;
       if card.properties['Occupying'] and card.properties['Occupying'] != "": origin = Card(eval(card.properties['Occupying']))
+      if not origin: needToBoot = False;
       if not targetCards: targetCards = [c for c in table if c.targetedBy and c.targetedBy == me]
       if not targetCards:
           targetCards = findTarget("DemiAutoTargeted-atDeed_or_Town Square_or_Outfit-choose1", choiceTitle = "Where do you want to move?", ignoreCardList = [origin])

@@ -984,13 +984,18 @@ def SimplyAnnounce(Autoscript, announceText, card, targetCards = None, notificat
    debugNotify(">>> SimplyAnnounce(){}".format(extraASDebug())) #Debug
    if targetCards is None: targetCards = []
    action = re.search(r'\bSimplyAnnounce{([A-Za-z0-9&,\.\' ]+)}', Autoscript)
-   if debugVerbosity >= 2: #Debug
+   actionLoud = re.search(r'\bSimplyAnnounceLoud{([A-Za-z0-9&,\.\' ]+)}', Autoscript)
+   if debugVerbosity >= 2 and not actionLoud: #Debug
       if action: notify("!!! regex: {}".format(action.groups())) 
       else: notify("!!! regex failed :(") 
-   if re.search(r'break',Autoscript) and re.search(r'subroutine',Autoscript): penaltyNoisy(card)
-   if notification == 'Quick': announceString = "{} {}".format(announceText, action.group(1))
-   else: announceString = "{} {}".format(announceText, action.group(1))
-   if notification: notify(':> {}.'.format(announceString))
+   if actionLoud: 
+       information(actionLoud.group(1))
+       announceString = ""
+   else:
+      if re.search(r'break',Autoscript) and re.search(r'subroutine',Autoscript): penaltyNoisy(card)
+      if notification == 'Quick': announceString = "{} {}".format(announceText, action.group(1))
+      else: announceString = "{} {}".format(announceText, action.group(1))
+      if notification: notify(':> {}.'.format(announceString))
    debugNotify("<<< SimplyAnnounce()")
    return announceString
 
@@ -1044,8 +1049,9 @@ def SpawnX(Autoscript, announceText, card, targetCards = None, notification = No
    debugNotify(str(action.groups()),4)
    markers = re.search(r'\bSpawn[A-Za-z0-9_ -]*(-with)([A-Za-z0-9_ -]*)', Autoscript)
    modActionAutoscript = re.search(r'-modAction:(.+)', Autoscript)
-   modActions = modActionAutoscript.group(1).split('-')
-   if modActionAutoscript: debugNotify(str(modActionAutoscript.groups()),4)
+   if modActionAutoscript: 
+       modActions = modActionAutoscript.group(1).split('&&')
+       debugNotify(str(modActionAutoscript.groups()),4)
    if action.group(2) == 'Gunslinger': spawnModel = '94fe7823-077c-4abd-9278-6e64bda6dc64' # for now we only have the gunslinger token, but in the future we might get more of them.
    elif action.group(2) == 'Nature Spirit': spawnModel = 'c4689399-c350-46b3-a79a-f8c62d926cd5' 
    elif action.group(2) == 'Ancestor Spirit': spawnModel = '53a212a6-34a6-47b0-bb24-45f1888bebf6' 
@@ -1054,6 +1060,8 @@ def SpawnX(Autoscript, announceText, card, targetCards = None, notification = No
       return 'ABORT'
    for iter in range(num(action.group(1))):
       tokenCard = table.create(spawnModel, cardDistance() + (20 * playerside * iter), (40 * playerside * iter), 1)
+      tokenLocation = determineCardLocation(card)
+      if tokenLocation: move(tokenCard, silent = True, targetCards = [tokenLocation], needToBoot = False, allowBooted = True)
       if markers: tokensTXT = TokensX('Put{}'.format(markers.group(2)), announceText,tokenCard) # If we have a -with in our autoscript, this is meant to put some tokens on the dummy card.
       if modActionAutoscript: 
          for modAction in modActions:
@@ -1116,8 +1124,9 @@ def ModifyStatus(Autoscript, announceText, card, targetCards = None, notificatio
    SentHomeCount = 0
    action = re.search(r'\b(Boot|Unboot|SendHome|SendHomeBooted|Discard|Ace|Return|Play|SendToBottom|SendToDraw|Takeover|Participate|Unparticipate|Callout|Move|Rehost)(Target|Host|Multi|Myself)[-to]*([A-Z][A-Za-z&_ ]+)?', Autoscript)
    if action.group(2) == 'Myself': 
-      del targetCards[:] # Empty the list, just in case.
-      targetCards.append(card)
+      if action.group(1) != 'Move':
+         del targetCards[:] # Empty the list, just in case.
+         targetCards.append(card)
    if action.group(2) == 'Host': 
       del targetCards[:] # Empty the list, just in case.
       debugNotify("Finding Host")
@@ -1198,19 +1207,23 @@ def ModifyStatus(Autoscript, announceText, card, targetCards = None, notificatio
             if not moveTarget: 
                notify(":::ERROR::: No valid moveTarget. Aborting!")
                return 'ABORT'
-            if moveTarget.group(1) == 'Here': # If the moveTarget is "Here", then we try to figure out the current card's location and set it as the destination.
-               if card.Type == 'Dude': possibleTargets = [getDudeLocation(card)]
-               elif card.Type == 'Deed' or card.Type == 'Outfit': possibleTargets = [card]
-               elif card.Type == 'Action': 
+            if moveTarget.group(1) == 'Here' or moveTarget.group(1) == 'Target': # If the moveTarget is "Here", then we try to figure out the current card's location and set it as the destination.
+               if moveTarget.group(1) == 'Here': 
+                   moveFromCard = targetCard
+                   moveToCard = card
+               if moveTarget.group(1) == 'Target': 
+                   moveFromCard = card
+                   moveToCard = targetCard
+               if not moveToCard: 
+                  notify(":::ERROR::: No valid Target to move to found. Aborting!")
+                  return 'ABORT'
+               targetLocation = determineCardLocation(moveToCard)
+               if not targetLocation:
                   notify(":::ERROR::: Bad Script. Actions should never 'moveToHere'. Aborting!")
                   return 'ABORT'
-               else:
-                  host = fetchHost(card)
-                  if host:
-                      if host.Type == 'Dude': possibleTargets = [getDudeLocation(host)]
-                      elif host.Type == 'Deed' or host.Type == 'Outfit': possibleTargets = [host]
+               else: possibleTargets = [targetLocation]
             else:
-               possibleTargets = findTarget("DemiAutoTargeted-at{}-choose1".format(moveTarget.group(1)), card = targetCard,choiceTitle = "Choose which location you're moving to",ignoreCardList = [targetCard])
+               possibleTargets = findTarget("DemiAutoTargeted-at{}-choose1".format(moveTarget.group(1)), card = moveFromCard,choiceTitle = "Choose which location you're moving to",ignoreCardList = [moveFromCard])
                if len(possibleTargets) > 0 and (possibleTargets[0].Type == 'Goods' or possibleTargets[0].Type == 'Spell'): 
                    host = fetchHost(possibleTargets[0])
                    possibleTargets = []
@@ -1220,8 +1233,8 @@ def ModifyStatus(Autoscript, announceText, card, targetCards = None, notificatio
                   return 'ABORT'
             allowBooted = True
             if re.search(r'-bootedNotAllowed',Autoscript): allowBooted = False
-            if targetCard.controller == me: move(targetCard, targetCards = possibleTargets, needToBoot = False, allowBooted = allowBooted)
-            else: remoteCall(targetCard.controller,'move',[targetCard, 0, 0, False, possibleTargets, False, allowBooted])
+            if moveFromCard.controller == me: move(moveFromCard, targetCards = possibleTargets, needToBoot = False, allowBooted = allowBooted)
+            else: remoteCall(moveFromCard.controller,'move',[moveFromCard, 0, 0, False, possibleTargets, False, allowBooted])
             extraTXT = " to {}".format(possibleTargets[0])
          elif (action.group(1) == 'SendHomeBooted' or action.group(1) == 'SendHome') and targetCard.group == table:
             shouldBoot = True

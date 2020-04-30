@@ -187,7 +187,7 @@ Bounty Hunter
 -----
 5cd89aa8-b973-4fa6-be81-087b5e369ed4
 -----
-onPlay:Spawn1Gunslinger-modAction:CalloutTarget-Targeted-atDude-targetOpponents-hasMarker{Bounty}
+onPlay:Spawn1Gunslinger-modAction:CalloutTarget-Targeted-atDude-targetOpponents-hasMarker{Bounty}&&MoveMyself-moveToTarget
 +++++
 
 .....
@@ -1203,7 +1203,7 @@ Hired Help
 -----
 1b68d5c9-e336-4822-aeb9-5ca0cace82a8
 -----
-onPlay:Spawn1Gunslinger-modAction:ParticipateMyself
+onPlay:Spawn1Gunslinger-modAction:ParticipateMyself$$SimplyAnnounceLoud{Move Gunslinger to shootout location.}
 +++++
 
 .....
@@ -2013,7 +2013,7 @@ Shane &amp; Graves Security
 -----
 
 +++++
-GR0B1R0:Spawn1Gunslinger-modAction:ParticipateMyself
+GR0B1R0:Spawn1Gunslinger-modAction:ParticipateMyself$$SimplyAnnounceLoud{Move Gunslinger to shootout location.}
 .....
 Gomorra Jail
 -----
@@ -2117,7 +2117,7 @@ Judge Harry Sommerset
 -----
 
 +++++
-GR0B1R0:StartJob-DemiAutoTargeted-atDude-hasMarker{Bounty}-targetOpponents-choose1-jobEffects<DiscardTarget,None>$$Spawn1Gunslinger-modAction:ParticipateMyself
+GR0B1R0:StartJob-DemiAutoTargeted-atDude-hasMarker{Bounty}-targetOpponents-choose1-jobEffects<DiscardTarget,None>$$Spawn1Gunslinger-modAction:ParticipateMyself&&BootMyself$$SimplyAnnounceLoud{Move Gunslinger to shootout location.}
 .....
 Ebenezer Springfield
 -----
@@ -2733,7 +2733,7 @@ The Pack Awakens
 -----
 
 +++++
-GR0B1R0:Pull1Card-testSpirit8-spellEffects<Spawn1Nature Spirit-modAction:ParticipateMyself-BootMyself,None>
+GR0B1R0:Pull1Card-testSpirit8-spellEffects<Spawn1Nature Spirit-modAction:ParticipateMyself&&BootMyself,None>
 .....
 Spirit Trail
 -----
@@ -3589,7 +3589,7 @@ Mother Bear's Rage
 -----
 
 +++++
-GR0B1R0:Pull1Card-testSpirit5-spellEffects<Spawn1Nature Spirit-modAction:CalloutTarget-Targeted-atDude-targetOpponents,None>
+GR0B1R0:Pull1Card-testSpirit5-spellEffects<Spawn1Nature Spirit-modAction:CalloutTarget-Targeted-atDude-targetOpponents&&MoveMyself-moveToTarget,None>
 .....
 Focusing Chi
 -----
@@ -4837,7 +4837,7 @@ b1d048cf-7e94-4129-b817-5e0980038796
 -----
 
 +++++
-GR0B0R0:Spawn1Gunslinger-modAction:ParticipateMyself
+GR0B0R0:Spawn1Gunslinger-modAction:ParticipateMyself&&BootMyself$$SimplyAnnounceLoud{Move Gunslinger to shootout location and remove him before declaring the shooter.}
 .....
 Charging Bear
 -----

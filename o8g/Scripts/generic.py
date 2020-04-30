@@ -787,6 +787,7 @@ def cardDistance(card = None):
 def delCard(card,wait = False):
    mute()
    if card.controller == me:
+      removeDudeFromLocation(card)
       card.delete()
    else: 
       remoteCall(card.controller,"delCard",[card])

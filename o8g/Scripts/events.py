@@ -168,8 +168,6 @@ def checkMovedCards(args):
 
 def chkControllerChanged(args):
     if args.card.Type == 'Deed' or args.card.Type == 'Dude':
-        if args.card.controller != args.card.owner: args.card.highlight = args.card.controller.color
-        else: args.card.highlight = None
         reCalculate(notification = 'silent', checkDeeds = False)
 
 def chkMarkerChanges(args):
