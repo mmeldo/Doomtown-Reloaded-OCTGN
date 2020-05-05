@@ -4715,9 +4715,9 @@ Tse-Che-Nako's Weaving
 -----
 540d789b-98d5-47ac-8778-7a834851b10b
 -----
-
+onPlay:Put1PermNoUnboot-AutoTargeted-atDeed-onHost
 +++++
-GR0B1R0:Pull1Card-testSpirit6-spellEffects<MoveTarget-moveToDeed_or_Town Square_or_Outfit$$UseCustomAbility,None>
+GR0B1R0:Pull1Card-testSpirit7-spellEffects<UseCustomAbility,None>
 .....
 Great Sage Matching Heaven
 -----

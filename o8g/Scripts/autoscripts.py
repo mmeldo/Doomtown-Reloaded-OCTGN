@@ -313,7 +313,7 @@ def atTimedEffects(Time = 'Gamblin'): # Function which triggers card effects at 
 #------------------------------------------------------------------------------
 # Redirect to Core Commands
 #------------------------------------------------------------------------------
-def executeAutoscripts(card,Autoscript,count = 0,action = 'PLAY',targetCards = None):
+def executeAutoscripts(card,Autoscript,count = 0,action = 'PLAY',targetCards = None, skilledDude = None):
    debugNotify(">>> executeAutoscripts(){}".format(extraASDebug(Autoscript))) #Debug
    #confirm("card = {}, count = {}, action = {}, targetCards = {}".format(card,count,action,targetCards))
    global failedRequirement
@@ -321,16 +321,16 @@ def executeAutoscripts(card,Autoscript,count = 0,action = 'PLAY',targetCards = N
    X = count # The X Starts as the "count" passed variable which sometimes may need to be passed.
    selectedAutoscripts = Autoscript.split('$$')
    if re.search(r'CustomScript', Autoscript):  
-      return CustomScript(card,action) # If it's a customscript, we don't need to try and split it and it has its own checks.
+      return CustomScript(card, action) # If it's a customscript, we don't need to try and split it and it has its own checks.
    else: 
       for passedScript in selectedAutoscripts: 
          if not chkRobinHood(passedScript): continue
          if chkWarn(card, passedScript) == 'ABORT': return 'ABORT'
          if chkPlayer(passedScript, card.controller,False) == 0: continue
-         X = redirect(passedScript, card, action, X,targetCards)
+         X = redirect(passedScript, card, action, X,targetCards, skilledDude)
          if failedRequirement or X == 'ABORT': return 'ABORT' # If one of the Autoscripts was a cost that couldn't be paid, stop everything else.
 
-def redirect(Autoscript, card, action, X = 0,targetC = None):
+def redirect(Autoscript, card, action, X = 0, targetC = None, skilledDude = None):
    debugNotify(">>> redirect(){}".format(Autoscript)) #Debug
    global TitleDone
    if re.search(r':Pass\b', Autoscript): return X # Pass is a simple command of doing nothing ^_^. We put it first to avoid checking for targets and so on
@@ -407,7 +407,7 @@ def redirect(Autoscript, card, action, X = 0,targetC = None):
       if GameX(Autoscript, announceText, card, targetC, notification = 'Quick', n = X) == 'ABORT': return 'ABORT'
    elif regexHooks['UseCustomAbility'].search(Autoscript): 
       debugNotify("in UseCustomAbility hook")
-      if UseCustomAbility(Autoscript, announceText, card, targetC, notification = 'Quick', n = X) == 'ABORT': return 'ABORT'
+      if UseCustomAbility(Autoscript, announceText, card, targetC, notification = 'Quick', n = X, skilledDude = skilledDude) == 'ABORT': return 'ABORT'
    elif regexHooks['SimplyAnnounce'].search(Autoscript): 
       debugNotify("in SimplyAnnounce hook")
       if SimplyAnnounce(Autoscript, announceText, card, targetC, notification = 'Quick', n = X) == 'ABORT': return 'ABORT'
@@ -502,7 +502,7 @@ def TokensX(Autoscript, announceText, card, targetCards = None, notification = N
          #else:
          #rndGUID = rnd(1,8)
          # Do not use random .. in that case we cannot check if there is such marker
-         token = ("{}".format(action.group(3)),"00000000-0000-0000-0000-000000000002") #This GUID is one of the builtin ones
+         token = ("{}".format(action.group(3)), specialAbilityToken) #This GUID is one of the builtin ones
    count = num(action.group(2))
    multiplier = per(Autoscript, card, n, targetCards, notification)
    debugNotify("About to check type of module for {}".format(action.group(1)),3)
@@ -935,8 +935,8 @@ def PullX(Autoscript, announceText, card, targetCards = None, notification = Non
    debugNotify("About to announce.")
    if notification and announceString != "{} pull".format(announceText): notify(':> {}{}.'.format(announceString,spellResolved))
    if spellResolved: # We only check for spell effects if we got a rank and suit result.
-      if re.search(r'succeeds',spellResolved): executeAutoscripts(card,spellEffects.group(1).replace('++','$$'),action = 'USE',targetCards = targetCards) # If the spell is succesful, execute it's effects
-      else: executeAutoscripts(card,spellEffects.group(2).replace('++','$$'),action = 'USE',targetCards = targetCards) # If it isn't successful and it has a failing condition, activate it now.
+      if re.search(r'succeeds',spellResolved): executeAutoscripts(card,spellEffects.group(1).replace('++','$$'),action = 'USE',targetCards = targetCards,skilledDude = skilledDude) # If the spell is succesful, execute it's effects
+      else: executeAutoscripts(card,spellEffects.group(2).replace('++','$$'),action = 'USE',targetCards = targetCards,skilledDude = skilledDude) # If it isn't successful and it has a failing condition, activate it now.
    debugNotify("<<< DrawX()")
    return announceString
 
@@ -1204,6 +1204,7 @@ def ModifyStatus(Autoscript, announceText, card, targetCards = None, notificatio
                autoscriptOtherPlayers('CardPlayed',targetCard)            
          elif action.group(1) == 'Move' and targetCard.group == table:
             moveTarget = re.search(r"-moveTo(.+)", Autoscript)
+            restictions = moveTargte
             if not moveTarget: 
                notify(":::ERROR::: No valid moveTarget. Aborting!")
                return 'ABORT'
@@ -1664,6 +1665,11 @@ def checkSpecialRestrictions(Autoscript,card, playerChk = me, originCard = None)
       currentMark = getGlobalVariable('Mark')
       if currentMark == 'None': validCard = False
       elif Card(num(currentMark)) != card: validCard = False
+   if re.search(r'isAdjacent', Autoscript):
+      cardLocation = determineCardLocation(card)
+      originLocation = determineCardLocation(originCard)
+      if not cardLocation: validCard = False
+      elif not areLocationsAdjacent(cardLocation, originLocation): validCard = False
    if re.search(r'isParticipating',Autoscript):
       if host:
          if host.highlight != AttackColor and host.highlight != DefendColor and host.highlight != InitiateColor:

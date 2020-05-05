@@ -538,7 +538,7 @@ def nightfall(card, x = 0, y = 0): # This function "refreshes" each card for nig
    card.markers[mdict['ValueNoonPlus']] = 0 
    card.markers[mdict['Traded']] = 0
    reCalculate(notification = 'silent')
-   if not card.markers[mdict['NoUnboot']] and card.name != 'Town Square': # We do not unboot the Town Square card.
+   if not card.markers[mdict['NoUnboot']] and not card.markers[mdict['PermNoUnboot']] and card.name != 'Town Square': # We do not unboot the Town Square card.
       card.orientation = Rot0 # And if we can unboot the card, turn it to 0 degrees.
    elif card.markers[mdict['NoUnboot']]: card.markers[mdict['NoUnboot']] -= 1 # If the card does not unboot for any number of turns, we
 
@@ -555,10 +555,14 @@ def NightfallUnboot(group, x = 0, y = 0): # This function simply runs all the ca
    notify("Sundown refreshes {} cards and refills their hand back to {}.".format(me, handsize))
    atTimedEffects("TurnEnd")
    
-def doesNotUnboot(card, x = 0, y = 0): # Mark a card as "Does not unboot" and increase the duration. We use a card marker to do this.
+def doesNotUnboot(card, x = 0, y = 0, permanent = False): # Mark a card as "Does not unboot" and increase the duration. We use a card marker to do this.
    mute()
-   card.markers[mdict['NoUnboot']] += 1
-   notify("{}'s {} will not unboot during the next {} Sundowns.".format(me, card, card.markers[mdict['NoUnboot']]))
+   if not permanent: 
+       card.markers[mdict['NoUnboot']] += 1
+       notify("{}'s {} will not unboot during the next {} Sundowns.".format(me, card, card.markers[mdict['NoUnboot']]))
+   else: 
+       card.markers[mdict['PermNoUnboot']] += 1
+       notify("{}'s {} will not unboot during Sundown.".format(me, card))   
       
 def spawnGunslinger(group = table, x = 0, y = 0): # Simply put a fake card in the game.
    card = table.create("94fe7823-077c-4abd-9278-6e64bda6dc64", x, y, 1)
@@ -1079,6 +1083,10 @@ def move(card, x = 0, y = 0, silent = False, targetCards = None, needToBoot = No
       removeDudeFromLocation(card, origin)
       dudecount = len(getCardsControlledByMe(destination, 'Occupants'))
       placeCard(card, 'MoveDude', dudecount, destination)
+      token = ("Tse Che Nako", specialAbilityToken)
+      if card.markers[token] > 0: 
+          minusControl(card)
+          card.markers[token] = 0
       orgAttachments(card)
       addDudeToLocation(destination, card)
       determineControl(origin)

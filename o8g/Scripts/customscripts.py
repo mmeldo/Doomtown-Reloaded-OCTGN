@@ -21,7 +21,7 @@
 # Remote Functions are custom functions coming from specific cards which usually affect other players and are called via remoteCall()
 ###=================================================================================================================###
 
-def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notification = None, n = 0):
+def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notification = None, n = 0, skilledDude = None):
    mute()
    announceString = ''
    debugNotify(">>> UseCustomAbility() with Autoscript: {}".format(Autoscript)) #Debug
@@ -274,7 +274,23 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
          notify(":> {} booted {} to draw 1 card".format(me,shamanHost))
    elif card.name == 'Inner Struggle':
       remoteCall(card.controller,'randomDiscard',[card.controller.hand])
-  
+   ### Blood Moon Rising ###
+   elif card.name == "Tse-Che-Nako's Weaving":
+      targetDudes = findTarget("DemiAutoTargeted-atDude-targetMine-choose1", choiceTitle = "Select Dude to move")
+      if len(targetDudes) == 0: 
+          notify("No dude was selected/found for the {}!".format(card))
+          return 'ABORT'
+      targetLocations = findTarget("DemiAutoTargeted-atDeed_or_Outfit_or_Town Square-isAdjacent-choose1", choiceTitle = "Where do you want to move {}?".format(targetDudes[0].name), card = skilledDude)
+      if len(targetLocations) == 0: 
+          notify("No location was selected/found for the {}!".format(card))
+          return 'ABORT'
+      move(targetDudes[0], targetCards = targetLocations, allowBooted = True)
+      host = fetchHost(card)
+      if host.type == 'Deed' and host.orientation == Rot90 and confirm("Do you want to unboot {} to give {} control point until they move?".format(host.name, skilledDude.name)):
+          host.orientation = Rot0
+          plusControl(skilledDude)
+          token = ("Tse Che Nako", specialAbilityToken)
+          skilledDude.markers[token] = 1
    #There comes a reconing
    elif card.name == "Intercession":        
         if re.search(r'-isFirstCustom',Autoscript):
@@ -466,7 +482,7 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
 
 
    
-def CustomScript(card, action = 'PLAY'): # Scripts that are complex and fairly unique to specific cards, not worth making a whole generic function for them.
+def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are complex and fairly unique to specific cards, not worth making a whole generic function for them.
    debugNotify(">>> CustomScript() with action: {}".format(action)) #Debug
    mute()
    discardPile = me.piles['Discard Pile']
@@ -1667,6 +1683,7 @@ def markerEffects(Time = 'Start'):
                and (re.search(r'Bad Company',marker[0])
                  or re.search(r'High Noon:',marker[0])
                  or re.search(r'Hiding in the Shadows',marker[0])
+                 or re.search(r'Tse Che Nako',marker[0])
                  or re.search(r'Rumors',marker[0]))):
             TokensX('Remove999'+marker[0], marker[0] + ':', card)
             notify("--> {} removes the {} resident effect from {}".format(me,marker[0],card))

@@ -503,14 +503,15 @@ def clearDeedFromLocations(card):
    removeIdFromCardProperty(OutfitCard, card._id, 'Below')
 
 def determineCardLocation(targetCard):
+   if not targetCard: return
    if targetCard.Type == 'Dude': return getDudeLocation(targetCard)
-   elif targetCard.Type == 'Deed' or targetCard.Type == 'Outfit': return targetCard
+   elif targetCard.Type == 'Deed' or targetCard.Type == 'Outfit' or targetCard.Name == 'Town Square': return targetCard
    elif targetCard.Type == 'Action': return
    else:
       host = fetchHost(targetCard)
       if host:
           if host.Type == 'Dude': return getDudeLocation(host)
-          elif host.Type == 'Deed' or host.Type == 'Outfit': return host
+          elif host.Type == 'Deed' or host.Type == 'Outfit' or host.Name == 'Town Square': return host
 
 def determineControl(card): 
     if not card or card.Type == 'Outfit': return
