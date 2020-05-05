@@ -916,8 +916,11 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
          deed = retrieveTuple[1][0]
          deed.markers[mdict['ProdMinus']] += num(deed.Production)
          deed.markers[mdict['PermControlMinus']] += num(deed.Control)
+         removeDudeFromLocation(card)
+         card.type = "Action"
+         card.Keywords += "-Condition"
          attachCard(card,deed)
-         notify("{} startings haunting {}".format(card,deed))
+         notify("{} starts haunting {}".format(card,deed))
    elif card.name == "Notary Public" and action == 'USE':
       deeds = findTarget('Targeted-atDeed_and_Government_or_Deed_and_Public-isUnbooted')
       if not len(deeds): return 'ABORT'
