@@ -62,8 +62,7 @@ def resetAll(): # Clears all the global variables in order to start a new game.
    setGlobalVariable('Host Cards',str(hostCards))
    setGlobalVariable('Mark','None')
    setGlobalVariable('Shootout','False')
-   if len(players) > 1: debugVerbosity = -1 # Reset means normal game.
-   elif debugVerbosity != -1 and confirm("Reset Debug Verbosity?"): debugVerbosity = -1    
+   if debugVerbosity != -1 and confirm("Reset Debug Verbosity?"): debugVerbosity = -1
    debugNotify("<<< resetAll()") #Debug   
 
 def chkHighNoon():
@@ -231,13 +230,52 @@ def participateDude(card): # Marks a card as participating in a shootout.
       elif getGlobalVariable('Job Active') != 'False':
          for c in table: # If there is a job in progress and the leader participates with one of their own dudes, they join their posse.
             if c.highlight == InitiateColor and c.controller == me: 
-               card.highlight = InitiateColor
-               notify("{} is joining the leader's posse.".format(card))
-               executePlayScripts(card, 'PARTICIPATION')
-               cardParticipated = True
+               if moveToPosse(card, isJob = True):
+                   card.highlight = InitiateColor
+                   notify("{} is joining the leader's posse.".format(card))
+                   executePlayScripts(card, 'PARTICIPATION')
+               cardParticipated = True # need to mark as participated so no other smart action is performed
                break
    return cardParticipated
-   
+
+def moveToPosse(card, leader = None, mark = None, isJob = None, isAttacking = True):
+   scriptEffect = executePlayScripts(card, 'MOVETOPOSSE')
+   if scriptEffect == 'ABORT': return
+   performBoot = performMove = None
+   if re.search(r'NOBOOT', scriptEffect): performBoot = False
+   if re.search(r'NOMOVE', scriptEffect): performMove = False
+   if not leader: leader = Card(eval(getGlobalVariable('Leader')))
+   if not mark: mark = Card(eval(getGlobalVariable('Mark')))
+   if isJob == None: isJob = getGlobalVariable('Job Active') != 'False'
+   markLocation = determineCardLocation(mark)
+   dudeLocation = determineCardLocation(card)
+   if isAttacking and isJob:
+       leaderLocation = Card(eval(leader.properties['beforeParticipation']))
+   if performBoot == None: performBoot = True
+   if performMove == None:
+       performMove = True
+       if dudeLocation == markLocation:
+           performMove = False
+           performBoot = False
+       elif not areLocationsAdjacent(markLocation, dudeLocation):
+           if not isJob or not isAttacking:
+               if not confirm("{} is not in mark location, and is not adjacent to the mark location. Do you want to participate them anyway?".format(card.name)): return False
+           elif not areLocationsAdjacent(leaderLocation, dudeLocation) and dudeLocation != leaderLocation:
+               if not confirm("{} is not in mark or leader location, and is not adjacent to either mark nor leader. Do you want to participate them anyway?".format(card.name)): return False
+   if performBoot and card.orientation == Rot90 and scriptEffect != 'ALLOWBOOTED':
+       if isAttacking: posseType = "leader"
+       else: posseType = "mark"
+       if not confirm("{} requires to boot to join the {} posse, but they are already booted. Do you want to proceed anyway?".format(card.name, posseType)): return False
+   saveProperty = ''
+   if performMove:
+      move(card, silent = True, targetCards = [markLocation], needToBoot = False)
+      saveProperty = str(dudeLocation._id) + '|'
+   if performBoot and card.orientation == Rot0 and scriptEffect != 'NOBOOT':
+      card.orientation = Rot90
+      saveProperty += "unbooted"
+   if saveProperty != '': card.properties['beforeParticipation'] = saveProperty
+   return True
+
 def chkGadgetCraft(card):
    success = True
    if re.search('Gadget', card.Keywords):
@@ -505,7 +543,7 @@ def clearDeedFromLocations(card):
 def determineCardLocation(targetCard):
    if not targetCard: return
    if targetCard.Type == 'Dude': return getDudeLocation(targetCard)
-   elif targetCard.Type == 'Deed' or targetCard.Type == 'Outfit' or targetCard.Name == 'Town Square': return targetCard
+   elif targetCard.Type == 'Deed' or targetCard.Type == 'Outfit' or targetCard.name == 'Town Square': return targetCard
    elif targetCard.Type == 'Action': return
    else:
       host = fetchHost(targetCard)
@@ -514,7 +552,7 @@ def determineCardLocation(targetCard):
           elif host.Type == 'Deed' or host.Type == 'Outfit' or host.Name == 'Town Square': return host
 
 def determineControl(card): 
-    if not card or card.Type == 'Outfit': return
+    if not card or card.Type == 'Outfit' or card.Type == 'Token': return
     playersStats = {}
     originalController = card.controller
     playerWithMost = card.owner
@@ -776,11 +814,11 @@ def makeChoiceListfromCardList(cardList,includeText = False, includeGroup = Fals
       else: cText = ''
       hostCards = eval(getGlobalVariable('Host Cards'))
       attachmentsList = [Card(cID).name for cID in hostCards if hostCards[cID] == T._id]
+      cAttachments = ''
       if len(attachmentsList) >= 1: cAttachments = '\nAttachments:' + str(attachmentsList)
       elif T.Type == 'Goods' or T.Type == 'Spell': 
           host = fetchHost(T)
-          cAttachments = '\nAttached To:' + host.name + "(" + host.owner.name + ")"
-      else: cAttachments = ''
+          if host: cAttachments = '\nAttached To:' + host.name + "(" + host.owner.name + ")"
       if includeGroup: cGroup = '\n' + T.group.name # Include group is used to inform the player where the card resides in cases where they're selecting cards from multiple groups.
       else: cGroup = ''
       debugNotify("Finished Adding Stats. Going to choice...", 4)# Debug               

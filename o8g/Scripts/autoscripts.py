@@ -87,9 +87,10 @@ def executePlayScripts(card, action):
          actionHostCHK = re.search(r'HOST-([A-Z-]+)',action)
          #if debugVerbosity >= 2 and scriptHostCHK: notify ('### scriptHostCHK: {}'.format(scriptHostCHK.group(1))) # Debug
          #if debugVerbosity >= 2 and actionHostCHK: notify ('### actionHostCHK: {}'.format(actionHostCHK.group(1))) # Debug
-         if (scriptHostCHK or actionHostCHK) and not ((scriptHostCHK and actionHostCHK) and (re.search(r'{}'.format(scriptHostCHK.group(1).upper()),actionHostCHK.group(1)))): continue # If this is a host card
+         if scriptHostCHK and actionHostCHK and re.search(r'{}'.format(scriptHostCHK.group(1).upper()),actionHostCHK.group(1)): continue # If this is a host card
          if ((effectType.group(1) == 'onPlay' and action != 'PLAY') or 
              (effectType.group(1) == 'onParticipation' and action != 'PARTICIPATION') or
+             (effectType.group(1) == 'onMoveToPosse' and action != 'MOVETOPOSSE' and action != 'HOST-MOVETOPOSSE') or
              (effectType.group(1) == 'onUnparticipation' and action != 'UNPARTICIPATE') or
              (effectType.group(1) == 'onPull' and action != 'PULL') or
              (effectType.group(1) == 'onThwart' and action != 'THWART')):
@@ -109,11 +110,13 @@ def executePlayScripts(card, action):
                notify("{} opts not to activate {}'s optional ability".format(me,card))
                continue
             else: notify("{} activates {}'s optional ability".format(me,card))
-         executeAutoscripts(card,autoS,action = action)
-         scriptEffect = 'COMPLETE'
+         scriptEffect = executeAutoscripts(card,autoS,action = action)
+         if not scriptEffect or scriptEffect == '': scriptEffect = 'COMPLETE'
          if re.search(r'-isResolution',autoS): autoscriptOtherPlayers('Resolution',card) # This is used for cards which specifically trigger from Resolution effects.
    debugNotify("About to go check if I'm to go into executeAttachmentScripts()",2) # Debug
-   if not re.search(r'HOST-',action): executeAttachmentScripts(card, action) # if the automation we're doing now is not for an attachment, then we check the current card's attachments for more scripts
+   if not re.search(r'HOST-',action):
+       attachmentEffect = executeAttachmentScripts(card, action) # if the automation we're doing now is not for an attachment, then we check the current card's attachments for more scripts
+       if attachmentEffect and attachmentEffect != '' and attachmentEffect != 'ABORT': scriptEffect += '-' + attachmentEffect
    debugNotify("<<< executePlayScripts() with scriptEffect = {}".format(scriptEffect))
    reCalculate(notification = 'silent')
    return scriptEffect
@@ -123,12 +126,15 @@ def executePlayScripts(card, action):
 #------------------------------------------------------------------------------
 
 def executeAttachmentScripts(card, action):
-   debugNotify(">>> executeEnhancementScripts() with action: {}".format(action)) #Debug
+   debugNotify(">>> executeAttachmentScripts() with action: {}".format(action)) #Debug
    hostCards = eval(getGlobalVariable('Host Cards'))
+   attachmentEffects = ''
    for attachment in hostCards:
       if hostCards[attachment] == card._id:
-         executePlayScripts(Card(attachment), 'HOST-' + action)
-   debugNotify("<<< executeEnhancementScripts()") # Debug
+         returnEffects = executePlayScripts(Card(attachment), 'HOST-' + action)
+         if returnEffects and returnEffects != '' and returnEffects != 'ABORT': attachmentEffects += '-' + returnEffects
+   debugNotify("<<< executeAttachmentScripts(), attachmentEffects: {}".format(attachmentEffects)) # Debug
+   return attachmentEffects
 
 #------------------------------------------------------------------------------
 # Card Use trigger
@@ -321,14 +327,21 @@ def executeAutoscripts(card,Autoscript,count = 0,action = 'PLAY',targetCards = N
    X = count # The X Starts as the "count" passed variable which sometimes may need to be passed.
    selectedAutoscripts = Autoscript.split('$$')
    if re.search(r'CustomScript', Autoscript):  
-      return CustomScript(card, action) # If it's a customscript, we don't need to try and split it and it has its own checks.
+      returnEffects = CustomScript(card, action) # If it's a customscript, we don't need to try and split it and it has its own checks.
+      debugNotify("<<< executeAutoscripts() with returnEffects: {}".format(returnEffects)) #Debug
+      return returnEffects
    else: 
-      for passedScript in selectedAutoscripts: 
+      returnEffects = ''
+      for passedScript in selectedAutoscripts:
+         moveEffects = chkMoveEffects(passedScript, forHost)
+         if moveEffects: returnEffects += moveEffects + '-'
          if not chkRobinHood(passedScript): continue
          if chkWarn(card, passedScript) == 'ABORT': return 'ABORT'
          if chkPlayer(passedScript, card.controller,False) == 0: continue
          X = redirect(passedScript, card, action, X,targetCards, skilledDude)
          if failedRequirement or X == 'ABORT': return 'ABORT' # If one of the Autoscripts was a cost that couldn't be paid, stop everything else.
+      debugNotify("<<< executeAutoscripts() with returnEffects: {}".format(returnEffects)) #Debug
+      return returnEffects
 
 def redirect(Autoscript, card, action, X = 0, targetC = None, skilledDude = None):
    debugNotify(">>> redirect(){}".format(Autoscript)) #Debug
@@ -846,27 +859,25 @@ def StartJob(Autoscript, announceText, card, targetCards = None, notification = 
             if leader in targetedDudes: targetedDudes.remove(leader)
             posse = targetedDudes
    leader.highlight = InitiateColor
-   x,y = mark.position
-   if mark.name == 'Town Square': 
-      x += 180 # We start the placement of dudes at the middle of TS
-      multiplier = 1
-   else:  multiplier = 2
-   leader.moveToTable(x + multiplier * cardDistance(), y)
-   orgAttachments(leader)
+   setGlobalVariable('Leader', str(leader._id))
+   markLocation = determineCardLocation(mark)
+   move(leader, silent = True, targetCards = [markLocation], needToBoot = False)
+   leader.properties['beforeParticipation'] = str(determineCardLocation(leader)._id)
    executePlayScripts(leader, 'PARTICIPATION')
    if re.search(r'bootLeader', Autoscript): leader.orientation = Rot90
    if re.search(r'bountyLeader', Autoscript) or re.search(r'bountyPosse', Autoscript): modBounty(leader)
    moveTarget = leader
    if len(posse):
-      for c in posse: 
+      posseDudesTXT = ''
+      for c in posse:
          c.highlight = InitiateColor
-         x,y = moveTarget.position
-         c.moveToTable(x + cardDistance(), y)
-         moveTarget = c
-         orgAttachments(c)
-         if re.search(r'bountyPosse', Autoscript): modBounty(c)
-         executePlayScripts(c, 'PARTICIPATION')
-         posseTXT = " and {} are also in their posse".format([c.name for c in posse])
+         if moveToPosse(c, leader, mark, True, True):
+             c.highlight = InitiateColor
+             if re.search(r'bountyPosse', Autoscript): modBounty(c)
+             executePlayScripts(c, 'PARTICIPATION')
+             posseDudesTXT += "and {}".format(c.name)
+      if posseDudesTXT != '': posseTXT = posseDudesTXT + " are also in their posse."
+      else: posseTXT = ''
    else: posseTXT = ''
    setGlobalVariable('Mark',str(mark._id))
    jobEffects = re.search(r'-jobEffects<(.*?),(.*?)>', Autoscript)
@@ -1118,6 +1129,7 @@ def ChooseTrait(Autoscript, announceText, card, targetCards = None, notification
             
 def ModifyStatus(Autoscript, announceText, card, targetCards = None, notification = None, n = 0): # Core Command for modifying the status of a card on the table.
    debugNotify(">>> ModifyStatus(){}".format(extraASDebug(Autoscript))) #Debug
+   if re.search(r'\bPrevent', Autoscript): return #If we are preventing, we are not modifying status
    if targetCards is None: targetCards = []
    targetCardlist = '' # A text field holding which cards are going to get tokens.
    extraTXT = ''
@@ -1177,7 +1189,7 @@ def ModifyStatus(Autoscript, announceText, card, targetCards = None, notificatio
             if not participateDude(targetCard): 
                whisper(":::ERROR::: {} is already in this shootout!".format(targetCard))
                return 'ABORT'
-         elif action.group(1) == 'Unparticipate': leavePosse(targetCard)
+         elif action.group(1) == 'Unparticipate': leavePosse(targetCard, scripted = True)
          elif action.group(1) == 'Callout':
             leaderTarget = re.search(r"-leaderTarget\{(.+)\}", Autoscript)
             if leaderTarget:
@@ -1204,13 +1216,12 @@ def ModifyStatus(Autoscript, announceText, card, targetCards = None, notificatio
                autoscriptOtherPlayers('CardPlayed',targetCard)            
          elif action.group(1) == 'Move' and targetCard.group == table:
             moveTarget = re.search(r"-moveTo(.+)", Autoscript)
-            restictions = moveTargte
             if not moveTarget: 
                notify(":::ERROR::: No valid moveTarget. Aborting!")
                return 'ABORT'
+            moveFromCard = targetCard
             if moveTarget.group(1) == 'Here' or moveTarget.group(1) == 'Target': # If the moveTarget is "Here", then we try to figure out the current card's location and set it as the destination.
                if moveTarget.group(1) == 'Here': 
-                   moveFromCard = targetCard
                    moveToCard = card
                if moveTarget.group(1) == 'Target': 
                    moveFromCard = card
@@ -1224,14 +1235,13 @@ def ModifyStatus(Autoscript, announceText, card, targetCards = None, notificatio
                   return 'ABORT'
                else: possibleTargets = [targetLocation]
             else:
-               possibleTargets = findTarget("DemiAutoTargeted-at{}-choose1".format(moveTarget.group(1)), card = moveFromCard,choiceTitle = "Choose which location you're moving to",ignoreCardList = [moveFromCard])
-               if len(possibleTargets) > 0 and (possibleTargets[0].Type == 'Goods' or possibleTargets[0].Type == 'Spell'): 
-                   host = fetchHost(possibleTargets[0])
-                   possibleTargets = []
-                   if host.Type == 'Deed' or host.Type == 'Outfit': possibleTargets = [host]
-               if not len(possibleTargets): 
-                  notify(":::ERROR::: No valid Target to move to found. Aborting!")
-                  return 'ABORT'
+               possibleTargets = findTarget("DemiAutoTargeted-at{}-choose1".format(moveTarget.group(1)), choiceTitle = "Choose which (or to whose) location you're moving to")
+               if len(possibleTargets) > 0:
+                   possTargetLocation = determineCardLocation(possibleTargets[0])
+                   possibleTargets = [possTargetLocation]
+            if not len(possibleTargets): 
+               notify(":::ERROR::: No valid Target to move to found. Aborting!")
+               return 'ABORT'
             allowBooted = True
             if re.search(r'-bootedNotAllowed',Autoscript): allowBooted = False
             if moveFromCard.controller == me: move(moveFromCard, targetCards = possibleTargets, needToBoot = False, allowBooted = allowBooted)
@@ -1243,7 +1253,7 @@ def ModifyStatus(Autoscript, announceText, card, targetCards = None, notificatio
             if re.search(r'-doNotBoot', Autoscript): shouldBoot = False
             if targetCard.controller == me: moveHome(targetCard, shouldBoot)
             else: remoteCall(targetCard.controller,'moveHome',[targetCard, shouldBoot])
-            if targetCard.highlight == AttackColor or targetCard.highlight == DefendColor: leavePosse(targetCard)
+            if targetCard.highlight == AttackColor or targetCard.highlight == DefendColor: leavePosse(targetCard, scripted = True)
          elif action.group(1) == 'Takeover':
             targetPLs = ofwhom(Autoscript, card.controller)
             claimCard(targetCard,targetPLs[0])
@@ -1700,6 +1710,24 @@ def checkSpecialRestrictions(Autoscript,card, playerChk = me, originCard = None)
    if not chkPlayer(Autoscript, card.controller, False, True, playerChk): 
       debugNotify("!!! Failing because not the right controller")
       validCard = False
+   joinedPosse = re.search(r'-ifJoinedPosse{([\w +:]+)}',Autoscript)
+   if joinedPosse:
+      debugNotify("Checking posse joining restrictions")# Debug
+      debugNotify("Posse join status: {}".format(joinedPosse.group(1)))# Debug
+      beforeParticipationProp = card.properties['beforeParticipation']
+      if not beforeParticipationProp or beforeParticipationProp == '': validCard = False
+      else:
+          participationType = joinedPosse.group(1)
+          if participationType:
+              debugNotify("Posse restrictions, participation type: {}".format(participationType))# Debug
+              if participationType == 'Booted' and (not re.search(r'unbooted', beforeParticipationProp) or card.orientation == Rot0):
+                  debugNotify("!!! Failing because not unbooted before, or not booted after joining")
+                  notify("{} did not boot to join the posse!".format(card))
+                  validCard = False
+              elif participationType == 'Moved' and not re.search(r'|', beforeParticipationProp):
+                  debugNotify("!!! Failing because not moved to join")
+                  notify("{} did not move to join the posse!".format(card))
+                  validCard = False
    markerName = re.search(r'-hasMarker{([\w +:]+)}',Autoscript) # Checking if we need specific markers on the card.
    if markerName: #If we're looking for markers, then we go through each targeted card and check if it has any relevant markers
       debugNotify("Checking marker restrictions")# Debug
@@ -1872,7 +1900,18 @@ def chkRobinHood(Autoscript): # A function which check if we have less ghost roc
          if pl == me: continue
          if me.GhostRock - companhurst >= pl.GhostRock: poorer = False
    return poorer
-      
+
+def chkMoveEffects(Autoscript, forHost = False):
+   moveEffect = re.search(r'PreventMove(Host|Myself)?',Autoscript)
+   bootEffect = re.search(r'PreventBoot(Host|Myself)?',Autoscript)
+   returnEffect = None
+   if moveEffect and (not forHost or moveEffect.group(1) == 'Host'):
+       returnEffect = 'NOMOVE'
+   if bootEffect and (not forHost or bootEffect.group(1) == 'Host'):
+       if returnEffect: returnEffect += '-NOBOOT'
+       else: returnEffect = 'NOBOOT'
+   return returnEffect
+
 def per(Autoscript, card = None, count = 0, targetCards = None, notification = None): # This function goes through the autoscript and looks for the words "per<Something>". Then figures out what the card multiplies its effect with, and returns the appropriate multiplier.
    debugNotify(">>> per(){}".format(extraASDebug(Autoscript))) #Debug
    if targetCards is None: targetCards = []

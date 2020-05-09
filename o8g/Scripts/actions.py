@@ -325,6 +325,7 @@ def clearShootout(remoted = False):
          card.markers[mdict['BulletShootoutMinus']] = 0 
          card.markers[mdict['ValueShootoutPlus']] = 0 
          card.markers[mdict['ValueShootoutMinus']] = 0 
+         card.properties['beforeParticipation'] = ''
          if card.model == '94fe7823-077c-4abd-9278-6e64bda6dc64' or card.model == 'c4689399-c350-46b3-a79a-f8c62d926cd5': delCard(card) # If it's a gunslinger or nature token, we remove it from the game.
    clearDrawHandonTable()
    clearRemainingActions(True) # Clear any shootout actions used (common mistake)
@@ -1076,10 +1077,10 @@ def move(card, x = 0, y = 0, silent = False, targetCards = None, needToBoot = No
                       needToBoot = True
               elif origin != OutfitCard: needToBoot = True
       if needToBoot: 
-          notify("{} is booting to move to {}.".format(card,destination))
+          if not silent: notify("{} is booting to move to {}.".format(card,destination))
           card.orientation = Rot90
       else:
-          notify("{} is moving to {} without booting.".format(card,destination))
+          if not silent: notify("{} is moving to {} without booting.".format(card,destination))
       removeDudeFromLocation(card, origin)
       dudecount = len(getCardsControlledByMe(destination, 'Occupants'))
       placeCard(card, 'MoveDude', dudecount, destination)
@@ -1153,6 +1154,7 @@ def joinAttack(card, x = 0, y = 0): # Informs that this dude joins an attack pos
        mute () 
        notify("{} is joining the leader's posse.".format(card))
        card.highlight = AttackColor
+       if card != Card(num(getGlobalVariable('Leader'))): moveToPosse(card, isAttacking = True)
        executePlayScripts(card, 'PARTICIPATION')
 
 def joinDefence(card, x = 0, y = 0, silent = False): # Same as above, but about defensive posse.
@@ -1160,6 +1162,7 @@ def joinDefence(card, x = 0, y = 0, silent = False): # Same as above, but about 
       mute ()
       if not silent: notify("{} is joining the defending posse.".format(card))
       card.highlight = DefendColor   
+      if card != Card(num(getGlobalVariable('Mark'))): moveToPosse(card, isAttacking = False)
       executePlayScripts(card, 'PARTICIPATION')
 
 def defend(card = None, x = 0, y = 0): # Same as the defending posse but with diferent notification.
@@ -1173,11 +1176,11 @@ def defend(card = None, x = 0, y = 0): # Same as the defending posse but with di
       if card and card != table : cardTXT = card # If the player double clicked a card to accept, or there's a dude as a mark, we announce that it's the one defending
       else: cardTXT = me # Otherwise we announce it's the player defending.
       if getGlobalVariable('Job Active') != 'False':
-         notify("{} is defending against this job. A shootout is breaking out! Do not forget to move dudes in your posse to Leader's location".format(cardTXT))
+         notify("{} is defending against this job. A shootout is breaking out!".format(cardTXT))
       else:
-         notify("{} has accepted the call out. A shootout is breaking out! Do not forget to move dudes in your posse to Leader's location".format(cardTXT))
+         notify("{} has accepted the call out. A shootout is breaking out!".format(cardTXT))
       for player in getPlayers():
-         remoteCall(player, "notifyBar", ["#B1560F", "Shootout starts! Do not forget to move dudes in your posse to Leader's location |"])
+         remoteCall(player, "notifyBar", ["#B1560F", "SHOOTOUT starts! |"])
       if card and card != table : # If the player just pressed F5 to accept, but the mark is not a dude, then we don't highlight anything.
          joinDefence(card, silent = True)
       goToShootout(silent = True)
@@ -1204,13 +1207,24 @@ def runAway(card, x = 0, y = 0): # Same as above pretty much but also clears the
       moveHome(card, True)
       card.highlight = None
       
-def leavePosse(card, x = 0, y = 0): # Same as above pretty much but also clears the shootout highlights.
+def leavePosse(card, x = 0, y = 0, scripted = False): # Same as above pretty much but also clears the shootout highlights.
    if card.controller != me:
-      remoteCall(card.controller,'leavePosse',[card,x,y])
+      remoteCall(card.controller,'leavePosse',[card,x,y,scripted])
       return
    card.highlight = None
    executePlayScripts(card, 'UNPARTICIPATE')
-      
+   if not scripted:
+      beforeParticipationStr = card.properties['beforeParticipation']
+      if beforeParticipationStr:
+          beforeParticipationList = beforeParticipationStr.split('|')
+          beforeLocation = Card(eval(beforeParticipationList[0]))
+          unboot = len(beforeParticipationList) > 1 and beforeParticipationList[1] == 'unbooted'
+          if confirm("Do you want to return {} to the location and state before they joined the posse?".format(card.name)): 
+             move(card, targetCards = [beforeLocation], silent = True, needToBoot = False, allowBooted = True)
+             if unboot: card.orientation = Rot0
+             card.properties['beforeParticipation'] = ''
+   else: card.properties['beforeParticipation'] = ''
+
 def posseReady (group, x = 0, y = 0):
    notify("{}'s Posse is Ready to throw down!".format(me))     
 
@@ -1785,6 +1799,7 @@ def organizeLocationByPlayer(card):
         dudesHere = getCardsControlledByMe(card, 'Occupants')
         for dude in dudesHere:
             placeCard(dude, 'MoveDude', count, card)
+            orgAttachments(dude)
             count += 1
 
 def showAdjacentLocations(card, x = 0, y = 0):

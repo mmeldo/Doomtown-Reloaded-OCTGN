@@ -504,6 +504,19 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
       passPileControl(deck,targetPL)   
       passPileControl(discardPile,targetPL)   
       remoteCall(targetPL,'BottomDealing',[me,card])
+   elif card.name == "Buffalo Rifle" and action == 'HOST-MOVETOPOSSE':
+      host = fetchHost(card)
+      if not host: return 'ABORT'
+      mark = Card(eval(getGlobalVariable('Mark')))
+      if not mark: return 'ABORT'
+      markLocation = determineCardLocation(mark)
+      dudeLocation = determineCardLocation(host)
+      if areLocationsAdjacent(markLocation, dudeLocation) and (host.orientation == Rot90 or confirm("Do you want {} to snipe at target location from current location using the Buffalo Rifle?".format(host.name))):
+          notify("{} uses {} to snipe at target positions from current location.".format(me, card))
+          return 'NOMOVE-NOBOOT'
+      else: 
+          debugNotify(":> {} either cannot be used (locations not adjacent), or {} decided not to use it.".format(card, me))
+          return
    elif card.name == "Coachwhip!" and action == 'PLAY':
       debugNotify("Coachwhip Script")
       targetDude = [c for c in table if c.targetedBy and c.targetedBy == me and c.controller != me and c.Type == 'Dude']
@@ -555,7 +568,7 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
             orgAttachments(card)
             orgAttachments(c)
             participateDude(card)
-            leavePosse(c)
+            leavePosse(c, scripted = True)
             foundDude = True
             notify("{} switches places with {}".format(card,c))
             break
@@ -577,7 +590,7 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
       boot(targetDude[0],forced = 'boot')
       targetDude[0].moveToTable(x + cardDistance(), y)
       orgAttachments(targetDude[0])
-      notify("{} uses {} and boots {} to build {}, reducing its cost by {}.".format(me,card,targetDude[0],targetDeed[0],reduction))      
+      notify("{} uses {} and boots {} to build {}, reducing its cost by {}.".format(me,card,targetDude[0],targetDeed[0],reduction))    
    elif card.name == "The Union Casino" and action == 'USE':
       targetDude = findTarget('Targeted-atDude')
       if not len(targetDude):
@@ -675,7 +688,7 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
             orgAttachments(card)
             orgAttachments(c)
             participateDude(card)
-            leavePosse(c)
+            leavePosse(c, scripted = True)
             foundDude = True
             notify("{} switches places with {}".format(card,c))
             break
@@ -1453,7 +1466,7 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
          notify('{} send {} home booted'.format(card,targetDude[0]))
       else:
          notify('Your dude doesnt have enough bounty')
-         return 'Abort'
+         return 'ABORT'
    elif card.name == 'Electrostatic Pump Gun':
       topd = findTarget('DemiAutoTargeted-atDude-isParticipating-targetOpponents-choose1')
       topDude = topd[0]
@@ -1500,7 +1513,7 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
          tmDude = tmd[0]
          if fetchDrawType(tmDude) == 'Draw':
             notify("You need a stud to use this ability.")
-            return 'Abort'
+            return 'ABORT'
          tdeed = findTarget('DemiAutoTargeted-atDeed-targetOpponents-choose1')
          deed = tdeed[0]
          if tmDude.orientation != Rot90 and tdeed.orientation != Rot90:
@@ -1539,10 +1552,10 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
       hostCards = eval(getGlobalVariable('Host Cards'))
       if len(hostCards) == 0:
          notify("You do not have any attachments in play.")
-         return 'Abort'
+         return 'ABORT'
       if not len([Card(att_id) for att_id in hostCards if hostCards[att_id] == tmDude._id and re.search(r'Miracle',Card(att_id).Keywords)]):
          notify("You have to chose a dude with Miracle to use this ability")
-         return 'Abort'
+         return 'ABORT'
       if len(me.hand) and len(me.piles['Discard Pile']):
          handDiscard = askCardFromList([c for c in me.hand],"Choose which card to move to your deck from your hand")
          handDiscard.moveTo(me.piles['Deck'])
@@ -1552,7 +1565,7 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
          notify('{} put {} from hand and {} that was fetched from discard into their deck.'.format(me, handDiscard, cardFromDiscard))
       else:
          notify ("You have to have a cards in hand and in discard pile to use this ability!")
-         return 'Abort'
+         return 'ABORT'
       ModifyStatus('MoveTarget-moveToTown Square', '', card, [tmDude])
       boot(tmDude, forced = 'unboot')
       tmDude.markers[mdict['InfluencePlus']] += 1
@@ -1610,12 +1623,12 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
       tCard = findTarget('DemiAutoTargeted-atGadget_and_Experimental-targetMine-choose1',choiceTitle = 'Choose an experimental gadget to boot.')
       if not len(tCard) or tCard[0].orientation != Rot0:
          notify("You need to boot experimental gadget to use this ability.")
-         return 'Abort'
+         return 'ABORT'
       tDeed = findTarget('DemiAutoTargeted-atDeed-choose1', choiceTitle = 'Choose a deed with 1 control point.')
       control = compileCardStat(tDeed[0], stat = 'Control')
       if not len(tDeed) or control == 0:
          notify("You need a deed with 1 control point to use this ability.")
-         return 'Abort'
+         return 'ABORT'
       boom = pull()[1] 
       counter = 0
       if boom == 'Diamonds' or boom == 'Hearts':

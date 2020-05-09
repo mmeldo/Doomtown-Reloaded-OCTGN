@@ -195,7 +195,7 @@ Buffalo Rifle
 -----
 efaf839b-f06f-4aff-982b-a99ae00f340c
 -----
-
+onMoveToPosse:CustomScript
 +++++
 
 .....
@@ -853,7 +853,7 @@ ff6f51e6-ab2f-4fb9-8670-1715b278cc8c
 -----
 
 +++++
-
+GR0B1R0:UnbootTarget-AutoTargeted-atDude-onHost-ifJoinedPosse{Booted}-isCost
 .....
 Rumors
 -----
@@ -2941,7 +2941,7 @@ ad7f9fb2-c845-49bd-82e2-0a94037e1d77
 -----
 
 +++++
-GR0B0R0:DiscardTarget-DemiAutoTargeted-fromHand-isCost-choose1$$MoveTarget-Targeted-atDude-targetMine-moveToDeed_or_Town Square_or_Outfit
+GR0B0R0:DiscardTarget-DemiAutoTargeted-fromHand-isCost-choose1$$MoveTarget-DemiAutoTargeted-atDude-targetMine-choose1-moveToDeed_or_Town Square_or_Outfit
 .....
 Emre, The Turkish Bear
 -----
