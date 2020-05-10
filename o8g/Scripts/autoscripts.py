@@ -326,6 +326,8 @@ def executeAutoscripts(card,Autoscript,count = 0,action = 'PLAY',targetCards = N
    failedRequirement = False
    X = count # The X Starts as the "count" passed variable which sometimes may need to be passed.
    selectedAutoscripts = Autoscript.split('$$')
+   forHost = False
+   if re.search(r'HOST-', action): forHost = True    
    if re.search(r'CustomScript', Autoscript):  
       returnEffects = CustomScript(card, action) # If it's a customscript, we don't need to try and split it and it has its own checks.
       debugNotify("<<< executeAutoscripts() with returnEffects: {}".format(returnEffects)) #Debug
