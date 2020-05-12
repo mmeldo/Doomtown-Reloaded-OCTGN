@@ -43,7 +43,14 @@
 <!--       <font src="Fonts/Pixel-Western.ttf" size="8" target="chat"/>  -->
    </fonts>   
    <proxygen definitionsrc="Proxy/proxydef.xml">
-   </proxygen>   
+   </proxygen>
+	<phases>
+		<phase name="Gambling" icon="Counters/influence.png" />
+		<phase name="Upkeep" icon="Counters/ghostrock.png" />
+		<phase name="High Noon" icon="Counters/control.png" />
+		<phase name="Shootout" icon="Counters/control.png" />
+		<phase name="Sundown" icon="Counters/control.png" />
+	</phases>
   <documents>
   </documents>    
    <globalvariables> 
