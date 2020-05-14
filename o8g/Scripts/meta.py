@@ -146,6 +146,8 @@ def compileCardStat(card, stat = 'Influence'):
    elif stat == 'Upkeep':
       count = num(card.properties[stat])
       count += card.markers[mdict['ProdMinus']] - card.markers[mdict['ProdPlus']]
+   elif stat == 'Grit':
+      count = compileCardStat(card, 'Influence') + compileCardStat(card, 'Value') + compileCardStat(card, 'Bullets')
    else: count = 0
    if count < 0: 
       if stat == 'Value': count = 1
@@ -209,7 +211,7 @@ def chkTargeting(card):
          whisper(":::Warning::: This card effect requires that you have one of more cards targeted from your hand. Aborting!")
          return 'ABORT'
 
-def participateDude(card): # Marks a card as participating in a shootout.
+def participateDude(card, doNotBoot = False): # Marks a card as participating in a shootout.
    cardParticipated = False # If this value is left false, then the card wasn't modified in any way by this function.
    if card.Type == 'Dude' and not card.highlight:
       if getGlobalVariable('Shootout') == 'True':
@@ -224,13 +226,13 @@ def participateDude(card): # Marks a card as participating in a shootout.
          if not side: # If we still couldn't determine which side the player is on, we just ask directly.
             if confirm("Sorry, but I could not automatically determine if you're the attacking or defending player.\n\nIs this dude joining the attacking posse?"): side = 'Attack' 
             else: side = 'Defence'
-         if side == 'Defence': joinDefence(card)
-         else: joinAttack(card)         
+         if side == 'Defence': joinDefence(card, doNotBoot = doNotBoot)
+         else: joinAttack(card, doNotBoot = doNotBoot)         
          cardParticipated = True
       elif getGlobalVariable('Job Active') != 'False':
          for c in table: # If there is a job in progress and the leader participates with one of their own dudes, they join their posse.
             if c.highlight == InitiateColor and c.controller == me: 
-               if moveToPosse(card, isJob = True):
+               if moveToPosse(card, isJob = True, doNotBoot = doNotBoot):
                    card.highlight = InitiateColor
                    notify("{} is joining the leader's posse.".format(card))
                    executePlayScripts(card, 'PARTICIPATION')
@@ -238,10 +240,11 @@ def participateDude(card): # Marks a card as participating in a shootout.
                break
    return cardParticipated
 
-def moveToPosse(card, leader = None, mark = None, isJob = None, isAttacking = True):
+def moveToPosse(card, leader = None, mark = None, isJob = None, isAttacking = True, doNotBoot = False):
    scriptEffect = executePlayScripts(card, 'MOVETOPOSSE')
    if scriptEffect == 'ABORT': return
    performBoot = performMove = None
+   if doNotBoot: performBoot = False
    if re.search(r'NOBOOT', scriptEffect): performBoot = False
    if re.search(r'NOMOVE', scriptEffect): performMove = False
    if not leader: leader = Card(eval(getGlobalVariable('Leader')))
@@ -917,6 +920,7 @@ def unlinkHosts(card): #Checking if the card is attached to unlink.
 def orgAttachments(card,facing = 'Same'):
 # This function takes all the cards attached to the current card and re-places them so that they are all visible
 # xAlg, yAlg are the algorithsm which decide how the card is placed relative to its host and the other hosted cards. They are always multiplied by attNR
+   global TownSquareToken
    if card.controller != me: 
       remoteCall(card.controller,'orgAttachments',[card,facing])
       return
@@ -949,10 +953,8 @@ def orgAttachments(card,facing = 'Same'):
       attNR += 1
       debugNotify("Moving {}, Iter = {}".format(attachment,attNR), 4)
    card.sendToFront() # Because things don't work as they should :(
-   for c in table:
-      if c.model == "ac0b08ed-8f78-4cff-a63b-fa1010878af9" or c.model == "554d7494-0000-43fa-8a40-a960ec32a69e": 
-         sendBack(c) # We always send the Town Square to the back so that it doesn't hide our attachments
-         break
+   sendBack(TownSquareToken)
+   remoteCall(card.controller,'sendBackOoTToken',[])
    if debugVerbosity >= 4: # Checking Final Indices
       for attachment in cardAttachements: notify("{} index = {}".format(attachment,attachment.index)) # Debug
    debugNotify("<<< orgAttachments()", 3) #Debug      
@@ -961,8 +963,11 @@ def sendBack(card): # Function which asks the current card controller to send it
    mute()
    if card.controller == me: card.sendToBack()
    else: remoteCall(card.controller,'sendBack',[card])
-   
-   
+
+def sendBackOoTToken():
+   global OutOfTownToken
+   sendBack(OutOfTownToken)
+
 def reduceCost(card, action = 'PLAY', fullCost = 0, dryRun = False, reversePlayer = False): 
    # reversePlayer is a variable that holds if we're looking for cost reducing effects affecting our opponent, rather than the one running the script.
    global costReducers,costIncreasers

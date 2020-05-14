@@ -48,8 +48,8 @@ def executePlayScripts(card, action):
              re.search(r'-isTrigger', autoS) or
              re.search(r'Empty', autoS)): Autoscripts.remove(autoS) # Empty means the card has no autoscript, but we still want an empty list.
          elif not chkDummy(autoS, card): Autoscripts.remove(autoS)
-         if re.search(r'-onlyInShootouts',autoS) and getGlobalVariable('Shootout') != 'True': Autoscripts.remove(autoS)
-         if re.search(r'-onlyInNoon',autoS) and getGlobalVariable('Shootout') == 'True': Autoscripts.remove(autoS)      
+         elif re.search(r'-onlyInShootouts',autoS) and getGlobalVariable('Shootout') != 'True': Autoscripts.remove(autoS)
+         elif re.search(r'-onlyInNoon',autoS) and getGlobalVariable('Shootout') == 'True': Autoscripts.remove(autoS)      
       debugNotify('Looking for multiple choice options') # Debug
       if action == 'PLAY': trigger = 'onPlay' # We figure out what can be the possible multiple choice trigger
       else: trigger = 'N/A'
@@ -155,6 +155,7 @@ def useAbility(card, x = 0, y = 0, manual = True): # The start of autoscript act
       if not chkDummy(autoS, card): Autoscripts.remove(autoS)
       if re.search(r'-onlyInShootouts',autoS) and getGlobalVariable('Shootout') != 'True': Autoscripts.remove(autoS)
       if re.search(r'-onlyInNoon',autoS) and getGlobalVariable('Shootout') == 'True': Autoscripts.remove(autoS)      
+      if re.search(r'-onlyInGamblin', autoS) and getGlobalVariable('Phase') != '1': Autoscripts.remove(autoS)
    debugNotify("Removed bad options")
    if len(Autoscripts) == 0:
       whisper("This card has no automated abilities for this phase. Aborting")
@@ -179,7 +180,7 @@ def useAbility(card, x = 0, y = 0, manual = True): # The start of autoscript act
    # R is repeat switch. 0 means no repeat (i.e. only once per turn), 1 means it's a repeat ability (or just a card trait which can be used as many times as its trigger hits)
    if actionCostRegex:
       if (actionCostRegex.group(2) == '1' and card.orientation == Rot0) or actionCostRegex.group(2) == '0' or (actionCostRegex.group(2) == '1' and card.orientation == Rot90 and confirm("Card requires to be booted to use its ability. Bypass?")): # First we check if the card is booted and it needs to boot.
-         if actionCostRegex.group(3) == '1' or not card.markers[mdict['UsedAbility']] or (card.markers[mdict['UsedAbility']] and confirm("You've already used {}'s Ability Bypass Restriction?".format(card.name))):
+         if actionCostRegex.group(3) == '1' or not card.markers[mdict['UsedAbility']] or (getGlobalVariable('Shootout') != 'True' and card.markers[mdict['UsedAbility']] and confirm("You've already used {}'s Ability this turn. Bypass Restriction?".format(card.name))) or (getGlobalVariable('Shootout') == 'True' and card.markers[mdict['UsedAbility:Shootout']] and confirm("You've already used {}'s Ability this Shootout. Bypass Restriction?".format(card.name))):
             if payCost(actionCostRegex.group(1), silent) != 'ABORT': 
                if executeAutoscripts(card,selectedAutoscript,action = 'USE') != 'ABORT':
                   if card.group == table: # If the card is still on the table, then we take care of the other costs
@@ -187,8 +188,12 @@ def useAbility(card, x = 0, y = 0, manual = True): # The start of autoscript act
                         if card.orientation == Rot0: boot(card, silent = True) # If the B cost is 1, card is supposed to boot.
                         else: notify(":::WARN::: {} bypassed requirement to boot {} to use its ability".format(me,card))
                      if actionCostRegex.group(3) == '0':
-                        if not card.markers[mdict['UsedAbility']]: card.markers[mdict['UsedAbility']] += 1 # If a card is repeat, we don't put a marker
-                        else: notify(":::WARN::: {} bypassed once-per turn restriction on {}'s ability".format(me,card))
+                        if getGlobalVariable('Shootout') != 'True':
+                            if not card.markers[mdict['UsedAbility']]: card.markers[mdict['UsedAbility']] += 1 # If a card is repeat, we don't put a marker
+                            else: notify(":::WARN::: {} bypassed once-per turn restriction on {}'s ability".format(me,card))
+                        else:
+                            if not card.markers[mdict['UsedAbility:Shootout']]: card.markers[mdict['UsedAbility:Shootout']] += 1 # If a card is repeat, we don't put a marker
+                            else: notify(":::WARN::: {} bypassed once-per shootout restriction on {}'s ability".format(me,card))
                      if re.search(r'-isResolution',selectedAutoscript): autoscriptOtherPlayers('Resolution',card) # This is used for cards which specifically trigger from Resolution effects.
                      if re.search(r'-isShootout',selectedAutoscript): autoscriptOtherPlayers('Shootout',card) # This is used for cards which specifically trigger from Shootout effects.
                else:
@@ -248,7 +253,7 @@ def autoscriptOtherPlayers(lookup, origin_card = OutfitCard, count = 1, origin_p
                debugNotify("!!! Failing because Edge Difference ({}) not equal to {}".format(count,edgeDiffRegex.group(2)),2)
                continue
          if not chkDummy(autoS, card): continue
-         if not checkCardRestrictions(gatherCardProperties(origin_card), prepareRestrictions(autoS,'type')): continue #If we have the '-type' modulator in the script, then need ot check what type of property it's looking for
+         if origin_card and not checkCardRestrictions(gatherCardProperties(origin_card), prepareRestrictions(autoS,'type')): continue #If we have the '-type' modulator in the script, then need ot check what type of property it's looking for
          else: debugNotify("Not Looking for specific type or type specified found.")
          if not checkOriginatorRestrictions(autoS,card): continue
          debugNotify("Automatic Autoscripts: {}".format(autoS)) # Debug
@@ -329,7 +334,7 @@ def executeAutoscripts(card,Autoscript,count = 0,action = 'PLAY',targetCards = N
    forHost = False
    if re.search(r'HOST-', action): forHost = True    
    if re.search(r'CustomScript', Autoscript):  
-      returnEffects = CustomScript(card, action) # If it's a customscript, we don't need to try and split it and it has its own checks.
+      returnEffects = CustomScript(card, action, skilledDude = skilledDude) # If it's a customscript, we don't need to try and split it and it has its own checks.
       debugNotify("<<< executeAutoscripts() with returnEffects: {}".format(returnEffects)) #Debug
       return returnEffects
    else: 
@@ -736,24 +741,35 @@ def ReshuffleX(Autoscript, announceText, card, targetCards = None, notification 
    if targetCards is None: targetCards = []
    mute()
    X = 0
-   action = re.search(r'\bReshuffle([A-Za-z& ]+)', Autoscript)
+   action = re.search(r'\bReshuffle([0-9]+)([A-Za-z& ]+)', Autoscript)
    debugNotify("!!! regex: {}".format(action.groups())) # Debug
    targetPLs = ofwhom(Autoscript, card.controller)
    if len(targetPLs) > 1 or targetPLs[0] != me: otherTXT = ' force {} to'.format([targetPL.name for targetPL in targetPLs])
    else: otherTXT = ''
+   numberCards = action.group(1)
    for targetPL in targetPLs:
-      if action.group(1) == 'Hand':
-         namestuple = groupToDeck(targetPL.hand, targetPL , True) # We do a silent hand reshuffle into the deck, which returns a tuple
+      if action.group(2) == 'Hand':
+         if numberCards == '999':
+             namestuple = groupToDeck(targetPL.hand, targetPL , True) # We do a silent hand reshuffle into the deck, which returns a tuple
+         else:
+             cardsToReshuffle = findTarget("DemiAutoTargeted-fromHand-choose{}".format(numberCards))
+             namestuple = cardsToDeck(cardsToReshuffle, targetPL , True)
          X += namestuple[2] # The 3rd part of the tuple is how many cards were in our hand before it got shuffled.
-      elif action.group(1) == 'Discard': 
-         namestuple = groupToDeck(targetPL.piles['Discard Pile'], targetPL, True)    
-         X += namestuple[2] 
+      elif action.group(2) == 'Discard': 
+         if numberCards == '999':
+             namestuple = groupToDeck(targetPL.piles['Discard Pile'], targetPL, True)    
+         else:
+             cardsToReshuffle = findTarget("DemiAutoTargeted-fromDiscard-choose{}".format(numberCards))
+             namestuple = cardsToDeck(cardsToReshuffle, targetPL , True)
+         X += namestuple[2] # The 3rd part of the tuple is how many cards were in our hand before it got shuffled.
       else: 
          whisper("Wat Group? [Error in autoscript!]")
          return 'ABORT'
       shuffle(targetPL.piles['Deck'])
-   if notification == 'Quick': announceString = "{}{} shuffle their {} into their {}".format(announceText, otherTXT, namestuple[0], namestuple[1])
-   else: announceString = "{}{} shuffle their {} into their {}".format(announceText,otherTXT, namestuple[0], namestuple[1])
+   if numberCards == '999': cardsCount = 'all'
+   else: cardsCount = str(namestuple[2])
+   if notification == 'Quick': announceString = "{}{} shuffle {} cards of their {} into their {}".format(announceText, otherTXT, cardsCount, action.group(2), namestuple[1])
+   else: announceString = "{}{} shuffle {} cards of their {} into their {}".format(announceText, otherTXT, cardsCount, action.group(2), namestuple[1])
    if notification: notify(':> {}.'.format(announceString))
    debugNotify("<<< ReshuffleX() return with X = {}".format(X))
    return (announceString, X)
@@ -776,13 +792,13 @@ def ShuffleX(Autoscript, announceText, card, targetCards = None, notification = 
    debugNotify("<<< ShuffleX()")
    return announceString
    
-def RollX(Autoscript, announceText, card, targetCards = None, notification = None, n = 0): # Core Command for drawing X Cards from the house deck to your hand.
+def ReturnX(Autoscript, announceText, card, targetCards = None, notification = None, n = 0): # Core Command for drawing X Cards from the house deck to your hand.
    debugNotify(">>> RollX(){}".format(extraASDebug())) #Debug
    if targetCards is None: targetCards = []
    d6 = 0
    d6list = []
    result = 0
-   action = re.search(r'\bRoll([0-9]+)Dice(-chk)?([1-6])?', Autoscript)
+   action = re.search(r'\bReturn([0-9]+)Dice(-chk)?([1-6])?', Autoscript)
    multiplier = per(Autoscript, card, n, targetCards, notification)
    count = num(action.group(1)) * multiplier 
    for d in range(count):
@@ -863,8 +879,8 @@ def StartJob(Autoscript, announceText, card, targetCards = None, notification = 
    leader.highlight = InitiateColor
    setGlobalVariable('Leader', str(leader._id))
    markLocation = determineCardLocation(mark)
-   move(leader, silent = True, targetCards = [markLocation], needToBoot = False)
    leader.properties['beforeParticipation'] = str(determineCardLocation(leader)._id)
+   move(leader, silent = True, targetCards = [markLocation], needToBoot = False)
    executePlayScripts(leader, 'PARTICIPATION')
    if re.search(r'bootLeader', Autoscript): leader.orientation = Rot90
    if re.search(r'bountyLeader', Autoscript) or re.search(r'bountyPosse', Autoscript): modBounty(leader)
@@ -877,7 +893,7 @@ def StartJob(Autoscript, announceText, card, targetCards = None, notification = 
              c.highlight = InitiateColor
              if re.search(r'bountyPosse', Autoscript): modBounty(c)
              executePlayScripts(c, 'PARTICIPATION')
-             posseDudesTXT += "and {}".format(c.name)
+             posseDudesTXT += " and {}".format(c.name)
       if posseDudesTXT != '': posseTXT = posseDudesTXT + " are also in their posse."
       else: posseTXT = ''
    else: posseTXT = ''
@@ -892,12 +908,14 @@ def StartJob(Autoscript, announceText, card, targetCards = None, notification = 
    return announceString
 
 def PullX(Autoscript, announceText, card, targetCards = None, notification = None, n = 0): # Core Command for drawing X Cards from the house deck to your hand.
-   debugNotify(">>> DrawX(){}".format(extraASDebug(Autoscript))) #Debug
+   debugNotify(">>> PullX(){}".format(extraASDebug(Autoscript))) #Debug
    rank = None
    suit = None
    if targetCards is None: targetCards = []
    action = re.search(r'\bPull([0-9]+)Card', Autoscript)
-   targetPLs = ofwhom(Autoscript, card.controller)
+   spellPull = re.search(r'\bPull([0-9]+)Card(.*?)-spellEffects', Autoscript)
+   if not spellPull: targetPLs = ofwhom(Autoscript, card.controller)
+   else: targetPLs = ofwhom(spellPull.group(1), card.controller)
    announceString = "{} pull".format(announceText)
    for targetPL in targetPLs:
       for iter in range(num(action.group(1))):
@@ -950,7 +968,7 @@ def PullX(Autoscript, announceText, card, targetCards = None, notification = Non
    if spellResolved: # We only check for spell effects if we got a rank and suit result.
       if re.search(r'succeeds',spellResolved): executeAutoscripts(card,spellEffects.group(1).replace('++','$$'),action = 'USE',targetCards = targetCards,skilledDude = skilledDude) # If the spell is succesful, execute it's effects
       else: executeAutoscripts(card,spellEffects.group(2).replace('++','$$'),action = 'USE',targetCards = targetCards,skilledDude = skilledDude) # If it isn't successful and it has a failing condition, activate it now.
-   debugNotify("<<< DrawX()")
+   debugNotify("<<< PullX()")
    return announceString
 
 def RequestInt(Autoscript, announceText, card, targetCards = None, notification = None, n = 0): # Core Command for drawing X Cards from the house deck to your hand.
@@ -1155,6 +1173,7 @@ def ModifyStatus(Autoscript, announceText, card, targetCards = None, notificatio
    for targetCard in targetCards: 
       if (action.group(1) == 'Play' or  action.group(1) == 'Return') and targetCard.group == table and targetCard.isFaceUp: 
          targetCardlist += '{},'.format(targetCard.name) 
+      elif action.group(1) == 'Move' and action.group(2) == 'Target': targetCardlist += '{}'.format(card)
       else: targetCardlist += '{},'.format(targetCard)
       if action.group(2) != 'Multi': break # If we're not doing a multi-targeting, we only mention the first target card's name.
    rnd(1,10) # Dela yto be able to grab the names
@@ -1188,7 +1207,10 @@ def ModifyStatus(Autoscript, announceText, card, targetCards = None, notificatio
                return 'ABORT'
             else: attachCard(targetCard,newHost)
          elif action.group(1) == 'Participate':
-            if not participateDude(targetCard): 
+            doNotBootSearch = re.search(r'-doNotBoot', Autoscript)
+            if doNotBootSearch: doNotBoot = True
+            else: doNotBoot = False
+            if not participateDude(targetCard, doNotBoot = doNotBoot): 
                whisper(":::ERROR::: {} is already in this shootout!".format(targetCard))
                return 'ABORT'
          elif action.group(1) == 'Unparticipate': leavePosse(targetCard, scripted = True)
@@ -1246,8 +1268,8 @@ def ModifyStatus(Autoscript, announceText, card, targetCards = None, notificatio
                return 'ABORT'
             allowBooted = True
             if re.search(r'-bootedNotAllowed',Autoscript): allowBooted = False
-            if moveFromCard.controller == me: move(moveFromCard, targetCards = possibleTargets, needToBoot = False, allowBooted = allowBooted)
-            else: remoteCall(moveFromCard.controller,'move',[moveFromCard, 0, 0, False, possibleTargets, False, allowBooted])
+            if moveFromCard.controller == me: move(moveFromCard, silent = True, targetCards = possibleTargets, needToBoot = False, allowBooted = allowBooted)
+            else: remoteCall(moveFromCard.controller,'move',[moveFromCard, 0, 0, True, possibleTargets, False, allowBooted])
             extraTXT = " to {}".format(possibleTargets[0])
          elif (action.group(1) == 'SendHomeBooted' or action.group(1) == 'SendHome') and targetCard.group == table:
             shouldBoot = True
@@ -1421,6 +1443,7 @@ def findTarget(Autoscript, fromHand = False, card = None, choiceTitle = None, ig
    debugNotify("fromHand = {}. card = {}".format(fromHand,card)) #Debug
    if fromHand == True or re.search(r'-fromHand',Autoscript): group = me.hand
    elif re.search(r'-fromDrawHand',Autoscript): group = me.piles['Draw Hand']
+   elif re.search(r'-fromDiscard',Autoscript): group = me.piles['Discard Pile']
    elif re.search(r'-fromTopDeckMine',Autoscript): # Quick job because I cannot be bollocksed.
       debugNotify("Returing my top deck card",2)
       return [me.piles['Deck'].top()]
@@ -1673,15 +1696,37 @@ def checkSpecialRestrictions(Autoscript,card, playerChk = me, originCard = None)
    if re.search(r'isDrawDude',Autoscript) and fetchDrawType(card) == 'Stud':
       debugNotify("!!! Failing because card is a Stud")
       validCard = False
+   if re.search(r'isSkilledDude',Autoscript) and not re.search(r'(Huckster|Blessed|Shaman|Mad Scientist|Kung Fu)',card.Keywords):
+      debugNotify("!!! Failing because card is not skilled Dude")
+      validCard = False
    if re.search(r'isMark',Autoscript):
       currentMark = getGlobalVariable('Mark')
       if currentMark == 'None': validCard = False
       elif Card(num(currentMark)) != card: validCard = False
-   if re.search(r'isAdjacent', Autoscript):
-      cardLocation = determineCardLocation(card)
-      originLocation = determineCardLocation(originCard)
-      if not cardLocation: validCard = False
-      elif not areLocationsAdjacent(cardLocation, originLocation): validCard = False
+   if re.search(r'inLocation', Autoscript):
+       locSearch = re.search(r'inLocation([\w _]+)', Autoscript)
+       locRestrictions = locSearch.group(1).split('_or_')
+       for locRestriction in locRestrictions:
+           partialValidCard = True
+           cardLocation = determineCardLocation(card)
+           if not cardLocation: continue
+           if locRestriction == 'Same':
+               originLocation = determineCardLocation(originCard)
+               if cardLocation != originLocation: partialValidCard = False
+           elif locRestriction == 'Adjacent':
+               originLocation = determineCardLocation(originCard)
+               if not areLocationsAdjacent(cardLocation, originLocation): partialValidCard = False
+           elif locRestriction == 'Home':
+               locationOutfitCard = Card(eval(card.controller.getGlobalVariable('playerOutfit')))
+               if cardLocation != locationOutfitCard: partialValidCard = False
+           elif locRestriction == 'NotHome':
+               locationOutfitCard = Card(eval(card.controller.getGlobalVariable('playerOutfit')))
+               if cardLocation == locationOutfitCard: partialValidCard = False
+           elif locRestriction == 'Town Square':
+               if cardLocation != TownSquareToken: partialValidCard = False
+           else: partialValidCard = False
+           if partialValidCard: break
+       if not partialValidCard: validCard = False
    if re.search(r'isParticipating',Autoscript):
       if host:
          if host.highlight != AttackColor and host.highlight != DefendColor and host.highlight != InitiateColor:

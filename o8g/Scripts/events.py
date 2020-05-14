@@ -213,12 +213,15 @@ def compareHandRanks():
          if player.getGlobalVariable('Hand Rank') != 'N/A': competingPlayers.append(player)
          if len(competingPlayers) == 2: break
       if len(competingPlayers) == 2: 
-         if num(competingPlayers[0].getGlobalVariable('Hand Rank')) < num(competingPlayers[1].getGlobalVariable('Hand Rank')): 
-            notify("\n-- The winner is {} by {} ranks and {} must absorb as many casualties in this round.".format(competingPlayers[1], (num(competingPlayers[1].getGlobalVariable('Hand Rank')) - num(competingPlayers[0].getGlobalVariable('Hand Rank'))), competingPlayers[0]))
-         elif num(competingPlayers[0].getGlobalVariable('Hand Rank')) > num(competingPlayers[1].getGlobalVariable('Hand Rank')): 
-            notify("\n-- The winner is {} by {} ranks and {} must absorb as many casualties in this round.".format(competingPlayers[0], (num(competingPlayers[0].getGlobalVariable('Hand Rank')) - num(competingPlayers[1].getGlobalVariable('Hand Rank'))), competingPlayers[1]))
+         handRankDiff = num(competingPlayers[0].getGlobalVariable('Hand Rank')) - num(competingPlayers[1].getGlobalVariable('Hand Rank'))
+         if handRankDiff < 0: 
+            notify("\n-- The winner is {} by {} ranks and {} must absorb as many casualties in this round.".format(competingPlayers[1], abs(handRankDiff), competingPlayers[0]))
+         elif handRankDiff > 0: 
+            notify("\n-- The winner is {} by {} ranks and {} must absorb as many casualties in this round.".format(competingPlayers[0], abs(handRankDiff), competingPlayers[1]))
          else: 
             notify ("\n-- The Shootout is a tie. Both player suffer one casualty")
+         if competingPlayers[1] == me: autoscriptOtherPlayers('HandRevealed', count = handRankDiff * -1)
+         else: autoscriptOtherPlayers('HandRevealed', count = handRankDiff)
          clearHandRanks()
    else:
       winner = findLowballWinner()
