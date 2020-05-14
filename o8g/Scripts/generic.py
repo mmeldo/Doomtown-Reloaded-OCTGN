@@ -650,6 +650,13 @@ def insertIdToCardProperty(card, cardId, cardIdToInsert, propertyName):
        newPropertyStr += "|{}".format(newCardId)
    card.properties[propertyName] = newPropertyStr
    debugNotify("Card id {} inserted after id {} in property {} of card {}".format(cardIdToInsert, cardId, propertyName, card))
+
+def posseBulletsTotal(player = None):
+   totalBullets = 0
+   for c in table:
+      if (c.highlight == AttackColor or c.highlight == DefendColor) and (c.controller == player or (not player and c.controller != me)):
+          totalBullets += compileCardStat(c, 'Bullets')
+   return totalBullets
          
 #---------------------------------------------------------------------------
 # Card Placement functions

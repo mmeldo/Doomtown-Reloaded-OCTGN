@@ -740,7 +740,7 @@
          <property name="Influence" value="1" />
          <property name="Control" value="" />
          <property name="Outfit" value="Drifter" />
-         <property name="Keywords" value="" />
+         <property name="Keywords" value="Token" />
          <property name="Text" value="Cannot be included in decks.&#xD;&#xA;Remove this token from the game if it leaves this location, or at the end of the turn." />
          <property name="Instructions" value="" />
       </card>
@@ -758,7 +758,7 @@
          <property name="Influence" value="0" />
          <property name="Control" value="" />
          <property name="Outfit" value="Drifter" />
-         <property name="Keywords" value="" />
+         <property name="Keywords" value="Token" />
          <property name="Text" value="Cannot be included in decks.&#xD;&#xA;Remove this token from the game after this shootout." />
          <property name="Instructions" value="" />
       </card>

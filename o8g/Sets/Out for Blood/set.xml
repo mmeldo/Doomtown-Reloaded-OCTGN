@@ -770,7 +770,7 @@
 		         <property name="Outfit" value="" />
 		         <property name="Keywords" value="Weapon" />
 		         <property name="Text" value="Shootout, Boot: If this dude has 1 or more bullets, discard a token dude or a Sidekick with cost equal to or less than this dude’s bullets.&amp;#xD;&amp;#xD;Shootout, Boot: An opposing dude with 0 influence does not contribute to draw hand bonuses unless they are the shooter." />
-		         <property name="Instructions" value="" />
+		         <property name="Instructions" value="Shootout, Boot: If this dude has 1 or more bullets, discard a token dude or a Sidekick with cost equal to or less than this dude’s bullets. || Shootout, Boot: An opposing dude with 0 influence does not contribute to draw hand bonuses unless they are the shooter." />
       </card>
 		<card id="0c2524c4-0861-ecf7-6177-210a8321947c" name="Adler's Needle">
 		         <property name="Rank" value="K" />
@@ -804,7 +804,7 @@
 		         <property name="Outfit" value="" />
 		         <property name="Keywords" value="Spirit-Sidekick" />
 		         <property name="Text" value="Cheatin' Resolution Spirit 5, Boot: Send the opposing shooter home booted.&amp;#xD;&amp;#xD;Shootout Spirit 6, Boot: Give an opposing dude -1 bullets. If successful by 6 or more, boot that dude." />
-		         <property name="Instructions" value="" />
+		         <property name="Instructions" value="Cheatin' Resolution Spirit 5, Boot: Send the opposing shooter home booted. || Shootout Spirit 6, Boot: Give an opposing dude -1 bullets. If successful by 6 or more, boot that dude." />
       </card>
 		<card id="e881abd7-b68d-bf1b-c811-ece3574735ad" name="Guiding Light">
 		         <property name="Rank" value="10" />
@@ -821,7 +821,7 @@
 		         <property name="Outfit" value="" />
 		         <property name="Keywords" value="Miracle-Hymn" />
 		         <property name="Text" value="Noon Miracle 5, Boot: Pay another player 1 ghost rock to send your dude at this or an adjacent location home. If you have less ghost rock than that player, unboot that dude.&amp;#xD;&amp;#xD;Noon Miracle 5, Boot: Pay another player 2 ghost rock to send that player’s dude at this or an adjacent location home." />
-		         <property name="Instructions" value="" />
+		         <property name="Instructions" value="Noon Miracle 5, Boot: Pay another player 1 ghost rock to send your dude at this or an adjacent location home. If you have less ghost rock than that player, unboot that dude. || Noon Miracle 5, Boot: Pay another player 2 ghost rock to send that player’s dude at this or an adjacent location home." />
       </card>
 		<card id="13d69444-ddd2-c272-fd46-f4f4c0514ca4" name="Champion">
 		         <property name="Rank" value="J" />
@@ -838,7 +838,7 @@
 		         <property name="Outfit" value="" />
 		         <property name="Keywords" value="Miracle" />
 		         <property name="Text" value="Cheatin' Resolution Miracle 6, Boot: Gain 1 ghost rock.&amp;#xD;&amp;#xD;Shootout Miracle 8, Boot: Boot your dude to make them a stud. If that dude is discarded or aced, gain 1 ghost rock." />
-		         <property name="Instructions" value="" />
+		         <property name="Instructions" value="Cheatin' Resolution Miracle 6, Boot: Gain 1 ghost rock. || Shootout Miracle 8, Boot: Boot your dude to make them a stud. If that dude is discarded or aced, gain 1 ghost rock." />
       </card>
 		<card id="75c8ef97-b3fd-c1b9-01fc-28602b53d51d" name="Malison">
 		         <property name="Rank" value="J" />
@@ -906,7 +906,7 @@
 		         <property name="Outfit" value="" />
 		         <property name="Keywords" value="" />
 		         <property name="Text" value="Noon: Send your dude home booted.&amp;#xD;&amp;#xD;Shootout: Give your dude +1 bullets and an opposing dude -1 bullets." />
-		         <property name="Instructions" value="" />
+		         <property name="Instructions" value="onPlay[Noon: Send your dude home booted. |-|Shootout: Give your dude +1 bullets and an opposing dude -1 bullets.]" />
       </card>
 		<card id="2d8b5584-d18d-f87b-b766-304b552eb130" name="You're A Daisy If You Do">
 		         <property name="Rank" value="10" />
@@ -957,7 +957,7 @@
 		         <property name="Outfit" value="" />
 		         <property name="Keywords" value="" />
 		         <property name="Text" value="Shootout: Boot an opposing card. If it is a goods or spell, it loses all abilities, traits, and bonuses.&amp;#xD;&amp;#xD;React: After posses are formed, if your posse has more total bullets than the opposing posse, shootout plays cannot cause dudes to join posses or cause dudes to leave the shootout." />
-		         <property name="Instructions" value="" />
+		         <property name="Instructions" value="onPlay[Shootout: Boot an opposing card. If it is a goods or spell, it loses all abilities, traits, and bonuses. |-|React: After posses are formed, if your posse has more total bullets than the opposing posse, shootout plays cannot cause dudes to join posses or cause dudes to leave the shootout.]" />
       </card>
 		</cards>
 	</set>
