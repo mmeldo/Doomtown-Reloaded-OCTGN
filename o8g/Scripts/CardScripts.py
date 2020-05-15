@@ -6292,9 +6292,9 @@ Mr. Baird
 -----
 3079af53-b91d-a4a1-57ef-41c4ce59bdc8
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR1B1R0:DiscardTarget-DemiAutoTargeted-atDeed-fromHand-choose1-isCost$$Retrieve1Cards-fromDiscard-grabDeed_and_nonOut of Town
 
 .....
 Harlan Stanton
