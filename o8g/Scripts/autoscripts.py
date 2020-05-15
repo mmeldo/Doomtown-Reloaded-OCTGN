@@ -1441,6 +1441,10 @@ def RetrieveX(Autoscript, announceText, card, targetCards = None, notification =
 def findTarget(Autoscript, fromHand = False, card = None, choiceTitle = None, ignoreCardList = None): # Function for finding the target of an autoscript
    debugNotify(">>> findTarget(){}".format(extraASDebug(Autoscript))) #Debug
    debugNotify("fromHand = {}. card = {}".format(fromHand,card)) #Debug
+   foundTargets = []
+   #confirm(Autoscript) #Debug
+   RemoveSecondaryScripts = Autoscript.split('<')
+   Autoscript = RemoveSecondaryScripts[0]
    if fromHand == True or re.search(r'-fromHand',Autoscript): group = me.hand
    elif re.search(r'-fromDrawHand',Autoscript): group = me.piles['Draw Hand']
    elif re.search(r'-fromDiscard',Autoscript): group = me.piles['Discard Pile']
@@ -1452,10 +1456,7 @@ def findTarget(Autoscript, fromHand = False, card = None, choiceTitle = None, ig
       opponentPL = findOpponent('Ask')
       return [opponentPL.piles['Deck'].top()]
    else: group = table
-   foundTargets = []
-   #confirm(Autoscript) #Debug
-   RemoveSecondaryScripts = Autoscript.split('<')
-   Autoscript = RemoveSecondaryScripts[0]
+   debugNotify("fromHand = {}. card = {}. fromGroup = {}".format(fromHand,card,group)) #Debug
    #confirm(Autoscript) # Debug
    if re.search(r'Targeted', Autoscript):
       requiredAllegiances = []
