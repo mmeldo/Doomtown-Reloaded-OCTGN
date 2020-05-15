@@ -6224,6 +6224,510 @@ Test of Wills
 onPlay:BootTarget-Targeted-targetOpponents-isParticipating-choose1-isCost$$Put1Shootout:Test of Wills-Targeted$$SimplyAnnounce{to make target card lose all abilities, traits, and bonuses if it is goods or spell}||onPlay:CustomScript
 +++++
 
+.....
+Andrew Lane
+-----
+ac361a31-dd5f-4fca-91fd-67a43c202ae3
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Hank Ketchum
+-----
+d8173547-1e8d-43b1-9433-f99f0017115f
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Lacy O'Malley
+-----
+dff6d14c-e693-4d52-b6c7-edbdef001e6a
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+The Tombstone Haint
+-----
+30871624-02ac-0d3e-0a05-4a2860a9fabf
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Rock Woofstone
+-----
+77f21d94-03ca-8e72-ce20-ef74ef1395f9
+-----
+
++++++
+GR0B0R1:Lose1Ghost Rock-isCost$$Gain1Ghost Rock-onOpponent$$MoveMyself-moveToTown Square
+
+.....
+Arielle Moriah
+-----
+7103434e-2e84-f631-f0e1-c31f63767aa9
+-----
+
++++++
+GR0B0R0:UnbootMyself
+
+.....
+Gabriel Prior
+-----
+8972e73e-3ce9-c28f-f18a-d86c28ff4feb
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Mr. Baird
+-----
+3079af53-b91d-a4a1-57ef-41c4ce59bdc8
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Harlan Stanton
+-----
+902822a9-9591-0a5f-15f0-3858408570bd
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Dr. Delphi Wallis
+-----
+c48079e7-60b1-ddb8-1729-404fd10edcdc
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Cooper Grannon
+-----
+aea80f2c-e226-ca1c-59fe-e01fd4a65b97
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Vivene Goldsun
+-----
+38a6347d-ad73-9cc0-d7e5-557d9c8d7158
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Maurice Croker
+-----
+c59a067e-d293-9403-cb80-49106ec4e38d
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Bogie Man
+-----
+c4c882aa-f96f-b6bb-830a-6482099009fa
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Evan Lucas
+-----
+7ca0b92e-4508-8535-20f1-4796ae094c2b
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Tawodi
+-----
+707282a8-c871-c6f4-48dd-12ba2dc88fc2
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Tsintah
+-----
+ebfb026f-eb45-02c8-0bbd-0c2b5fa5cfdd
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Jackie Sanjuro
+-----
+e622aa3b-c00e-e807-9e58-cb9a2932d34e
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Speaks-with-Buffalo
+-----
+51e08e8f-12b8-9897-c380-5bfbb5bcde96
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Judge Wells Spicer
+-----
+085d6a20-5cbd-6b09-43bc-68720e213848
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Joan McGruder
+-----
+5b6b6aa0-1824-60a5-98ef-cd2fd4edadb0
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Virgil Earp
+-----
+6ddde887-06b9-a3d4-2b93-f02cd2183ea8
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Marshal Caves Callarman
+-----
+25ea3f58-99ad-3df5-225b-96ae4e88eccb
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Florentino Indian Charlie Cruz
+-----
+0debb6d1-05fa-83ee-ef73-e0f0b21d696e
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Tomas Ramirez
+-----
+f5cfecaf-af17-e447-2223-86a8e393e1fd
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Pete Spence
+-----
+4420ecb6-c2db-7c32-47cd-ea28f8c42543
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Jonah Essex (Exp.1)
+-----
+8c7fd924-8962-daee-9631-2ee5e61491af
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Camillus S. Fly
+-----
+2246467a-1e5c-4913-9d9b-9e3e795c5177
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+QUATERMAN PRIME
+-----
+ba276f31-01f8-4845-af82-e12fab75eed4
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Winona Rein-Breaker
+-----
+f37f74d8-af99-13aa-db56-99da98c2f350
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Nicole Sumner
+-----
+d58589b0-6da3-4dc6-afb3-5956e24a0cc4
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Red River Roulette
+-----
+9b3e329b-7483-427f-965c-b599730853f1
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Kiva of Fathomless Reach
+-----
+6b0a155b-0bc0-4a05-a3f0-9e82eeda84cd
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Crystal Palace
+-----
+291194ef-0102-4843-a105-f5fec8bfb5e3
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Rham's Readings
+-----
+c23fb989-758e-4065-8388-c41e9bc8a7ae
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Jonah's Retreat
+-----
+b4a19ef0-c40b-45e0-bc9a-754c301630fb
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Schieffelin Hall
+-----
+306fa2f3-ad06-42ca-b4b4-22fcfe916018
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Blue Lightnin'
+-----
+3bb469af-7b3a-478f-a804-88b5b6f208c5
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Magnum Rounds
+-----
+74bcca3c-7e81-43d7-a26d-cf98f4de2f63
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Iron Mole
+-----
+810b1cdd-2654-4110-a219-c687369645cc
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Net Gun
+-----
+50c6b016-a26e-44dc-baab-0eb822d07fe5
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Scratch
+-----
+d9830f56-75da-4f3f-8e53-9538c3686662
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Battered Banjo
+-----
+d53daadf-d1d4-466d-b69e-7874473c0021
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Bolts o' Doom
+-----
+9fac6b82-b073-483a-a47b-ebb1499d4e9e
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Lethargy
+-----
+d5639bec-8794-46e6-b368-9421c1670750
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Mind Twist
+-----
+31fc67cf-32e2-4bdd-9998-b30dda2ec532
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Dies Irae
+-----
+bc5335d6-0519-45c7-b937-1afc9a20050b
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Babble On
+-----
+69db55fc-fc57-46f2-805d-50a33b82db0a
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Ancestor's Reproach
+-----
+e15cb91e-455f-4e9d-b66a-f14506011161
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Secret Paths
+-----
+46dc8b80-1f05-4a1f-a5ea-f452c4e3dbac
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Fannin' the Hammer
+-----
+b1d66665-08d0-4adb-9ea2-62c0aac08f4e
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Tumblebleeds!
+-----
+c9e9547f-9c3e-4917-8b56-7c9eb93c38df
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Takin' Cover
+-----
+8d7cc337-a3d3-4bf4-b7c5-3eb07caa1d14
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Hell's Comin' With Me!
+-----
+8a8b75ce-ad2d-486a-9942-ecd2066ec92d
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Frontier Feud
+-----
+7405fcab-efba-4de4-83e9-f33364cfcb0f
+-----
+onPlay:
++++++
+GR0B0R0:
+
+.....
+Seizing the Pearl of Death
+-----
+ac4bae3a-8570-4b07-8818-4dc8626c848f
+-----
+onPlay:
++++++
+GR0B0R0:
+
 
 .....
 ENDSCRIPTS
