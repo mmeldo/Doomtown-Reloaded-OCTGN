@@ -29,7 +29,6 @@ mdict = { # A dictionary which holds all the hard coded markers (in the markers 
     'Harrowed'             : ("Harrowed",                   "661f2771-6b73-414b-b0b1-3e2b50386b71"),
     'Ghost Rock'           : ("Ghost Rock",                 "42f8f2f3-2995-4556-b4d0-374f91811c82"),
     'UsedAbility'          : ("Used Ability",               "836dfd81-805b-489a-a3d6-b55d68ff5a71"),
-    'UsedAbility:Shootout' : ("Used Shootout Ability",      "836dfd81-805b-489a-a3d6-b55d68ff5a71"),
     'SHActivated'          : ("Shootout Ability",           "197d8de5-d63f-4455-9144-7a106b192a02"),
     'PermInfluencePlus'    : ("+1 Permanent Influence",     "2428921d-f3d0-4d01-9a4a-393f1557aab4"),
     'PermInfluenceMinus'   : ("-1 Permanent Influence",     "18c9ae50-e098-4c20-8981-f0751a6d8497"),

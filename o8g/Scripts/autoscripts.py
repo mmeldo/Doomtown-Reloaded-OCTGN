@@ -180,7 +180,7 @@ def useAbility(card, x = 0, y = 0, manual = True): # The start of autoscript act
    # R is repeat switch. 0 means no repeat (i.e. only once per turn), 1 means it's a repeat ability (or just a card trait which can be used as many times as its trigger hits)
    if actionCostRegex:
       if (actionCostRegex.group(2) == '1' and card.orientation == Rot0) or actionCostRegex.group(2) == '0' or (actionCostRegex.group(2) == '1' and card.orientation == Rot90 and confirm("Card requires to be booted to use its ability. Bypass?")): # First we check if the card is booted and it needs to boot.
-         if actionCostRegex.group(3) == '1' or not card.markers[mdict['UsedAbility']] or (getGlobalVariable('Shootout') != 'True' and card.markers[mdict['UsedAbility']] and confirm("You've already used {}'s Ability this turn. Bypass Restriction?".format(card.name))) or (getGlobalVariable('Shootout') == 'True' and card.markers[mdict['UsedAbility:Shootout']] and confirm("You've already used {}'s Ability this Shootout. Bypass Restriction?".format(card.name))):
+         if actionCostRegex.group(3) == '1' or not card.markers[mdict['UsedAbility']] or (getGlobalVariable('Shootout') != 'True' and card.markers[mdict['UsedAbility']] and confirm("You've already used {}'s Ability this turn. Bypass Restriction?".format(card.name))):
             if payCost(actionCostRegex.group(1), silent) != 'ABORT': 
                if executeAutoscripts(card,selectedAutoscript,action = 'USE') != 'ABORT':
                   if card.group == table: # If the card is still on the table, then we take care of the other costs
@@ -191,9 +191,6 @@ def useAbility(card, x = 0, y = 0, manual = True): # The start of autoscript act
                         if getGlobalVariable('Shootout') != 'True':
                             if not card.markers[mdict['UsedAbility']]: card.markers[mdict['UsedAbility']] += 1 # If a card is repeat, we don't put a marker
                             else: notify(":::WARN::: {} bypassed once-per turn restriction on {}'s ability".format(me,card))
-                        else:
-                            if not card.markers[mdict['UsedAbility:Shootout']]: card.markers[mdict['UsedAbility:Shootout']] += 1 # If a card is repeat, we don't put a marker
-                            else: notify(":::WARN::: {} bypassed once-per shootout restriction on {}'s ability".format(me,card))
                      if re.search(r'-isResolution',selectedAutoscript): autoscriptOtherPlayers('Resolution',card) # This is used for cards which specifically trigger from Resolution effects.
                      if re.search(r'-isShootout',selectedAutoscript): autoscriptOtherPlayers('Shootout',card) # This is used for cards which specifically trigger from Shootout effects.
                else:
@@ -1441,6 +1438,10 @@ def RetrieveX(Autoscript, announceText, card, targetCards = None, notification =
 def findTarget(Autoscript, fromHand = False, card = None, choiceTitle = None, ignoreCardList = None): # Function for finding the target of an autoscript
    debugNotify(">>> findTarget(){}".format(extraASDebug(Autoscript))) #Debug
    debugNotify("fromHand = {}. card = {}".format(fromHand,card)) #Debug
+   foundTargets = []
+   #confirm(Autoscript) #Debug
+   RemoveSecondaryScripts = Autoscript.split('<')
+   Autoscript = RemoveSecondaryScripts[0]
    if fromHand == True or re.search(r'-fromHand',Autoscript): group = me.hand
    elif re.search(r'-fromDrawHand',Autoscript): group = me.piles['Draw Hand']
    elif re.search(r'-fromDiscard',Autoscript): group = me.piles['Discard Pile']
@@ -1452,10 +1453,7 @@ def findTarget(Autoscript, fromHand = False, card = None, choiceTitle = None, ig
       opponentPL = findOpponent('Ask')
       return [opponentPL.piles['Deck'].top()]
    else: group = table
-   foundTargets = []
-   #confirm(Autoscript) #Debug
-   RemoveSecondaryScripts = Autoscript.split('<')
-   Autoscript = RemoveSecondaryScripts[0]
+   debugNotify("fromHand = {}. card = {}. fromGroup = {}".format(fromHand,card,group)) #Debug
    #confirm(Autoscript) # Debug
    if re.search(r'Targeted', Autoscript):
       requiredAllegiances = []
@@ -1724,7 +1722,11 @@ def checkSpecialRestrictions(Autoscript,card, playerChk = me, originCard = None)
                if cardLocation == locationOutfitCard: partialValidCard = False
            elif locRestriction == 'Town Square':
                if cardLocation != TownSquareToken: partialValidCard = False
-           else: partialValidCard = False
+           else: 
+               cardLocation = determineCardLocation(card)
+               if cardLocation: cardLocId = str(cardLocation._id)
+               else: cardLocId = ''
+               if locRestriction != cardLocId: partialValidCard = False
            if partialValidCard: break
        if not partialValidCard: validCard = False
    if re.search(r'isParticipating',Autoscript):
