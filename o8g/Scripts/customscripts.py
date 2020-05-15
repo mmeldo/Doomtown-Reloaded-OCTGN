@@ -1190,32 +1190,29 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
          jokers[0].highlight = None
          notify("{} paid 1 Ghost Rock to attach {} to {}".format(me,jokers[0],card))
       elif getGlobalVariable('Shootout') == 'True':
-         if not card.markers[mdict['UsedAbility:Shootout']] or (card.markers[mdict['UsedAbility:Shootout']] and confirm("You've already used {}'s Ability this Shootout. Bypass Restriction?".format(card.name))): 
-            if not card.markers[mdict['UsedAbility:Shootout']]: card.markers[mdict['UsedAbility:Shootout']] += 1 
-            else: notify(":::WARN::: {} bypassed once-per turn restriction on {}'s ability".format(me,card))
-            jokers = []
-            hostCards = eval(getGlobalVariable('Host Cards'))
-            attachmentsList = [Card(cID) for cID in hostCards if hostCards[cID] == card._id]
-            for attachment in attachmentsList:
-               if attachment.Type == 'Joker': jokers.append(attachment)
-            if not len(jokers):
-               whisper(":::ERROR::: You need to have an attached joker to use this ability")
-               return 'ABORT'
-            elif len(jokers) == 1: joker = jokers[0]
-            else:
-               joker = jokers[SingleChoice('Choose one of your attached jokers to put in your draw hand',[c.Name for c in jokers])]
-            hex = findTarget('DemiAutoTargeted-atHex-onAttachment-isUnbooted-choose1', card = card, choiceTitle = "Choose which hex to boot to use this ability")
-            if not len(hex): return 'ABORT'
-            boot(hex[0], silent = True)
-            discardCards = findTarget('DemiAutoTargeted-isDrawHand-targetMine-choose1')
-            if not len(discardCards): return 'ABORT'
-            discardCards[0].moveTo(discardCards[0].owner.piles['Discard Pile'])
-            for c in table:
-               if c.highlight == DrawHandColor and c.controller == me: c.moveTo(me.piles['Draw Hand'])
-            joker.moveTo(me.piles['Draw Hand'])
-            clearAttachLinks(joker)
-            notify("{} boots their {} to replace {} with {}".format(card,hex[0],discardCards[0],joker))
-            revealHand(me.piles['Draw Hand'], type = 'shootout') # We move the cards back ot the draw hand and reveal again, letting the game announce the new rank.
+         jokers = []
+         hostCards = eval(getGlobalVariable('Host Cards'))
+         attachmentsList = [Card(cID) for cID in hostCards if hostCards[cID] == card._id]
+         for attachment in attachmentsList:
+            if attachment.Type == 'Joker': jokers.append(attachment)
+         if not len(jokers):
+            whisper(":::ERROR::: You need to have an attached joker to use this ability")
+            return 'ABORT'
+         elif len(jokers) == 1: joker = jokers[0]
+         else:
+            joker = jokers[SingleChoice('Choose one of your attached jokers to put in your draw hand',[c.Name for c in jokers])]
+         hex = findTarget('DemiAutoTargeted-atHex-onAttachment-isUnbooted-choose1', card = card, choiceTitle = "Choose which hex to boot to use this ability")
+         if not len(hex): return 'ABORT'
+         boot(hex[0], silent = True)
+         discardCards = findTarget('DemiAutoTargeted-isDrawHand-targetMine-choose1')
+         if not len(discardCards): return 'ABORT'
+         discardCards[0].moveTo(discardCards[0].owner.piles['Discard Pile'])
+         for c in table:
+            if c.highlight == DrawHandColor and c.controller == me: c.moveTo(me.piles['Draw Hand'])
+         joker.moveTo(me.piles['Draw Hand'])
+         clearAttachLinks(joker)
+         notify("{} boots their {} to replace {} with {}".format(card,hex[0],discardCards[0],joker))
+         revealHand(me.piles['Draw Hand'], type = 'shootout') # We move the cards back ot the draw hand and reveal again, letting the game announce the new rank.
       else:
          whisper(":::ERROR::: You can only use Theo's ability during lowball or shootouts")
    elif card.name == "Antoine Peterson" and action == 'PLAY':

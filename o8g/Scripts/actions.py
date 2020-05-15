@@ -322,7 +322,6 @@ def clearShootout(remoted = False):
                announcedLeader = True
             card.highlight = None
             executePlayScripts(card, 'UNPARTICIPATE')
-         card.markers[mdict['UsedAbility:Shootout']] = 0 
          card.markers[mdict['BulletShootoutPlus']] = 0 
          card.markers[mdict['BulletShootoutMinus']] = 0 
          card.markers[mdict['ValueShootoutPlus']] = 0 
@@ -530,7 +529,6 @@ def nightfall(card, x = 0, y = 0): # This function "refreshes" each card for nig
                                    # But only if it's not marked as a card that does not unboot
    mute()
    card.markers[mdict['UsedAbility']] = 0 # Remove the markers.
-   card.markers[mdict['UsedAbility:Shootout']] = 0 # Remove the markers.
    card.markers[SHActivatedMarker] = 0
    card.markers[mdict['ControlMinus']] = 0 # Remove temporary bullet, contol, value and influence modifications
    card.markers[mdict['ControlPlus']] = 0 

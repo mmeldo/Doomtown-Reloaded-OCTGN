@@ -6008,7 +6008,7 @@ b558faf1-8ed8-f8f5-c661-90019f0d6d61
 -----
 
 +++++
-GR0B0R0:Put1Johnny Ringo-onlyInShootouts$$SimplyAnnounce{Until the next round of this shootout, dudes cannot be chosen or affected by their opponent's React, Shootout, or non Cheatin' Resolution abilities.}
+GR0B0R0:Put1Shootout:Johnny Ringo-onlyInShootouts$$SimplyAnnounce{Until the next round of this shootout, dudes cannot be chosen or affected by their opponent's React, Shootout, or non Cheatin' Resolution abilities.}
 
 .....
 Violet Esperanza
