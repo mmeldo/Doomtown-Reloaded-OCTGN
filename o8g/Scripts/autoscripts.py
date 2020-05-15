@@ -1725,7 +1725,11 @@ def checkSpecialRestrictions(Autoscript,card, playerChk = me, originCard = None)
                if cardLocation == locationOutfitCard: partialValidCard = False
            elif locRestriction == 'Town Square':
                if cardLocation != TownSquareToken: partialValidCard = False
-           else: partialValidCard = False
+           else: 
+               cardLocation = determineCardLocation(card)
+               if cardLocation: cardLocId = str(cardLocation._id)
+               else: cardLocId = ''
+               if locRestriction != cardLocId: partialValidCard = False
            if partialValidCard: break
        if not partialValidCard: validCard = False
    if re.search(r'isParticipating',Autoscript):

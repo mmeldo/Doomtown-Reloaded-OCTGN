@@ -4619,7 +4619,7 @@ Burn 'Em Out
 -----
 973b1148-56aa-421b-ba9a-5c6273710b6c
 -----
-OnPlay:StartJob-AutoTargeted-atOutfit-targetOpponents-bootLeader-bountyPosse-jobEffects<UseCustomAbility,None>
+onPlay:StartJob-AutoTargeted-atOutfit-targetOpponents-bootLeader-bountyPosse-jobEffects<UseCustomAbility,None>
 +++++
 
 .....
