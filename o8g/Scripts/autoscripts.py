@@ -1230,10 +1230,13 @@ def ModifyStatus(Autoscript, announceText, card, targetCards = None, notificatio
             extraTXT = " to their owner's hand"
          elif action.group(1) == 'Play': 
             if re.search(r'-payCost',Autoscript): # This modulator means the script is going to pay for the card normally
-               preReducRegex = re.search(r'-reduc([0-9])',Autoscript) # this one means its going to reduce the cost a bit.
-               if preReducRegex: preReduc = num(preReducRegex.group(1))
+               preReducRegex = re.search(r'-reduc([0-9])(min)?([0-9])?',Autoscript) # this one means its going to reduce the cost a bit.
+               minCost = 0
+               if preReducRegex: 
+                   if len(preReducRegex.groups()) == 3: minCost = preReducRegex.group(3)
+                   preReduc = num(preReducRegex.group(1))
                else: preReduc = 0
-               playcard(targetCard,costReduction = preReduc, scripted = True)
+               playcard(c,costReduction = preReduc, preHost = preHost, scripted = True, minCost = minCost)
             else:
                placeCard(targetCard)
                executePlayScripts(targetCard, 'PLAY') # We execute the play scripts here only if the card is 0 cost.
@@ -1411,10 +1414,13 @@ def RetrieveX(Autoscript, announceText, card, targetCards = None, notification =
                         preHost = fetchHost(card) # Only Dudes and Deeds can host cards.
                      else: preHost = card # This modulator means the card will come prehosted on the card which triggered it.
                   else: preHost = None
-                  preReducRegex = re.search(r'-reduc([0-9])',Autoscript) # this one means its going to reduce the cost a bit.
-                  if preReducRegex: preReduc = num(preReducRegex.group(1))
+                  preReducRegex = re.search(r'-reduc([0-9])(min)?([0-9])?',Autoscript) # this one means its going to reduce the cost a bit.
+                  minCost = 0
+                  if preReducRegex: 
+                      if len(preReducRegex.groups()) == 3: minCost = preReducRegex.group(3)
+                      preReduc = num(preReducRegex.group(1))
                   else: preReduc = 0
-                  playcard(c,costReduction = preReduc, preHost = preHost, scripted = True)
+                  playcard(c,costReduction = preReduc, preHost = preHost, scripted = True, minCost = minCost)
                else:
                   placeCard(c)
                   executePlayScripts(c, 'PLAY') # We execute the play scripts here only if the card is 0 cost.

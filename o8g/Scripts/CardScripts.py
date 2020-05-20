@@ -5818,7 +5818,7 @@ Father Diamond
 -----
 
 +++++
-GR0B0R0:Lose1Ghost Rock-isCost$$Gain1Ghost-onOpponent$$SendHomeTarget-Targeted-atDude-isMine$$MoveMyself-moveToDeed_or_Town Square_or_Outfit
+GR0B0R0:Lose1Ghost Rock-isCost$$Gain1Ghost Rock-onOpponent$$SendHomeTarget-Targeted-atDude-isMine$$MoveMyself-moveToDeed_or_Town Square_or_Outfit
 
 .....
 Master Shou
@@ -6364,9 +6364,9 @@ Tawodi
 -----
 707282a8-c871-c6f4-48dd-12ba2dc88fc2
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B0R0:StartJob-AutoTargeted-atTown Square-jobEffects<Retrieve1Cards-fromDiscard-toTable-grabDude_or_Deed-payCost-reduc1min1,None>
 
 .....
 Tsintah

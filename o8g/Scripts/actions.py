@@ -1243,7 +1243,7 @@ def posseReady (group, x = 0, y = 0):
 # Hand and Deck actions
 #---------------------------------------------------------------------------
       
-def playcard(card,retainPos = False,costReduction = 0, preHost = None, scripted = False): 
+def playcard(card,retainPos = False, costReduction = 0, preHost = None, scripted = False, minCost = 0): 
 # This is the function to play cards from your hand. It's one of the core functions
 # It will automatically pay the cost of cards if you can, or inform you if you cannot.
 # If the card being played has influence or Control points, those will automatically be added to the player's total.
@@ -1308,7 +1308,8 @@ def playcard(card,retainPos = False,costReduction = 0, preHost = None, scripted 
          else: # if they're not on the table, they're in someone's boothill
             notify ("{} wanted to bring {} in play but it currently RIP in {}'s Boot Hill".format(me,card,chkcard.owner))
          return
-   if costReduction > num(card.Cost): costReduction = num(card.Cost)
+   if costReduction > num(card.Cost) - minCost: 
+       costReduction = num(card.Cost) - minCost
    reduction = reduceCost(card, action = 'PLAY', fullCost = num(card.Cost))
    if card.Type == "Dude":
       if not scripted: chkHighNoon()
