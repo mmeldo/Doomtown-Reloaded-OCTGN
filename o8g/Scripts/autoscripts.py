@@ -1730,6 +1730,10 @@ def checkSpecialRestrictions(Autoscript,card, playerChk = me, originCard = None)
                if cardLocation == locationOutfitCard: partialValidCard = False
            elif locRestriction == 'Town Square':
                if cardLocation != TownSquareToken: partialValidCard = False
+           elif locRestriction == 'Keyword':
+               keywordRegex = re.search(r'Keyword{([\w ]+)}', locRestriction)
+               if keywordRegex and len(keywordRegex): 
+                   if re.search(r'{}'.format(keywordRegex.group(1)), cardLocation.Keywords): partialValidCard = False                         
            else: partialValidCard = False
            if partialValidCard: break
        if not partialValidCard: validCard = False
@@ -1754,6 +1758,12 @@ def checkSpecialRestrictions(Autoscript,card, playerChk = me, originCard = None)
    if re.search(r'isNotMyself',Autoscript) and (originCard == None or card == originCard): 
       debugNotify("!!! Failing because no origin card provided or origin card is the same as card")
       validCard = False  
+   if re.search(r'isSameHost',Autoscript):
+      if originCard: 
+          originHost = fetchHost(originCard)
+          if (originHost == None or host != originHost): 
+              debugNotify("!!! Failing because no origin card provided or origin host is not the same as card host")
+              validCard = False 
    if re.search(r'isDrawHand',Autoscript) and card.highlight != DrawHandColor: 
       debugNotify("!!! Failing because card is not in the draw hand")
       validCard = False

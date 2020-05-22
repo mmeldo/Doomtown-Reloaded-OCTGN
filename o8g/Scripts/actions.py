@@ -451,7 +451,7 @@ def upkeep(group = table, x = 0, y = 0): # Automatically receive production and 
    prod = 0 # Variable to track total production received.
    upk = 0 # Variable to track total upkeep paid.
    cards = (card for card in table # Create a group with all the cards you own and control on the table.
-                 if (card.owner == me or card.highlight == me.color) # you cannot pay or produce from cards you do not own.
+                 if (card.owner == me or card.highlight == me.color or card.name == "Jonah's Retreat") # you cannot pay or produce from cards you do not own.
                  and card.controller == me  # you cannot pay or produce from cards you do not control.
                  and card.highlight != DrawHandColor) # And avoid counting lowball cards
    for card in cards: # For each card...

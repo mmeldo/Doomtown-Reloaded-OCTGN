@@ -586,7 +586,15 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
            notify("")
            return 'ABORT'
        remoteCall(opposingPlayer, 'DancingButterfly', [host, me])
-
+   ## Hell's Coming with Me ##
+   elif card.name == "Blue Lightnin'":
+       host = fetchHost(card)
+       if confirm("Do you want to increase {}'s bullets by 1? If you choose No, {} gets plus one to Huckster skill instead.".format(host.name, host.name)):
+           host.markers[mdict['BulletNoonPlus']] += 1
+           notify("{} uses {} to increase {}'s bullets by one.".format(me, card, host))
+       else: 
+           TokensX('Put1High Noon:Huckster Skill Bonus', '', host)
+           notify("{} uses {} to increase {}'s Husckster skill by one.".format(me, card, host))
        
 
 

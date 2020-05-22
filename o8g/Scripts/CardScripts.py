@@ -6427,9 +6427,9 @@ Marshal Caves Callarman
 -----
 25ea3f58-99ad-3df5-225b-96ae4e88eccb
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B0R0:Discard1Card-DemiAutoTargeted-fromHand-choose1$$Remove1Bounty-AutoTargeted-atMyself
 
 .....
 Florentino Indian Charlie Cruz
@@ -6472,9 +6472,9 @@ Camillus S. Fly
 -----
 2246467a-1e5c-4913-9d9b-9e3e795c5177
 -----
-onPlay:
+onPlay:Put1High Noon:Stud-DemiAutoTargeted-atDude-targetMine-isNotMyself-choose1-onlyInNoon
 +++++
-GR0B0R0:
+
 
 .....
 QUATERMAN PRIME
@@ -6490,9 +6490,9 @@ Winona Rein-Breaker
 -----
 f37f74d8-af99-13aa-db56-99da98c2f350
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR1B1R0:DiscardTarget-DemiAutoTargeted-atSidekick-targetOpponents-isParticipating-choose1-isCost
 
 .....
 Nicole Sumner
@@ -6508,18 +6508,18 @@ Red River Roulette
 -----
 9b3e329b-7483-427f-965c-b599730853f1
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B1R0:BootTarget-DemiAutoTargeted-targetMine-atDude-inSameLocation-choose1-isCost$$SimplyAnnounce{is preventing all casaulties this round. Dudes cannot flee this round. In the next round of shootout, double the number of casaulties inflicted}
 
 .....
 Kiva of Fathomless Reach
 -----
 6b0a155b-0bc0-4a05-a3f0-9e82eeda84cd
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B1R0:MoveTarget-DemiAutoTargeted-targetMine-atDude-choose1-isCost-moveToTown Square
 
 .....
 Crystal Palace
@@ -6562,9 +6562,9 @@ Blue Lightnin'
 -----
 3bb469af-7b3a-478f-a804-88b5b6f208c5
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B0R1:BootTarget-DemiAutoTargeted-atHex-isSameHost-choose1-isCost$$UseCustomAbility
 
 .....
 Magnum Rounds
