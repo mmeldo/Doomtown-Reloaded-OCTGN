@@ -664,9 +664,9 @@ def DrawX(Autoscript, announceText, card, targetCards = None, notification = Non
       elif re.search(r'-toDrawHand', Autoscript):
          destination = targetPL.piles['Draw Hand']
          destPath =  " to their Draw Hand"
-      else: destination = targetPL.hand
+      else: destination = targetPL.piles['Play Hand']
       preventDraw = False
-      if source == targetPL.piles['Deck'] and destination == targetPL.hand: # We need to look if there's card on the table which prevent card draws.
+      if source == targetPL.piles['Deck'] and destination == targetPL.piles['Play Hand']: # We need to look if there's card on the table which prevent card draws.
          debugNotify("About to check for Draw Prevention",2)
          for c in table:
             if preventDraw: break #If we already found a card effect which prevents draws, don't check any more cards on the table.
@@ -681,7 +681,7 @@ def DrawX(Autoscript, announceText, card, targetCards = None, notification = Non
          draw = num(action.group(1))
          if draw == 999: 
             multiplier = 1
-            currHandSize = len(me.hand)
+            currHandSize = len(me.piles['Play Hand'])
             count = refill() - currHandSize
          else: # Any other number just draws as many cards.
             multiplier = per(Autoscript, card, n, targetCards, notification)
@@ -709,10 +709,10 @@ def DiscardX(Autoscript, announceText, card, targetCards = None, notification = 
       discardNR = num(action.group(1))
       if discardNR == 999:
          multiplier = 1
-         discardNR = len(targetPL.hand) # 999 means we discard our whole hand
+         discardNR = len(targetPL.piles['Play Hand']) # 999 means we discard our whole hand
       if re.search(r'-isRandom',Autoscript): # the -isRandom modulator just discard as many cards at random.
          multiplier = per(Autoscript, card, n, targetCards, notification)
-         count = handRandomDiscard(targetPL.hand, discardNR * multiplier, targetPL, silent = True)
+         count = handRandomDiscard(targetPL.piles['Play Hand'], discardNR * multiplier, targetPL, silent = True)
          if re.search(r'isCost', Autoscript) and count < discardNR:
             whisper("You do not have enough cards in your hand to discard")
             return ('ABORT',0)
@@ -747,7 +747,7 @@ def ReshuffleX(Autoscript, announceText, card, targetCards = None, notification 
    for targetPL in targetPLs:
       if action.group(2) == 'Hand':
          if numberCards == '999':
-             namestuple = groupToDeck(targetPL.hand, targetPL , True) # We do a silent hand reshuffle into the deck, which returns a tuple
+             namestuple = groupToDeck(targetPL.piles['Play Hand'], targetPL , True) # We do a silent hand reshuffle into the deck, which returns a tuple
          else:
              cardsToReshuffle = findTarget("DemiAutoTargeted-fromHand-choose{}".format(numberCards))
              namestuple = cardsToDeck(cardsToReshuffle, targetPL , True)
@@ -1345,7 +1345,7 @@ def RetrieveX(Autoscript, announceText, card, targetCards = None, notification =
          destination = targetPL.piles['Boot Hill']
          destiVerb = 'ace'
       else: 
-         destination = targetPL.hand
+         destination = targetPL.piles['Play Hand']
          destiVerb = 'retrieve'
       debugNotify("Fething Script Variables")
       count = num(action.group(1))
@@ -1442,7 +1442,7 @@ def findTarget(Autoscript, fromHand = False, card = None, choiceTitle = None, ig
    #confirm(Autoscript) #Debug
    RemoveSecondaryScripts = Autoscript.split('<')
    Autoscript = RemoveSecondaryScripts[0]
-   if fromHand == True or re.search(r'-fromHand',Autoscript): group = me.hand
+   if fromHand == True or re.search(r'-fromHand',Autoscript): group = me.piles['Play Hand']
    elif re.search(r'-fromDrawHand',Autoscript): group = me.piles['Draw Hand']
    elif re.search(r'-fromDiscard',Autoscript): group = me.piles['Discard Pile']
    elif re.search(r'-fromTopDeckMine',Autoscript): # Quick job because I cannot be bollocksed.

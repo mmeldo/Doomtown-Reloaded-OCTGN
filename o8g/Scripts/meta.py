@@ -205,7 +205,7 @@ def chkTargeting(card):
             return 'ABORT'
    if re.search(r'HandTarget', CardsAS.get(card.model,'')) or re.search(r'HandTarget', CardsAA.get(card.model,'')):
       hasTarget = False
-      for c in me.hand:
+      for c in me.piles['Play Hand']:
          if c.targetedBy and c.targetedBy == me: hasTarget = True
       if not hasTarget:
          whisper(":::Warning::: This card effect requires that you have one of more cards targeted from your hand. Aborting!")
