@@ -180,7 +180,7 @@ def useAbility(card, x = 0, y = 0, manual = True): # The start of autoscript act
    # R is repeat switch. 0 means no repeat (i.e. only once per turn), 1 means it's a repeat ability (or just a card trait which can be used as many times as its trigger hits)
    if actionCostRegex:
       if (actionCostRegex.group(2) == '1' and card.orientation == Rot0) or actionCostRegex.group(2) == '0' or (actionCostRegex.group(2) == '1' and card.orientation == Rot90 and confirm("Card requires to be booted to use its ability. Bypass?")): # First we check if the card is booted and it needs to boot.
-         if actionCostRegex.group(3) == '1' or not card.markers[mdict['UsedAbility']] or (getGlobalVariable('Shootout') != 'True' and card.markers[mdict['UsedAbility']] and confirm("You've already used {}'s Ability this turn. Bypass Restriction?".format(card.name))) or (getGlobalVariable('Shootout') == 'True' and card.markers[mdict['UsedAbility:Shootout']] and confirm("You've already used {}'s Ability this Shootout. Bypass Restriction?".format(card.name))):
+         if actionCostRegex.group(3) == '1' or not card.markers[mdict['UsedAbility']] or (getGlobalVariable('Shootout') != 'True' and card.markers[mdict['UsedAbility']] and confirm("You've already used {}'s Ability this turn. Bypass Restriction?".format(card.name))):
             if payCost(actionCostRegex.group(1), silent) != 'ABORT': 
                if executeAutoscripts(card,selectedAutoscript,action = 'USE') != 'ABORT':
                   if card.group == table: # If the card is still on the table, then we take care of the other costs
@@ -191,9 +191,6 @@ def useAbility(card, x = 0, y = 0, manual = True): # The start of autoscript act
                         if getGlobalVariable('Shootout') != 'True':
                             if not card.markers[mdict['UsedAbility']]: card.markers[mdict['UsedAbility']] += 1 # If a card is repeat, we don't put a marker
                             else: notify(":::WARN::: {} bypassed once-per turn restriction on {}'s ability".format(me,card))
-                        else:
-                            if not card.markers[mdict['UsedAbility:Shootout']]: card.markers[mdict['UsedAbility:Shootout']] += 1 # If a card is repeat, we don't put a marker
-                            else: notify(":::WARN::: {} bypassed once-per shootout restriction on {}'s ability".format(me,card))
                      if re.search(r'-isResolution',selectedAutoscript): autoscriptOtherPlayers('Resolution',card) # This is used for cards which specifically trigger from Resolution effects.
                      if re.search(r'-isShootout',selectedAutoscript): autoscriptOtherPlayers('Shootout',card) # This is used for cards which specifically trigger from Shootout effects.
                else:
@@ -667,9 +664,9 @@ def DrawX(Autoscript, announceText, card, targetCards = None, notification = Non
       elif re.search(r'-toDrawHand', Autoscript):
          destination = targetPL.piles['Draw Hand']
          destPath =  " to their Draw Hand"
-      else: destination = targetPL.hand
+      else: destination = targetPL.piles['Play Hand']
       preventDraw = False
-      if source == targetPL.piles['Deck'] and destination == targetPL.hand: # We need to look if there's card on the table which prevent card draws.
+      if source == targetPL.piles['Deck'] and destination == targetPL.piles['Play Hand']: # We need to look if there's card on the table which prevent card draws.
          debugNotify("About to check for Draw Prevention",2)
          for c in table:
             if preventDraw: break #If we already found a card effect which prevents draws, don't check any more cards on the table.
@@ -684,7 +681,7 @@ def DrawX(Autoscript, announceText, card, targetCards = None, notification = Non
          draw = num(action.group(1))
          if draw == 999: 
             multiplier = 1
-            currHandSize = len(me.hand)
+            currHandSize = len(me.piles['Play Hand'])
             count = refill() - currHandSize
          else: # Any other number just draws as many cards.
             multiplier = per(Autoscript, card, n, targetCards, notification)
@@ -712,10 +709,10 @@ def DiscardX(Autoscript, announceText, card, targetCards = None, notification = 
       discardNR = num(action.group(1))
       if discardNR == 999:
          multiplier = 1
-         discardNR = len(targetPL.hand) # 999 means we discard our whole hand
+         discardNR = len(targetPL.piles['Play Hand']) # 999 means we discard our whole hand
       if re.search(r'-isRandom',Autoscript): # the -isRandom modulator just discard as many cards at random.
          multiplier = per(Autoscript, card, n, targetCards, notification)
-         count = handRandomDiscard(targetPL.hand, discardNR * multiplier, targetPL, silent = True)
+         count = handRandomDiscard(targetPL.piles['Play Hand'], discardNR * multiplier, targetPL, silent = True)
          if re.search(r'isCost', Autoscript) and count < discardNR:
             whisper("You do not have enough cards in your hand to discard")
             return ('ABORT',0)
@@ -750,7 +747,7 @@ def ReshuffleX(Autoscript, announceText, card, targetCards = None, notification 
    for targetPL in targetPLs:
       if action.group(2) == 'Hand':
          if numberCards == '999':
-             namestuple = groupToDeck(targetPL.hand, targetPL , True) # We do a silent hand reshuffle into the deck, which returns a tuple
+             namestuple = groupToDeck(targetPL.piles['Play Hand'], targetPL , True) # We do a silent hand reshuffle into the deck, which returns a tuple
          else:
              cardsToReshuffle = findTarget("DemiAutoTargeted-fromHand-choose{}".format(numberCards))
              namestuple = cardsToDeck(cardsToReshuffle, targetPL , True)
@@ -1351,7 +1348,7 @@ def RetrieveX(Autoscript, announceText, card, targetCards = None, notification =
          destination = targetPL.piles['Boot Hill']
          destiVerb = 'ace'
       else: 
-         destination = targetPL.hand
+         destination = targetPL.piles['Play Hand']
          destiVerb = 'retrieve'
       debugNotify("Fething Script Variables")
       count = num(action.group(1))
@@ -1447,7 +1444,11 @@ def RetrieveX(Autoscript, announceText, card, targetCards = None, notification =
 def findTarget(Autoscript, fromHand = False, card = None, choiceTitle = None, ignoreCardList = None): # Function for finding the target of an autoscript
    debugNotify(">>> findTarget(){}".format(extraASDebug(Autoscript))) #Debug
    debugNotify("fromHand = {}. card = {}".format(fromHand,card)) #Debug
-   if fromHand == True or re.search(r'-fromHand',Autoscript): group = me.hand
+   foundTargets = []
+   #confirm(Autoscript) #Debug
+   RemoveSecondaryScripts = Autoscript.split('<')
+   Autoscript = RemoveSecondaryScripts[0]
+   if fromHand == True or re.search(r'-fromHand',Autoscript): group = me.piles['Play Hand']
    elif re.search(r'-fromDrawHand',Autoscript): group = me.piles['Draw Hand']
    elif re.search(r'-fromDiscard',Autoscript): group = me.piles['Discard Pile']
    elif re.search(r'-fromTopDeckMine',Autoscript): # Quick job because I cannot be bollocksed.
@@ -1458,10 +1459,7 @@ def findTarget(Autoscript, fromHand = False, card = None, choiceTitle = None, ig
       opponentPL = findOpponent('Ask')
       return [opponentPL.piles['Deck'].top()]
    else: group = table
-   foundTargets = []
-   #confirm(Autoscript) #Debug
-   RemoveSecondaryScripts = Autoscript.split('<')
-   Autoscript = RemoveSecondaryScripts[0]
+   debugNotify("fromHand = {}. card = {}. fromGroup = {}".format(fromHand,card,group)) #Debug
    #confirm(Autoscript) # Debug
    if re.search(r'Targeted', Autoscript):
       requiredAllegiances = []
@@ -1734,7 +1732,11 @@ def checkSpecialRestrictions(Autoscript,card, playerChk = me, originCard = None)
                keywordRegex = re.search(r'Keyword{([\w ]+)}', locRestriction)
                if keywordRegex and len(keywordRegex): 
                    if re.search(r'{}'.format(keywordRegex.group(1)), cardLocation.Keywords): partialValidCard = False                         
-           else: partialValidCard = False
+           else: 
+               cardLocation = determineCardLocation(card)
+               if cardLocation: cardLocId = str(cardLocation._id)
+               else: cardLocId = ''
+               if locRestriction != cardLocId: partialValidCard = False
            if partialValidCard: break
        if not partialValidCard: validCard = False
    if re.search(r'isParticipating',Autoscript):

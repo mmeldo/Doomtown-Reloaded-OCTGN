@@ -216,7 +216,7 @@ def setup(group,x=0,y=0):
       TownSquareToken = table.create("ac0b08ed-8f78-4cff-a63b-fa1010878af9",-170,-50, 1, True) # Create a Town Square card in the middle of the table.
       TownSquareToken.anchor = True
    else: TownSquareToken = tstList[0]
-   for card in me.hand: # For every card in the player's hand... (which should be an outfit and a bunch of dudes usually)
+   for card in me.piles['Play Hand']: # For every card in the player's hand... (which should be an outfit and a bunch of dudes usually)
       if card.Type == "Outfit" :  # First we do a loop to find an play the outfit, (in case the player managed to mess the order somehow)
          placeCard(card,'SetupHome')
          card.filter = "#22{}".format(me.color[1:])
@@ -241,7 +241,7 @@ def setup(group,x=0,y=0):
    dudecount = 0
    concat_dudes = 'and has the following starting dudes: ' # A string where we collect the names of the dudes we bring in
    concat_other = '' # A string to remember any other card (like sweetrock's mine)
-   for card in me.hand: # For every card in the player's hand... (which should a bunch of dudes now)
+   for card in me.piles['Play Hand']: # For every card in the player's hand... (which should a bunch of dudes now)
       debugNotify("Placing {}".format(card),4)
       if card.Type == "Dude" : # If it's a dude...
          placeCard(card,'SetupDude',dudecount)
@@ -322,7 +322,6 @@ def clearShootout(remoted = False):
                announcedLeader = True
             card.highlight = None
             executePlayScripts(card, 'UNPARTICIPATE')
-         card.markers[mdict['UsedAbility:Shootout']] = 0 
          card.markers[mdict['BulletShootoutPlus']] = 0 
          card.markers[mdict['BulletShootoutMinus']] = 0 
          card.markers[mdict['ValueShootoutPlus']] = 0 
@@ -530,7 +529,6 @@ def nightfall(card, x = 0, y = 0): # This function "refreshes" each card for nig
                                    # But only if it's not marked as a card that does not unboot
    mute()
    card.markers[mdict['UsedAbility']] = 0 # Remove the markers.
-   card.markers[mdict['UsedAbility:Shootout']] = 0 # Remove the markers.
    card.markers[SHActivatedMarker] = 0
    card.markers[mdict['ControlMinus']] = 0 # Remove temporary bullet, contol, value and influence modifications
    card.markers[mdict['ControlPlus']] = 0 
@@ -1349,7 +1347,7 @@ def playcard(card,retainPos = False, costReduction = 0, preHost = None, scripted
       else: hostCard = findHost(card)
       if not hostCard:
          whisper("You need to target the card which is going to attach the card")
-         if retainPos: card.moveTo(me.hand)
+         if retainPos: card.moveTo(me.piles['Play Hand'])
          return
       else:
          grimme = 0
@@ -1430,7 +1428,7 @@ def draw(group = me.Deck): # Draws one card from the deck into the player's hand
    if len(group) == 0: # In case the deck is empty, invoke the reshuffle function.
       notify("{}'s Deck empty. Will reshuffle discard pile".format(me))
       reshuffle()
-   group.top().moveTo(me.hand)
+   group.top().moveTo(me.piles['Play Hand'])
    notify("{} draws a card.".format(me))   
    
 def pull(group = me.Deck, x = 0, y = 0, silent = False): # Draws one card from the deck into the discard pile and announces its value.
@@ -1450,7 +1448,7 @@ def pull(group = me.Deck, x = 0, y = 0, silent = False): # Draws one card from t
 
 def drawMany(group, count = None, destination = None, silent = False): # This function draws a variable number cards into the player's hand.
    mute()
-   if destination == None: destination = me.hand
+   if destination == None: destination = me.piles['Play Hand']
    if count == None: count = askInteger("Draw how many cards to your Play Hand?", 5) # Ask the player how many cards they want.
    if count == None: return
    drawnC = 0
@@ -1471,7 +1469,7 @@ def setHandSize(group): # A function to modify a player's hand size. This is use
    if handsize == None: handsize = 5
    notify("{} sets their hand size to {}".format(me, handsize))
    
-def refill(group = me.hand): # Refill the player's hand to its hand size.
+def refill(group = me.piles['Play Hand']): # Refill the player's hand to its hand size.
    #global handsize
    handsize = 5 # 5 is the default, then we add any card effects which modify it
    for card in table:
@@ -1480,13 +1478,13 @@ def refill(group = me.hand): # Refill the player's hand to its hand size.
          if not handSizeRegex: continue
          if handSizeRegex.group(1) == 'Plus': handsize += num(handSizeRegex.group(2))
          else: handsize -= num(handSizeRegex.group(2))
-   playhand = len(me.hand) # count how many cards there are currently there.
+   playhand = len(me.piles['Play Hand']) # count how many cards there are currently there.
    if playhand < handsize: drawMany(me.Deck, handsize - playhand, silent = True) # If there's less cards than the handsize, draw from the deck until it's full.
    return handsize
 
 def returnToHand(card, silent = False):
    mute()
-   card.moveTo(card.owner.hand)
+   card.moveTo(card.owner.piles['Play Hand'])
    if not silent: notify("{} has returned {} to their owner's hand.".format(me, card)) 
 
 def handDiscard(card, x = 0, y = 0): # Discard a card from your hand.
@@ -1507,7 +1505,7 @@ def handShuffle(group, x = 0, y = 0): # Shuffle your hand back into your deck
    shuffle(me.Deck) # We do a good shuffle this time.
    whisper("Shuffle completed.")
        
-def groupToDeck (group = me.hand, player = me, silent = False):
+def groupToDeck (group = me.piles['Play Hand'], player = me, silent = False):
    debugNotify(">>> groupToDeck(){}".format(extraASDebug())) #Debug
    mute()
    deck = player.Deck

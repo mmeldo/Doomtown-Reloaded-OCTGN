@@ -94,10 +94,10 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
       if compileCardStat(bootingDude, 'Influence') >= 2: cardDraw = 3
       else: cardDraw = 2
       drawMany(me.deck, cardDraw, silent = True)      
-      if len(me.hand):
+      if len(me.piles['Play Hand']):
          choicehand = None
          while choicehand == None:
-            choicehand = askCardFromList([c for c in me.hand],'Choose which card to discard or ace from your hand',card.Name)
+            choicehand = askCardFromList([c for c in me.piles['Play Hand']],'Choose which card to discard or ace from your hand',card.Name)
       destination = SingleChoice("Discard or Ace {}?".format(choicehand.Name), ['Discard','Ace'])
       if not destination: destination = 0
       if destination: 
@@ -148,7 +148,7 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
       drawMany(me.deck, 1, silent = True)
       choicehand = None
       while choicehand == None:
-         choicehand = askCardFromList([c for c in me.hand],'Choose which card to discard from your hand',card.Name)
+         choicehand = askCardFromList([c for c in me.piles['Play Hand']],'Choose which card to discard from your hand',card.Name)
       choicehand.moveTo(me.piles['Discard Pile'])
       notify("{} boot {} to draw 1 card and discard {} from their hand".format(announceText,card,choicehand))
    elif card.name == "Xemo's Turban":
@@ -161,7 +161,7 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
          drawMany(me.deck, 1, silent = True)
          choicehand = None
          while choicehand == None:
-            choicehand = askCardFromList([c for c in me.hand],'Choose which card to discard from your hand',card.Name)
+            choicehand = askCardFromList([c for c in me.piles['Play Hand']],'Choose which card to discard from your hand',card.Name)
          choicehand.moveTo(me.piles['Discard Pile'])
          remoteCall(me,'boot',[card])
          notify("{} boot {} to draw 1 card and discard {} from their hand".format(announceText,card,choicehand))
@@ -174,7 +174,7 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
          choiceDeed = askCardFromList(availDeeds,'These were the available Out of Town deeds that were at the top of your deck. You may boot Arnold to take one in your hand',card.Name)
          notify("{} boot {} to take {} to their hand".format(announceText,card,choiceDeed))
          if choiceDeed: 
-            choiceDeed.moveTo(me.hand)
+            choiceDeed.moveTo(me.piles['Play Hand'])
             boot(card,True)
       elif not availDeeds and card.orientation == Rot0:
          notify(":> {} didn't discover any good spots out of town.".format(card))
@@ -211,7 +211,7 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
          return
       handG = []
       discG = []
-      for c in me.hand: 
+      for c in me.piles['Play Hand']: 
          if re.search(r'Gadget',c.Keywords):
             handG.append(c)
       for c in me.piles['Discard Pile']: 
@@ -273,7 +273,7 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
          drawMany(me.deck,count = 1, silent = True)
          notify(":> {} booted {} to draw 1 card".format(me,shamanHost))
    elif card.name == 'Inner Struggle':
-      remoteCall(card.controller,'randomDiscard',[card.controller.hand])
+      remoteCall(card.controller,'randomDiscard',[card.controller.piles['Play Hand']])
    ### Blood Moon Rising ###
    elif card.name == "Tse-Che-Nako's Weaving":
       targetDudes = findTarget("DemiAutoTargeted-atDude-targetMine-choose1", choiceTitle = "Select Dude to move")
@@ -373,12 +373,12 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
          if confirm("do you want to discard card(s)?"):
             disloop = 2;
             while disloop:
-               chosenCard = askCardFromList([c for c in me.hand],"Choose which card to discard from your hand")
+               chosenCard = askCardFromList([c for c in me.piles['Play Hand']],"Choose which card to discard from your hand")
                chosenCard.moveTo(me.piles['Discard Pile'])
                disloop -= 1        
       else:
          if confirm("do you want to discard card(s)?"):
-               chosenCard = askCardFromList([c for c in me.hand],"Choose which card to discard from your hand")
+               chosenCard = askCardFromList([c for c in me.piles['Play Hand']],"Choose which card to discard from your hand")
                chosenCard.moveTo(me.piles['Discard Pile'])
    elif card.model == "ae22bba2-cf1e-4038-b7bb-1d3429c10004": #Ying-Ssi Chieh T'ang
       drawhandMany(me.Deck, 1, True)
@@ -396,9 +396,9 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
          notify("You have no cards you can fetch with this ability")
          return
       card = askCardFromList(cards, "Choose a CR to fetch if you do you will have to discard a card from your hand.First {} are in your discard".format(string))
-      card.moveTo(me.hand)
+      card.moveTo(me.piles['Play Hand'])
       if card:
-         choicehand = askCardFromList([c for c in me.hand],'Choose which card to discard from your hand',card.Name)
+         choicehand = askCardFromList([c for c in me.piles['Play Hand']],'Choose which card to discard from your hand',card.Name)
          choicehand.moveTo(me.piles['Discard Pile'])
 
       notify("{} fetched {} using Murdered in Tombstone ability and discarded".format(me, card.name, choicehand)) 
@@ -454,7 +454,7 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
             TokensX('Put1BulletShootoutMinus', '', dude)
             bullets = compilecardstat(card, stat = 'Bullets')
    elif card.name =='High Stakes Haven':
-      randomC = me.hand.random()
+      randomC = me.piles['Play Hand'].random()
       if me.GhostRock <= 0:
          if randomC == None:
             notify('{} is broke and without cards to pay for {}.'.format(me, card))
@@ -843,16 +843,16 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
       choice = SingleChoice('Choose one of your discarded cards to take to your hand', makeChoiceListfromCardList(discardCards))
       notify("{} uses {} to take {} into their hand".format(me,card,discardCards[choice]))
       rnd(1,10)
-      discardCards[choice].moveTo(me.hand)
+      discardCards[choice].moveTo(me.piles['Play Hand'])
       update()
       if re.search(r'Noon Job',discardCards[choice].Text) and discardCards[choice].Type == 'Action': remoteCall(me,'boot',[card]) # Doing remote call, so as to have a chance to finish the animation
 ### SB 4-6 ###
    elif card.name == "Howard Aswell" and action == 'USE':
-      handCards = [c for c in me.hand]
+      handCards = [c for c in me.piles['Play Hand']]
       revealCards(handCards)
       while not confirm("You are now revealing your hand to all players. Press Yes to continue, Press No to ping the other players to see if they had enough time to see the cards"):
          notify("{} wants to know if it's OK to hide their hand once more".format(me))
-      for c in handCards: c.moveTo(me.hand)
+      for c in handCards: c.moveTo(me.piles['Play Hand'])
       notify("{} hides their play hand once more".format(me))   
       for c in me.Deck.top(10): c.moveTo(me.piles['Discard Pile'])
       update()
@@ -864,10 +864,10 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
          if choice == None:
             notify("{} chooses not to take a Ranch of Improvement into their hand".format(me))
          else:
-            choicehand = askCardFromList([c for c in me.hand],"Choose card to discard from hand.")
+            choicehand = askCardFromList([c for c in me.piles['Play Hand']],"Choose card to discard from hand.")
             choicehand.moveTo(me.piles['Discard Pile'])
             notify("{} uses {} and discards {} to take {} into their hand".format(me,card,choicehand,choice))
-            choice.moveTo(me.hand)
+            choice.moveTo(me.piles['Play Hand'])
             update()
    elif card.name == "Funtime Freddy" and action == 'USE':
       notify(":> {} is choosing the two hexes to retrieve with {}".format(me,card))
@@ -945,8 +945,8 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
       chosenC = askCardFromList(topC,'Choose one Spirit or Attire to reveal or close this window to leave these cards where they are',card.Name)
       if not chosenC: notify("{} boots {} to look at the top 5 cards of their deck but opts to keep their current hand".format(me,card))
       else:
-         for c in me.hand: c.moveToBottom(deck)
-         for c in deck.top(5): c.moveTo(me.hand)
+         for c in me.piles['Play Hand']: c.moveToBottom(deck)
+         for c in deck.top(5): c.moveTo(me.piles['Play Hand'])
          notify("{} boots {} to reveal {} from the top 5 cards of their deck,  take those cards to their hand and shuffle their previous hand to their deck".format(me,card,chosenC.Name))
          deck.shuffle()         
    elif card.name == "Laughing Crow" and action == 'USE':
@@ -964,10 +964,10 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
             topC.remove(playedSpirit)
       if len(topC): notify("{} discarded {} from the top of their deck".format(card,[c.Name for c in topC]))
    elif card.name == "Benjamin Washington" and action == 'USE':
-      handCards = list(me.hand)
+      handCards = list(me.piles['Play Hand'])
       discardedC = askCardFromList(handCards,'Select one card to discard or close this window to finish',card.Name)
       if not discardedC: return
-      while discardedC != None and len(me.hand):
+      while discardedC != None and len(me.piles['Play Hand']):
          discardedC.moveTo(discardPile)
          notify(":> {} uses {} to discard {}".format(me,card,discardedC))
          handCards.remove(discardedC)
@@ -1198,42 +1198,39 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
          jokers[0].highlight = None
          notify("{} paid 1 Ghost Rock to attach {} to {}".format(me,jokers[0],card))
       elif getGlobalVariable('Shootout') == 'True':
-         if not card.markers[mdict['UsedAbility:Shootout']] or (card.markers[mdict['UsedAbility:Shootout']] and confirm("You've already used {}'s Ability this Shootout. Bypass Restriction?".format(card.name))): 
-            if not card.markers[mdict['UsedAbility:Shootout']]: card.markers[mdict['UsedAbility:Shootout']] += 1 
-            else: notify(":::WARN::: {} bypassed once-per turn restriction on {}'s ability".format(me,card))
-            jokers = []
-            hostCards = eval(getGlobalVariable('Host Cards'))
-            attachmentsList = [Card(cID) for cID in hostCards if hostCards[cID] == card._id]
-            for attachment in attachmentsList:
-               if attachment.Type == 'Joker': jokers.append(attachment)
-            if not len(jokers):
-               whisper(":::ERROR::: You need to have an attached joker to use this ability")
-               return 'ABORT'
-            elif len(jokers) == 1: joker = jokers[0]
-            else:
-               joker = jokers[SingleChoice('Choose one of your attached jokers to put in your draw hand',[c.Name for c in jokers])]
-            hex = findTarget('DemiAutoTargeted-atHex-onAttachment-isUnbooted-choose1', card = card, choiceTitle = "Choose which hex to boot to use this ability")
-            if not len(hex): return 'ABORT'
-            boot(hex[0], silent = True)
-            discardCards = findTarget('DemiAutoTargeted-isDrawHand-targetMine-choose1')
-            if not len(discardCards): return 'ABORT'
-            discardCards[0].moveTo(discardCards[0].owner.piles['Discard Pile'])
-            for c in table:
-               if c.highlight == DrawHandColor and c.controller == me: c.moveTo(me.piles['Draw Hand'])
-            joker.moveTo(me.piles['Draw Hand'])
-            clearAttachLinks(joker)
-            notify("{} boots their {} to replace {} with {}".format(card,hex[0],discardCards[0],joker))
-            revealHand(me.piles['Draw Hand'], type = 'shootout') # We move the cards back ot the draw hand and reveal again, letting the game announce the new rank.
+         jokers = []
+         hostCards = eval(getGlobalVariable('Host Cards'))
+         attachmentsList = [Card(cID) for cID in hostCards if hostCards[cID] == card._id]
+         for attachment in attachmentsList:
+            if attachment.Type == 'Joker': jokers.append(attachment)
+         if not len(jokers):
+            whisper(":::ERROR::: You need to have an attached joker to use this ability")
+            return 'ABORT'
+         elif len(jokers) == 1: joker = jokers[0]
+         else:
+            joker = jokers[SingleChoice('Choose one of your attached jokers to put in your draw hand',[c.Name for c in jokers])]
+         hex = findTarget('DemiAutoTargeted-atHex-onAttachment-isUnbooted-choose1', card = card, choiceTitle = "Choose which hex to boot to use this ability")
+         if not len(hex): return 'ABORT'
+         boot(hex[0], silent = True)
+         discardCards = findTarget('DemiAutoTargeted-isDrawHand-targetMine-choose1')
+         if not len(discardCards): return 'ABORT'
+         discardCards[0].moveTo(discardCards[0].owner.piles['Discard Pile'])
+         for c in table:
+            if c.highlight == DrawHandColor and c.controller == me: c.moveTo(me.piles['Draw Hand'])
+         joker.moveTo(me.piles['Draw Hand'])
+         clearAttachLinks(joker)
+         notify("{} boots their {} to replace {} with {}".format(card,hex[0],discardCards[0],joker))
+         revealHand(me.piles['Draw Hand'], type = 'shootout') # We move the cards back ot the draw hand and reveal again, letting the game announce the new rank.
       else:
          whisper(":::ERROR::: You can only use Theo's ability during lowball or shootouts")
    elif card.name == "Antoine Peterson" and action == 'PLAY':
       discardedJobs = [c for c in me.piles['Discard Pile'] if re.search(r'Noon Job',c.Text) and c.Type == 'Action']
       choice = SingleChoice('Choose one of your jobs to take to your hand', makeChoiceListfromCardList(discardedJobs))
       if not choice: return
-      discardedJobs[choice].moveTo(me.hand)
+      discardedJobs[choice].moveTo(me.piles['Play Hand'])
       handDiscard = None
       while not handDiscard:
-         handDiscard = askCardFromList([c for c in me.hand],"Choose which card to discard from your hand")
+         handDiscard = askCardFromList([c for c in me.piles['Play Hand']],"Choose which card to discard from your hand")
       handDiscard.moveTo(me.piles['Discard Pile'])
       notify("{} uses {} to take {} into their hand and discard {}".format(me,card,discardedJobs[choice],handDiscard))      
       Sloanies = findTarget("Targeted-atDude_and_The Sloane Gang-targetMine-isBooted-noTargetingError")
@@ -1280,7 +1277,7 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
       notify(":> {} is bringing {} into play".format(card.name,dude))
       ace(card)
    elif card.name == "Stewart Davidson" and action == 'USE':
-      handDiscard = askCardFromList([c for c in me.hand],"Choose which card to discard from your hand")
+      handDiscard = askCardFromList([c for c in me.piles['Play Hand']],"Choose which card to discard from your hand")
       if not handDiscard: return
       handDiscard.moveTo(me.piles['Discard Pile'])
       dudes = findTarget('DemiAutoTargeted-atDude-targetOpponents-choose1')
@@ -1293,12 +1290,12 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
         dudes = findTarget('DemiAutoTargeted-atDude-targetMine-choose1')
         toDiscard = compileCardStat(dudes[0],'Influence')      
         if toDiscard > 3: toDiscard = 3
-        if toDiscard > len([c for c in me.hand]):
+        if toDiscard > len([c for c in me.piles['Play Hand']]):
             notify("You don't have enough cards in your hand to use this ability")
             return
         disloop = toDiscard
         while disloop:
-            chosenCard = askCardFromList([c for c in me.hand],"Choose which card to discard from your hand")
+            chosenCard = askCardFromList([c for c in me.piles['Play Hand']],"Choose which card to discard from your hand")
             chosenCard.moveTo(me.piles['Discard Pile'])
             disloop -= 1        
         drawMany(me.Deck, toDiscard, silent =True)
@@ -1510,8 +1507,8 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
         boot(weapon[0], forced = 'boot')
         dude.markers[mdict['PermControlPlus']] += 1
    elif card.name == "Father Tolarios":
-        if len(me.hand):
-            cardChoice = askCardFromList([c for c in me.hand], "Choose a card you want to discard")
+        if len(me.piles['Play Hand']):
+            cardChoice = askCardFromList([c for c in me.piles['Play Hand']], "Choose a card you want to discard")
         else:
             notify("You need to discard a card to use this ability")
             return
@@ -1529,7 +1526,7 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
             notify("You have no cards you can fetch with this ability")
             return
         card = askCardFromList(cards, "Choose a card to fetch.First {} are in your discard".format(string))
-        card.moveTo(me.hand)
+        card.moveTo(me.piles['Play Hand'])
         notify("{} fetched {} using Father Tolarios ability".format(me, card.name)) 
         #2t2d
    elif card.name ==  "The Spiritualy Society":
@@ -1615,7 +1612,7 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
       if confirm('Have you succesfully invented this gadget, if you answer yes your MS unboots and you will draw a card?'):
          ModifyStatus('UnbootHost')
          card = deck.top(1)
-         card[0].moveTo(me.hand)
+         card[0].moveTo(me.piles['Play Hand'])
          notify('{} successfully invented {} so he unbooted his MS and drew a card'.format(me, card.name))
    elif card.name == 'Exultant Translocation':
       dude = fetchHost(card)
@@ -1682,8 +1679,8 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
       if not len([Card(att_id) for att_id in hostCards if hostCards[att_id] == tmDude._id and re.search(r'Miracle',Card(att_id).Keywords)]):
          notify("You have to chose a dude with Miracle to use this ability")
          return 'ABORT'
-      if len(me.hand) and len(me.piles['Discard Pile']):
-         handDiscard = askCardFromList([c for c in me.hand],"Choose which card to move to your deck from your hand")
+      if len(me.piles['Play Hand']) and len(me.piles['Discard Pile']):
+         handDiscard = askCardFromList([c for c in me.piles['Play Hand']],"Choose which card to move to your deck from your hand")
          handDiscard.moveTo(me.piles['Deck'])
          cardFromDiscard = askCardFromList([ c for c in me.piles['Discard Pile']],"Choose which card move to deck from your discard")
          cardFromDiscard.moveTo(me.piles['Deck'])
@@ -1697,20 +1694,28 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
       tmDude.markers[mdict['InfluencePlus']] += 1
       notify("{} moves {} to Town Squere unboots them and gives them noon influence.")
    elif card.name == "Jonah's Alliance":
-      tmd = findTarget('DemiAutoTargeted-atDude-targetMine-choose1')
+      tmd = findTarget('DemiAutoTargeted-atDude-targetMine-inLocationNotHome-choose1')
+      if not tmd or len(tmd) == 0:
+          notify("You need to select a dude for the {} to work.".format(card))
+          return 'ABORT'
       tmDude = tmd[0]
       boot(tmDude, forced = 'boot')
-      TokensX('Remove1High Noon:Draw', '',tmDude)
+      TokensX('Remove1High Noon:Draw-isSilent', '',tmDude)
       TokensX('Put1High Noon:Stud', '',tmDude)
       for iter in range(2):
          if tmDude.markers[mdict['Bounty']] < 4:
             tmDude.markers[mdict['Bounty']] += 1
-      TokensX('Jonah Control', '',tmDude)
-      if confirm('Do you want to boot a hex at a location to remove all traits, abilities and bonuses at that location?'):
-         spell = findTarget('DemiAutoTargeted-atSpell-isMine-isUnbooted-choose1',choiceTitle='Chose spell to boot')
-         boot(spell[0], forced = 'boot')
-         target = findTarget('DemiAutoTargeted-atSpell_or_Goods-targetOpponents-choose1', choiceTitle='Choose opponents attachment to blank it till the end of a day.')
-         TokensX('Put1High Noon:Blank', '',target[0])
+      TokensX('Put1High Noon:Rowdy Dude', '',tmDude)
+      notify("{} is joining the {}, becomes a stud and will break into deeds using bullets, not influence.".format(tmDude, card))
+      if confirm('Do you want to boot a Hex at a location to remove all traits, abilities and bonuses at that location?'):
+         spell = findTarget('DemiAutoTargeted-atHex-targetMine-isUnbooted-choose1',choiceTitle='Chose spell to boot')
+         if spell and len(spell) > 0:
+             boot(spell[0], forced = 'boot')
+             spellLoc = determineCardLocation(spell[0])
+             target = findTarget("DemiAutoTargeted-atSpell_or_Goods-inLocation{}-targetOpponents-choose1".format(str(spellLoc._id)), choiceTitle='Choose opponents attachment to blank it till the end of a day.')
+             if target and len(target) > 0:
+                 TokensX('Put1High Noon:Blank', '',target[0])
+                 notify("{} uses {} and boots {} to blank {}.".format(me, card, spell[0], target[0]))
    elif card.name == 'Ke Wang':
       topd = findTarget('DemiAutoTargeted-atDude-isParticipating-targetOpponents-choose1')
       topDude = topd[0]
@@ -1784,16 +1789,19 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
          return
       notify('{} used {} ability to give {} bullet penalty.'.format(me, card.name, topDude.name))
    elif card.name == 'Big Nose Kate':
-      handDiscard = askCardFromList([c for c in me.hand],"Choose which card to discard from your hand")
+      handDiscard = askCardFromList([c for c in me.piles['Play Hand']],"Choose which card to discard from your hand")
       if not handDiscard: return 'ABORT'
       targetDudes = findTarget("DemiAutoTargeted-atDude-inLocationSame-choose1", card = card, choiceTitle = "Choose dude to be affected by Kate's charms.")
       if not targetDudes or len(targetDudes) == 0: return 'ABORT'
       handDiscard.moveTo(me.piles['Discard Pile'])
       targetDudes[0].markers[mdict['BulletNoonPlus']] += 1
+      notify("{} is affected by {}'s charms and his aim improves (+1 bullets).".format(targetDude[0], card))
       if handDiscard.type == "Action" and confirm("Was discarded action card with a Shootout or Job ability?"):
           targetDudes[0].markers[mdict['InfluencePlus']] += 1
+          notify("{} used {} to discard {} and give {} +1 influence.".format(me, card, handDiscard, targetDude[0]))
       if not targetDudes[0].markers[mdict['Bounty']] and confirm("Do you want to make {} wanted?".format(targetDudes[0].name)): 
           targetDudes[0].markers[mdict['Bounty']] = 1
+          notify("{}'s flirting is not well received by Doc Holliday, and {} becomes wanted.".format(me, card, handDiscard, targetDude[0]))
    elif card.name == 'Violet Esperanza':
       if getGlobalVariable('Job Active') == 'False' or card.highlight != AttackColor:
           notify("{} is not attempting a job!".format(card))
@@ -1982,8 +1990,8 @@ def markerEffects(Time = 'Start'):
          if Time == 'Sundown' and re.search(r'Blank',marker[0]) and card.owner == me : 
             TokensX("Remove1High Noon:Blank",'', card)
 
-         if Time == 'Sundown' and re.search(r'Jonah Control',marker[0]) and card.owner == me : 
-            TokensX("Remove1High Noon:Jonah Control",'', card)
+         if Time == 'Sundown' and re.search(r'Rowdy Dude',marker[0]) and card.owner == me : 
+            TokensX("Remove1High Noon:Rowdy Dude",'', card)
          if (Time == 'ShootoutEnd'
                and (re.search(r'Sun In Yer Eyes',marker[0])
                  or re.search(r'Unprepared',marker[0])
@@ -2097,12 +2105,12 @@ def PlasmaDrill(card):
 def TelepathyHelmet(originator,card):
    mute()
    notify("{}'s {} is revealing {} hand...".format(originator,card,me))
-   if originator != me: me.hand.addViewer(originator)
+   if originator != me: me.piles['Play Hand'].addViewer(originator)
    update()
-   #remoteCall(originator,'WhisperCards',[me,[c for c in me.hand]])
+   #remoteCall(originator,'WhisperCards',[me,[c for c in me.piles['Play Hand']]])
    while not confirm("You are now revealing your hand to {}. Press Yes to continue, Press No to ping the other player to see if they had enough time to see the cards".format(originator.name)):
       notify("{} wants to know if it's OK to hide their hand once more".format(me))
-   if originator != me: me.hand.removeViewer(originator)
+   if originator != me: me.piles['Play Hand'].removeViewer(originator)
    notify("{} hides their play hand once more".format(me))
    
 def WhisperCards(player,cardList):
@@ -2192,17 +2200,17 @@ def FuntimeFreddyFinish(card,acedSpell,savedSpell,acingPlayer):
       savedSpell.highlight = None
    handDiscard = None
    while not handDiscard:
-      handDiscard = askCardFromList([c for c in me.hand],"Choose which card to discard from your hand")
+      handDiscard = askCardFromList([c for c in me.piles['Play Hand']],"Choose which card to discard from your hand")
    handDiscard.moveTo(me.piles['Discard Pile'])
    notify("{} discarded {} and aced {} to fetch and play {} (paying {}) on {} and {} chose to ace {}".format(me,handDiscard,card,savedSpell,savedSpell.Cost,hostCard,acingPlayer,acedSpell))
 
 def CookinTroubleStart(card):
    mute()
-   if not len(me.hand): notify(":::INFO::: {}'s play hand is empty. You have nothing to cook".format(me))
+   if not len(me.piles['Play Hand']): notify(":::INFO::: {}'s play hand is empty. You have nothing to cook".format(me))
    else:
-      me.hand.addViewer(card.controller)
+      me.piles['Play Hand'].addViewer(card.controller)
       notify(":> {} Reveals their hand to {}".format(me,card.controller))
-      remoteCall(card.controller,'CookinTroubleChoose',[card,[c for c in me.hand]])
+      remoteCall(card.controller,'CookinTroubleChoose',[card,[c for c in me.piles['Play Hand']]])
       
 def CookinTroubleChoose(card,handList):
    mute()
@@ -2234,19 +2242,19 @@ def CookinTroubleEnd(card,cardChoice):
    if cardChoice:
       cardChoice.moveTo(me.piles['Discard Pile'])
       notify("{}'s {} sabotages {} out of {}'s play hand".format(card.controller,card,cardChoice,me))
-   me.hand.removeViewer(card.controller)
+   me.piles['Play Hand'].removeViewer(card.controller)
 
 def NathanShaneStart(card):
    mute()
    bullets = compileCardStat(card, stat = 'Bullets')
-   if bullets > len(me.hand):
-        bullets = len(me.hand)
-   if not len(me.hand): notify(":::INFO::: {}'s play hand is empty. Nathan has nothing to snipe".format(me))
+   if bullets > len(me.piles['Play Hand']):
+        bullets = len(me.piles['Play Hand'])
+   if not len(me.piles['Play Hand']): notify(":::INFO::: {}'s play hand is empty. Nathan has nothing to snipe".format(me))
    elif not bullets: notify(":::INFO::: {} has currently 0 bullets and no capacity to snipe anything".format(card))
    else:
       randomCards = []
       for iter in range(bullets):
-         randomC = me.hand.random()
+         randomC = me.piles['Play Hand'].random()
          randomCards.append(randomC)
          randomC.moveTo(me.ScriptingPile)         
       notify(":> {} Reveals {} random cards to {}".format(me,bullets,card.controller))      
@@ -2282,7 +2290,7 @@ def NathanShaneEnd(card,cardChoice):
    if cardChoice:
       cardChoice.moveTo(me.piles['Discard Pile'])
       notify("{}'s {} snipes {} out of {}'s play hand".format(card.controller,card,cardChoice,me))
-   for c in me.ScriptingPile: c.moveTo(me.hand)
+   for c in me.ScriptingPile: c.moveTo(me.piles['Play Hand'])
    
 def MarciaRidgeStart(marcia,usedDeed):
    usedDeed.controller = marcia.controller
@@ -2294,11 +2302,11 @@ def MarciaRidgeDeedUse(marcia,usedDeed,origController):
 
 def RicoStart(card):
    mute()
-   if not len(me.hand): notify(":::INFO::: {}'s play hand is empty for some reason!".format(me))
+   if not len(me.piles['Play Hand']): notify(":::INFO::: {}'s play hand is empty for some reason!".format(me))
    else:
-      me.hand.addViewer(card.controller)
+      me.piles['Play Hand'].addViewer(card.controller)
       notify(":> {} Reveals their hand to {}".format(me,card.controller))
-      remoteCall(card.controller,'RicoView',[card,[c for c in me.hand]])
+      remoteCall(card.controller,'RicoView',[card,[c for c in me.piles['Play Hand']]])
       
 def RicoView(card,handList):
    mute()
@@ -2334,7 +2342,7 @@ def RicoView(card,handList):
 
 def RicoStopView(card):
    mute()
-   if card.controller != me: me.hand.removeViewer(card.controller) # If clause, for debug purposes
+   if card.controller != me: me.piles['Play Hand'].removeViewer(card.controller) # If clause, for debug purposes
    
 def JaelGuile(card):
    mute()
@@ -2369,20 +2377,20 @@ def Framed(card,dude):
    
 def SightBeyondSightStart(card):
    mute()
-   if not len(me.hand): 
+   if not len(me.piles['Play Hand']): 
       notify(":::INFO::: {}'s play hand is empty. Sight Beyond Sight has nothing to discard".format(me))
       return 'ABORT'
    else:
       randomCards = []
-      if len(me.hand) >= 2:
+      if len(me.piles['Play Hand']) >= 2:
          for iter in range(2):
-            randomC = me.hand.random()
+            randomC = me.piles['Play Hand'].random()
             randomCards.append(randomC)
             randomC.moveTo(me.ScriptingPile)         
          notify(":> {} Reveals 2 random cards to {}".format(me,card.controller))      
          remoteCall(card.controller,'SightBeyondSightChoose',[card,[c for c in me.ScriptingPile]])
       else:
-         randomC = me.hand.random()
+         randomC = me.piles['Play Hand'].random()
          randomCards.append(randomC)
          randomC.moveTo(me.ScriptingPile)         
          notify(":> {} Reveals 1 random cards to {}".format(me,card.controller))      
@@ -2420,24 +2428,25 @@ def SightBeyondSightEnd(card,cardChoice):
    if cardChoice:
       cardChoice.moveTo(me.piles['Boot Hill'])
       notify("{}'s {} hexes {} out of {}'s play hand".format(card.controller,card,cardChoice,me))
-   for c in me.ScriptingPile: c.moveTo(me.hand)
+   for c in me.ScriptingPile: c.moveTo(me.piles['Play Hand'])
    
 def BurnOut(card):
    mute()
-   if not len(me.hand): 
+   if not len(me.piles['Play Hand']): 
       notify(":::INFO::: {}'s play hand is empty. There is no card to ace.".format(me))
       return 'ABORT'
    else:
-      cards = me.hand
+      cards = me.piles['Play Hand']
       remoteCall(card.controller,'BurnOutChoice',[card, cards])
 
 def BurnOutChoice(card, cards):
    update()
    cardChoice = askCardFromList([c for c in cards],"Choose one card to ace")
-   remoteCall(cardChoice.controller, 'BurnOutEnd', cardChoice)
-def BurnOutChoice(cardChoice):
-      cardChoice.moveTo(me.piles['Boot Hill'])
-      notify("{}'s aces {} out of {}'s play hand".format(card.controller,cardChoice,me))
+   remoteCall(cardChoice.controller, 'BurnOutEnd', [card, cardChoice])
+
+def BurnOutEnd(card, cardChoice):
+   cardChoice.moveTo(me.piles['Boot Hill'])
+   notify("{}'s aces {} out of {}'s play hand".format(card.controller,cardChoice,me))
 
 def chkHenryMoran(type):
    if type == 'lowball':
@@ -2525,9 +2534,9 @@ def Murdered(card):
          notify("You have no cards you can fetch with this ability")
          return
       card = askCardFromList(cards, "Choose a CR to fetch if you do you will have to discard a card from your hand.First {} are in your discard".format(string))
-      card.moveTo(me.hand)
+      card.moveTo(me.piles['Play Hand'])
       if card:
-         choicehand = askCardFromList([c for c in me.hand],'Choose which card to discard from your hand',card.Name)
+         choicehand = askCardFromList([c for c in me.piles['Play Hand']],'Choose which card to discard from your hand',card.Name)
          choicehand.moveTo(me.piles['Discard Pile'])
       else: return
       notify("{} fetched {} using Murdered in Tombstone ability and discarded {}".format(me, card.name, choicehand)) 
@@ -2565,7 +2574,7 @@ tmpDude = tmpd[0]
 dudeGoods = findTarget('DemiAutoTargeted-atGoods_or_Spell-onAttachment-isUnbooted-choose1', card =DUDECARD)
 
 #discarding card from hand
-choicehand = askCardFromList([c for c in me.hand],'Choose which card to discard from your hand',card.Name)
+choicehand = askCardFromList([c for c in me.piles['Play Hand']],'Choose which card to discard from your hand',card.Name)
 choicehand.moveTo(me.piles['Discard Pile'])
 
 #booting and unbooting cards
