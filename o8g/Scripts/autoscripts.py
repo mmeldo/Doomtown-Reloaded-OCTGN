@@ -1347,6 +1347,9 @@ def RetrieveX(Autoscript, announceText, card, targetCards = None, notification =
       elif re.search(r'-toBootHill', Autoscript):
          destination = targetPL.piles['Boot Hill']
          destiVerb = 'ace'
+      elif re.search(r'-toScriptingPile', Autoscript):
+         destination = targetPL.ScriptingPile
+         destiVerb = 'prepare'
       else: 
          destination = targetPL.piles['Play Hand']
          destiVerb = 'retrieve'
@@ -1414,7 +1417,7 @@ def RetrieveX(Autoscript, announceText, card, targetCards = None, notification =
                   preReducRegex = re.search(r'-reduc([0-9])(min)?([0-9])?',Autoscript) # this one means its going to reduce the cost a bit.
                   minCost = 0
                   if preReducRegex: 
-                      if len(preReducRegex.groups()) == 3: minCost = preReducRegex.group(3)
+                      if len(preReducRegex.groups()) == 3: minCost = num(preReducRegex.group(3))
                       preReduc = num(preReducRegex.group(1))
                   else: preReduc = 0
                   playcard(c,costReduction = preReduc, preHost = preHost, scripted = True, minCost = minCost)
@@ -1466,6 +1469,7 @@ def findTarget(Autoscript, fromHand = False, card = None, choiceTitle = None, ig
       targetGroups = prepareRestrictions(Autoscript)
       debugNotify("About to start checking all targeted cards.\n### targetGroups:{}".format(targetGroups)) #Debug
       for targetLookup in group: # Now that we have our list of restrictions, we go through each targeted card on the table to check if it matches.
+         if targetLookup.name == "Out of Town": continue
          if (targetLookup.targetedBy and targetLookup.targetedBy == me) or re.search(r'AutoTargeted', Autoscript):
          # OK the above target check might need some decoding:
          # Look through all the cards on the group and start checking only IF...
@@ -1684,7 +1688,7 @@ def checkSpecialRestrictions(Autoscript,card, playerChk = me, originCard = None)
 # Check the autoscript for special restrictions of a valid card
 # If the card does not validate all the restrictions included in the autoscript, we reject it
    debugNotify(">>> checkSpecialRestrictions() {}".format(extraASDebug(Autoscript))) #Debug
-   debugNotify("Card: {}".format(card)) #Debug
+   debugNotify("Card: {}, originCard: {}".format(card, originCard)) #Debug
    validCard = True
    Autoscript = scrubTransferTargets(Autoscript)
    host = fetchHost(card)
@@ -1716,27 +1720,45 @@ def checkSpecialRestrictions(Autoscript,card, playerChk = me, originCard = None)
            if not cardLocation: continue
            if locRestriction == 'Same':
                originLocation = determineCardLocation(originCard)
-               if cardLocation != originLocation: partialValidCard = False
+               if cardLocation != originLocation: 
+                   debugNotify("!!! Partial Fail because dude is not in Same location. Card loc: {}, Origin loc: {}".format(cardLocation, originLocation))
+                   partialValidCard = False
            elif locRestriction == 'Adjacent':
                originLocation = determineCardLocation(originCard)
-               if not areLocationsAdjacent(cardLocation, originLocation): partialValidCard = False
+               if not areLocationsAdjacent(cardLocation, originLocation): 
+                   debugNotify("!!! Partial Fail because dude is not in Adjacent location. Card loc: {}, Origin loc: {}".format(cardLocation, originLocation))
+                   partialValidCard = False
            elif locRestriction == 'Home':
                locationOutfitCard = Card(eval(card.controller.getGlobalVariable('playerOutfit')))
-               if cardLocation != locationOutfitCard: partialValidCard = False
+               if cardLocation != locationOutfitCard: 
+                   debugNotify("!!! Partial Fail because dude is not in Home location. Card loc: {}, Outfit loc: {}".format(cardLocation, locationOutfitCard))
+                   partialValidCard = False
            elif locRestriction == 'NotHome':
                locationOutfitCard = Card(eval(card.controller.getGlobalVariable('playerOutfit')))
-               if cardLocation == locationOutfitCard: partialValidCard = False
+               if cardLocation == locationOutfitCard: 
+                   debugNotify("!!! Partial Fail because dude is in Home location. Card loc: {}, Outfit loc: {}".format(cardLocation, locationOutfitCard))
+                   partialValidCard = False
            elif locRestriction == 'Town Square':
-               if cardLocation != TownSquareToken: partialValidCard = False
+               if cardLocation != TownSquareToken: 
+                   debugNotify("!!! Partial Fail because dude is not in Town Square location. Card loc: {}".format(cardLocation))
+                   partialValidCard = False
+           elif locRestriction == 'In Town':
+               if cardLocation == TownSquareToken or re.search(r'Out of Town', cardLocation.Keywords): 
+                   debugNotify("!!! Partial Fail because dude is not in In Town location. Card loc: {}".format(cardLocation))
+                   partialValidCard = False
            elif locRestriction == 'Keyword':
                keywordRegex = re.search(r'Keyword{([\w ]+)}', locRestriction)
                if keywordRegex and len(keywordRegex): 
-                   if re.search(r'{}'.format(keywordRegex.group(1)), cardLocation.Keywords): partialValidCard = False                         
+                   if re.search(r'{}'.format(keywordRegex.group(1)), cardLocation.Keywords): 
+                       debugNotify("!!! Partial Fail because dude is not in location with Keyword {}. Card loc: {}".format(keywordRegex.group(1), cardLocation))
+                       partialValidCard = False                         
            else: 
                cardLocation = determineCardLocation(card)
                if cardLocation: cardLocId = str(cardLocation._id)
                else: cardLocId = ''
-               if locRestriction != cardLocId: partialValidCard = False
+               if locRestriction != cardLocId:
+                   debugNotify("!!! Partial Fail because dude is not in location with Id {}. Card loc: {}".format(cardLocId, cardLocation))
+                   partialValidCard = False
            if partialValidCard: break
        if not partialValidCard: validCard = False
    if re.search(r'isParticipating',Autoscript):

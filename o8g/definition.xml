@@ -12,8 +12,8 @@
       &#xD;&#xD;This game works very well for more than 2 players.
       &#xd;&#xd;Automation rank: A
       &#xd;(This game definition contains significant automation of cards and common actions to reduce tediousness amd speed up play.)"
-      setsurl="http://octgn.gamersjudgement.com/wordpress/doomtown/sets/"
-      gameurl="http://octgn.gamersjudgement.com/wordpress/doomtown"
+      setsurl="https://dtdb.co/en/search"
+      gameurl="https://dtdb.co/en/octgnGuide"
       authors="Db0, trimm"
       iconurl="https://raw.github.com/db0/Doomtown-Reloaded-OCTGN/master/DTR_logo.jpg"
       scriptVersion="3.1.0.2"
@@ -173,7 +173,7 @@
       <globalvariable name="playerOutfit" value="None" /> 
       <globalvariable name="UpkeepDone" value="False" /> 
       <globalvariable name="RevealReady" value="False" />      
-		<group name="Play Hand" visibility="me" ordered="False" icon="Groups/playhand.png">
+		<group name="Play Hand" visibility="me" ordered="False" viewState="expanded" icon="Groups/playhand.png">
 			<cardaction menu="Play" default="True" execute="playcard" />
 			<cardaction menu="Inspect Card" default="False" shortcut="Ctrl+I" execute="inspectCard" />
 			<cardaction menu="Discard card" default="False" shortcut="Del" execute="handDiscard" />

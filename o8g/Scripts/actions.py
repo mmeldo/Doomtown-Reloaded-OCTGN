@@ -141,19 +141,20 @@ def completeJob():
          card.markers[mdict['BulletShootoutMinus']] = 0 
          card.markers[mdict['ValueShootoutPlus']] = 0 
          card.markers[mdict['ValueShootoutMinus']] = 0 
-      if len(jobPosse): notify("{} is successful and the job posse {} goes home booted".format(jobCard,[c.name for c in jobPosse]))
-      else: notify("{} is unsuccessful".format(jobCard))
-      if confirm("Did the {} job succeed?".format(jobCard.Name)): # If we actually have scripts in the job, we try to execute them.
+      if len(jobPosse) and confirm("Did the {} job succeed?".format(jobCard.Name)): # If we actually have scripts in the job, we try to execute them.
          if re.search(r'-MarkNotTheTarget',jobResults[1]): targetCards = None
          elif re.search(r'-LeaderIsTarget',jobResults[1]): targetCards = [leader]
          elif re.search(r'-JobCardIsTarget',jobResults[1]): targetCards = [jobCard]
          else: targetCards = [Card(eval(getGlobalVariable('Mark')))]
          executeAutoscripts(jobCard,jobResults[1].replace('++','$$'),action = 'USE',targetCards = targetCards) # If the spell is succesful, execute it's effects
-      elif jobResults[2] != 'None': # Otherwise we execute the job fail scripts
-         if re.search(r'-MarkNotTheTarget',jobResults[1]): targetCards = None
-         elif re.search(r'-LeaderIsTarget',jobResults[1]): targetCards = [leader]
-         else: targetCards = [Card(eval(getGlobalVariable('Mark')))]
-         executeAutoscripts(jobCard,jobResults[2].replace('++','$$'),action = 'USE',targetCards = targetCards) # If the spell is succesful, execute it's effects
+         notify("{} is successful and the job posse {} goes home booted".format(jobCard,[c.name for c in jobPosse]))
+      else:
+         if jobResults[2] != 'None': # Otherwise we execute the job fail scripts
+            if re.search(r'-MarkNotTheTarget',jobResults[1]): targetCards = None
+            elif re.search(r'-LeaderIsTarget',jobResults[1]): targetCards = [leader]
+            else: targetCards = [Card(eval(getGlobalVariable('Mark')))]
+            executeAutoscripts(jobCard,jobResults[2].replace('++','$$'),action = 'USE',targetCards = targetCards) # If the spell is succesful, execute it's effects
+         notify("{} is unsuccessful".format(jobCard))
       if getGlobalVariable('Shootout') == 'True': 
          if getGlobalVariable('Shootout') == 'True': atTimedEffects("ShootoutEnd")
       setGlobalVariable('Mark','None') # We also clear the Called Out variable just in case
@@ -1100,7 +1101,7 @@ def checkMoveEffects(card, origin, destination):
               if locationOutfitCard == origin: card.markers[mdict['InfluenceMinus']] += 1
           if re.search(r'Tse Che Nako', marker[0]) and origin != destination:
               minusControl(card)
-              card.markers[token] = 0
+              card.markers[marker] = 0
       
 def moveTownSquare(card, x = 0, y = 0): # Notifies that this dude is moving by booting
    mute()

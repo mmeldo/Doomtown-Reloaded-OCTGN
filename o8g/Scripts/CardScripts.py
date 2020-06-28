@@ -4773,7 +4773,7 @@ b94ed693-16ed-4c7c-84d8-375498922a74
 -----
 
 +++++
-GR0B1R0:MoveDude-moveToTown Square$$Put1High Noon:Stud-Targeted-atDude-targetMine$$UseCustomAbility
+GR0B1R0:MoveTarget-DemiAutoTargeted-atDude-targetMine-choose1-isCost-moveToTown Square$$Put1High Noon:Stud-Targeted-atDude-targetMine$$UseCustomAbility
 .....
 Full Moon Brotherhood
 -----
@@ -6008,7 +6008,7 @@ b558faf1-8ed8-f8f5-c661-90019f0d6d61
 -----
 
 +++++
-GR0B0R0:Put1Shootout:Johnny Ringo-onlyInShootouts$$SimplyAnnounce{Until the next round of this shootout, dudes cannot be chosen or affected by their opponent's React, Shootout, or non Cheatin' Resolution abilities.}
+GR0B0R0:Put1Shootout:Johnny Ringo-isCost$$SimplyAnnounce{Until the next round of this shootout, dudes cannot be chosen or affected by their opponent's React, Shootout, or non Cheatin' Resolution abilities.}
 
 .....
 Violet Esperanza
@@ -6267,7 +6267,7 @@ Rock Woofstone
 -----
 
 +++++
-GR0B0R1:Lose1Ghost Rock-isCost$$Gain1Ghost Rock-onOpponent$$MoveMyself-moveToTown Square
+GR0B0R1:Lose1Ghost Rock-isCost$$Gain1Ghost Rock-onOpponent$$MoveMyself-moveToTarget-AutoTargeted-atTown Square
 
 .....
 Arielle Moriah
@@ -6366,7 +6366,7 @@ Tawodi
 -----
 
 +++++
-GR0B0R0:StartJob-AutoTargeted-atTown Square-jobEffects<Retrieve1Cards-fromDiscard-toTable-grabDude_or_Deed-payCost-reduc1min1,None>
+GR0B0R0:StartJob-AutoTargeted-atTown Square-jobEffects<Retrieve1Cards-fromDiscard-toTable-grabDude_or_Deed-payCost-reduc2min1,None>
 
 .....
 Tsintah
@@ -6429,7 +6429,7 @@ Marshal Caves Callarman
 -----
 
 +++++
-GR0B0R0:Discard1Card-DemiAutoTargeted-fromHand-choose1$$Remove1Bounty-AutoTargeted-atMyself
+GR0B0R0:Discard1Card-DemiAutoTargeted-fromHand-isCost-choose1$$Remove1Bounty
 
 .....
 Florentino Indian Charlie Cruz
@@ -6454,9 +6454,9 @@ Pete Spence
 -----
 4420ecb6-c2db-7c32-47cd-ea28f8c42543
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B1R0:StartJob-DemiAutoTargeted-atDeed_and_nonOut of Town_or_Outfit-choose1-jobEffects<UseCustomAbility,None>
 
 .....
 Jonah Essex (Exp.1)
@@ -6510,7 +6510,7 @@ Red River Roulette
 -----
 
 +++++
-GR0B1R0:BootTarget-DemiAutoTargeted-targetMine-atDude-inSameLocation-choose1-isCost$$SimplyAnnounce{is preventing all casaulties this round. Dudes cannot flee this round. In the next round of shootout, double the number of casaulties inflicted}
+GR0B1R0:BootTarget-DemiAutoTargeted-targetMine-atDude-inLocationSame-choose1-isCost$$SimplyAnnounce{prevent all casaulties this round. Dudes cannot flee this round. In the next round of shootout, double the number of casaulties inflicted}
 
 .....
 Kiva of Fathomless Reach
@@ -6580,9 +6580,9 @@ Iron Mole
 -----
 810b1cdd-2654-4110-a219-c687369645cc
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B1R0:MoveTarget-AutoTargeted-onHost-moveToOut of Town-isCost||GR0B1R0:ParticipateTarget-AutoTargeted-onHost-inLocationKeyword{Out of Town}-isCost
 
 .....
 Net Gun
@@ -6598,18 +6598,18 @@ Scratch
 -----
 d9830f56-75da-4f3f-8e53-9538c3686662
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B1R0:RehostMyself-Targeted-atDude-targetMine-inLocationAdjacent-isCost
 
 .....
 Battered Banjo
 -----
 d53daadf-d1d4-466d-b69e-7874473c0021
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B1R0:Put1InfluencePlus-AutoTargeted-atDude-onHost-isCost||GR0B1R0:Put2BulletNoonMinus-DemiAutoTargeted-atDude-targetOpponents-inLocationSame-choose1$$DiscardMyself-isCost
 
 .....
 Bolts o' Doom
@@ -6652,18 +6652,18 @@ Babble On
 -----
 69db55fc-fc57-46f2-805d-50a33b82db0a
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B0R0:Pull1Card-testMiracle6-spellEffects<UnbootTarget-DemiAutoTargeted-atDude-targetMine-choose1,None>||GR0B1R0:Pull1Card-testMiracle7-spellEffects<BootHost-isCost++BootTarget-DemiAutoTargeted-targetOpponents-isParticipating-choose1,None>
 
 .....
 Ancestor's Reproach
 -----
 e15cb91e-455f-4e9d-b66a-f14506011161
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B1R0:Pull1Card-testSpirit8-spellEffects<AceTarget-DemiAutoTargeted-fromHand-choose1-isCost++Spawn1Ancestor Spirit-modAction:ParticipateMyself,None>||GR0B1R0:Pull1Card-testSpirit6-spellEffects<Spawn1Ancestor Spirit-modAction:ParticipateMyself,None>
 
 .....
 Secret Paths
@@ -6697,18 +6697,18 @@ Takin' Cover
 -----
 8d7cc337-a3d3-4bf4-b7c5-3eb07caa1d14
 -----
-onPlay:
+onPlay:Put1BulletShootoutMinus-Targeted-atDude-targetMine-isParticipating-choose1-isCost$$Put1Shootout:Takin Cover-Targeted-atDude-targetMine-isParticipating
 +++++
-GR0B0R0:
+
 
 .....
 Hell's Comin' With Me!
 -----
 8a8b75ce-ad2d-486a-9942-ecd2066ec92d
 -----
-onPlay:
+onPlay:ParticipateTarget-DemiAutoTargeted-atDude-targetMine-isNotParticipating-choose1-doNotBoot
 +++++
-GR0B0R0:
+
 
 .....
 Frontier Feud

@@ -17,7 +17,7 @@
 
 import re, time
 
-debugVerbosity = -1 # At -1, means no debugging messages display
+debugVerbosity = 4 # At -1, means no debugging messages display
 
 Automations = {'Play'                   : True, # If True, game will automatically trigger card effects when playing or double-clicking on cards. Requires specific preparation in the sets.
                'Triggers'               : True, # If True, game will search the table for triggers based on player's actions, such as installing a card, or discarding one.
@@ -544,15 +544,21 @@ def clearDeedFromLocations(card):
    removeIdFromCardProperty(OutfitCard, card._id, 'Below')
 
 def determineCardLocation(targetCard):
-   if not targetCard: return
-   if targetCard.Type == 'Dude': return getDudeLocation(targetCard)
-   elif targetCard.Type == 'Deed' or targetCard.Type == 'Outfit' or targetCard.name == 'Town Square': return targetCard
-   elif targetCard.Type == 'Action': return
+   debugNotify(">>> determine location for card {}".format(targetCard))
+   if not targetCard: 
+       debugNotify("<<< determine location returned None")
+       return
+   if targetCard.Type == 'Dude': resultCard = getDudeLocation(targetCard)
+   elif targetCard.Type == 'Deed' or targetCard.Type == 'Outfit' or targetCard.name == 'Town Square': resultCard = targetCard
+   elif targetCard.Type == 'Action': resultCard = None
    else:
       host = fetchHost(targetCard)
       if host:
-          if host.Type == 'Dude': return getDudeLocation(host)
-          elif host.Type == 'Deed' or host.Type == 'Outfit' or host.Name == 'Town Square': return host
+          if host.Type == 'Dude': resultCard = getDudeLocation(host)
+          elif host.Type == 'Deed' or host.Type == 'Outfit' or host.Name == 'Town Square': resultCard = host
+      else: resultCard = None
+   debugNotify(">>> determine location return: {}".format(resultCard))
+   return resultCard
 
 def determineControl(card): 
     if not card or card.Type == 'Outfit' or card.Type == 'Token': return
