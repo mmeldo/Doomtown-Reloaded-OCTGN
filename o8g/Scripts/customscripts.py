@@ -345,8 +345,6 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
                 return
             boot(dude[0], forced = 'boot')
             topCards = list(me.piles['Deck'].top(5))
-            for c in topCards: c.moveTo(me.piles['Discard Pile'])
-            notify(":> {} discards {}".format(card,[c.Name for c in topCards]))
             availSpells = [c for c in topCards if re.search(r'Spell',c.Type)]
             playSpells = []
             for c in table:
@@ -362,10 +360,10 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
             if availSpells:
                 choiceSpell = askCardFromList(availSpells,'These were the available Spells that were at the top of your deck. Do you want to play one on your dude',card.Name)
                 notify("{} decided to play {} on {} ".format(me,choiceSpell, dude[0]))
-                playcard(choiceSpell, preHost=dude[0])
-      
+                playcard(choiceSpell, preHost=dude[0]) 
             else:
                 notify(":> {} didn't discover any spells available to play.".format(card))
+            me.Deck.shuffle()
    #2t2d
    elif card.name == "Property Is Theft":
       if getGlobalVariable('Shootout') == 'True':
@@ -586,6 +584,30 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
            notify("")
            return 'ABORT'
        remoteCall(opposingPlayer, 'DancingButterfly', [host, me])
+   ## Hell's Coming with Me ##
+   elif card.name == "Blue Lightnin'":
+       host = fetchHost(card)
+       if confirm("Do you want to increase {}'s bullets by 1? If you choose No, {} gets plus one to Huckster skill instead.".format(host.name, host.name)):
+           host.markers[mdict['BulletNoonPlus']] += 1
+           notify("{} uses {} to increase {}'s bullets by one.".format(me, card, host))
+       else: 
+           TokensX('Put1High Noon:Huckster Skill Bonus', '', host)
+           notify("{} uses {} to increase {}'s Husckster skill by one.".format(me, card, host))
+   elif card.name == "Pete Spence":
+       retrieveTuple = RetrieveX('Retrieve1Card-grabGoods_and_Attire_or_Weapon_and_nonUnique-fromDiscard-toScripringPile', '', card)
+       if retrieveTuple == 'ABORT':return 'ABORT'
+       targetDudes = findTarget('DemiAutoTargeted-atDude-targetMine-choose1')
+       if not targetDudes or not len(targetDudes): return 'ABORT'
+       elif len(retrieveTuple[1]):
+          goods = retrieveTuple[1][0]
+          playcard(goods, preHost = targetDudes[0])
+          goods.orientation = Rot90
+          notifyTXT = "{} found used (booted) {} in the dirt, and hands it over to {}. "
+          if re.search(r'Weapon', goods.Keywords) and not targetDudes[0].markers[mdict['Bounty']]: 
+              targetDudes[0].markers[mdict['Bounty']] += 1
+              notifyTXT += "It happens to be a weapon which is not allowed in this town so {} becomes wanted."
+              notify(notifyTXT.format(card, goods, targetDudes[0], targetDudes[0]))
+          else: notify(notifyTXT.format(card, goods, targetDudes[0]))
 
        
 
@@ -1787,13 +1809,13 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
       if not targetDudes or len(targetDudes) == 0: return 'ABORT'
       handDiscard.moveTo(me.piles['Discard Pile'])
       targetDudes[0].markers[mdict['BulletNoonPlus']] += 1
-      notify("{} is affected by {}'s charms and his aim improves (+1 bullets).".format(targetDude[0], card))
+      notify("{} is affected by {}'s charms and his aim improves (+1 bullets).".format(targetDudes[0], card))
       if handDiscard.type == "Action" and confirm("Was discarded action card with a Shootout or Job ability?"):
           targetDudes[0].markers[mdict['InfluencePlus']] += 1
           notify("{} used {} to discard {} and give {} +1 influence.".format(me, card, handDiscard, targetDude[0]))
       if not targetDudes[0].markers[mdict['Bounty']] and confirm("Do you want to make {} wanted?".format(targetDudes[0].name)): 
           targetDudes[0].markers[mdict['Bounty']] = 1
-          notify("{}'s flirting is not well received by Doc Holliday, and {} becomes wanted.".format(me, card, handDiscard, targetDude[0]))
+          notify("{}'s flirting is not well received by Doc Holliday, and {} becomes wanted.".format(me, card, handDiscard, targetDudes[0]))
    elif card.name == 'Violet Esperanza':
       if getGlobalVariable('Job Active') == 'False' or card.highlight != AttackColor:
           notify("{} is not attempting a job!".format(card))

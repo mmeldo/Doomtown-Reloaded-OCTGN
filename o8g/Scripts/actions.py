@@ -141,19 +141,20 @@ def completeJob():
          card.markers[mdict['BulletShootoutMinus']] = 0 
          card.markers[mdict['ValueShootoutPlus']] = 0 
          card.markers[mdict['ValueShootoutMinus']] = 0 
-      if len(jobPosse): notify("{} is successful and the job posse {} goes home booted".format(jobCard,[c.name for c in jobPosse]))
-      else: notify("{} is unsuccessful".format(jobCard))
-      if confirm("Did the {} job succeed?".format(jobCard.Name)): # If we actually have scripts in the job, we try to execute them.
+      if len(jobPosse) and confirm("Did the {} job succeed?".format(jobCard.Name)): # If we actually have scripts in the job, we try to execute them.
          if re.search(r'-MarkNotTheTarget',jobResults[1]): targetCards = None
          elif re.search(r'-LeaderIsTarget',jobResults[1]): targetCards = [leader]
          elif re.search(r'-JobCardIsTarget',jobResults[1]): targetCards = [jobCard]
          else: targetCards = [Card(eval(getGlobalVariable('Mark')))]
          executeAutoscripts(jobCard,jobResults[1].replace('++','$$'),action = 'USE',targetCards = targetCards) # If the spell is succesful, execute it's effects
-      elif jobResults[2] != 'None': # Otherwise we execute the job fail scripts
-         if re.search(r'-MarkNotTheTarget',jobResults[1]): targetCards = None
-         elif re.search(r'-LeaderIsTarget',jobResults[1]): targetCards = [leader]
-         else: targetCards = [Card(eval(getGlobalVariable('Mark')))]
-         executeAutoscripts(jobCard,jobResults[2].replace('++','$$'),action = 'USE',targetCards = targetCards) # If the spell is succesful, execute it's effects
+         notify("{} is successful and the job posse {} goes home booted".format(jobCard,[c.name for c in jobPosse]))
+      else:
+         if jobResults[2] != 'None': # Otherwise we execute the job fail scripts
+            if re.search(r'-MarkNotTheTarget',jobResults[1]): targetCards = None
+            elif re.search(r'-LeaderIsTarget',jobResults[1]): targetCards = [leader]
+            else: targetCards = [Card(eval(getGlobalVariable('Mark')))]
+            executeAutoscripts(jobCard,jobResults[2].replace('++','$$'),action = 'USE',targetCards = targetCards) # If the spell is succesful, execute it's effects
+         notify("{} is unsuccessful".format(jobCard))
       if getGlobalVariable('Shootout') == 'True': 
          if getGlobalVariable('Shootout') == 'True': atTimedEffects("ShootoutEnd")
       setGlobalVariable('Mark','None') # We also clear the Called Out variable just in case
@@ -450,7 +451,7 @@ def upkeep(group = table, x = 0, y = 0): # Automatically receive production and 
    prod = 0 # Variable to track total production received.
    upk = 0 # Variable to track total upkeep paid.
    cards = (card for card in table # Create a group with all the cards you own and control on the table.
-                 if (card.owner == me or card.highlight == me.color) # you cannot pay or produce from cards you do not own.
+                 if (card.owner == me or card.highlight == me.color or card.name == "Jonah's Retreat") # you cannot pay or produce from cards you do not own.
                  and card.controller == me  # you cannot pay or produce from cards you do not control.
                  and card.highlight != DrawHandColor) # And avoid counting lowball cards
    for card in cards: # For each card...
@@ -1100,7 +1101,7 @@ def checkMoveEffects(card, origin, destination):
               if locationOutfitCard == origin: card.markers[mdict['InfluenceMinus']] += 1
           if re.search(r'Tse Che Nako', marker[0]) and origin != destination:
               minusControl(card)
-              card.markers[token] = 0
+              card.markers[marker] = 0
       
 def moveTownSquare(card, x = 0, y = 0): # Notifies that this dude is moving by booting
    mute()
@@ -1241,7 +1242,7 @@ def posseReady (group, x = 0, y = 0):
 # Hand and Deck actions
 #---------------------------------------------------------------------------
       
-def playcard(card,retainPos = False,costReduction = 0, preHost = None, scripted = False): 
+def playcard(card,retainPos = False, costReduction = 0, preHost = None, scripted = False, minCost = 0): 
 # This is the function to play cards from your hand. It's one of the core functions
 # It will automatically pay the cost of cards if you can, or inform you if you cannot.
 # If the card being played has influence or Control points, those will automatically be added to the player's total.
@@ -1306,7 +1307,8 @@ def playcard(card,retainPos = False,costReduction = 0, preHost = None, scripted 
          else: # if they're not on the table, they're in someone's boothill
             notify ("{} wanted to bring {} in play but it currently RIP in {}'s Boot Hill".format(me,card,chkcard.owner))
          return
-   if costReduction > num(card.Cost): costReduction = num(card.Cost)
+   if costReduction > num(card.Cost) - minCost: 
+       costReduction = num(card.Cost) - minCost
    reduction = reduceCost(card, action = 'PLAY', fullCost = num(card.Cost))
    if card.Type == "Dude":
       if not scripted: chkHighNoon()
