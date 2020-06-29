@@ -68,7 +68,7 @@ regexHooks = dict( # A dictionary which holds the regex that then trigger each c
                    # This is so that I can modify these "hooks" only in one place as I add core commands and modulators.
                   GainX =              re.compile(r'(?<![<,+-])(Gain|Lose|SetTo)([0-9]+)'),
                   CreateDummy =        re.compile(r'(?<![<,+-])CreateDummy'),
-                  ReshuffleX =         re.compile(r'(?<![<,+-])Reshuffle([A-Za-z& ]+)'),
+                  ReshuffleX =         re.compile(r'(?<![<,+-])Reshuffle([0-9]+)'),
                   RollX =              re.compile(r'(?<![<,+-])Roll([0-9]+)'),
                   RequestInt =         re.compile(r'(?<![<,+-])RequestInt'),
                   DiscardX =           re.compile(r'(?<![<,+-])Discard[0-9]+'),
@@ -76,7 +76,7 @@ regexHooks = dict( # A dictionary which holds the regex that then trigger each c
                   DrawX =              re.compile(r'(?<![<,+-])Draw([0-9]+)'),
                   RetrieveX =          re.compile(r'(?<![<,+-])Retrieve([0-9]+)'),
                   ShuffleX =           re.compile(r'(?<![<,+-])Shuffle([A-Za-z& ]+)'),
-                  ModifyStatus =       re.compile(r'(?<!modAction:|[<,+-])(Boot|Unboot|SendHomeBooted|Discard|Ace|Return|Play|SendToBottom|SendToDraw|Takeover|Participate|Unparticipate|Callout|Move|Rehost)(Target|Host|Multi|Myself)'),
+                  ModifyStatus =       re.compile(r'(?<!modAction:|[<,+-])(Boot|Unboot|SendHome|SendHomeBooted|Discard|Ace|Return|Play|SendToBottom|SendToDraw|Takeover|Participate|Unparticipate|Callout|Move|Rehost)(Target|Host|Multi|Myself)'),
                   SimplyAnnounce =     re.compile(r'(?<![<,+-])SimplyAnnounce'),
                   GameX =              re.compile(r'(?<![<,+-])(Lose|Win)Game'),
                   ChooseKeyword =      re.compile(r'(?<![<,+-])ChooseKeyword'),

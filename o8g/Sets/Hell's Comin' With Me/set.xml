@@ -11,7 +11,7 @@
 		         <property name="Rank" value="" />
 		         <property name="Suit" value="" />
 		         <property name="Type" value="Legend" />
-		         <property name="Cost" value="" />
+		         <property name="Cost" value="1" />
 		         <property name="Upkeep" value="" />
 		         <property name="Production" value="" />
 		         <property name="Bullets" value="" />
@@ -28,7 +28,7 @@
 		         <property name="Rank" value="" />
 		         <property name="Suit" value="" />
 		         <property name="Type" value="Legend" />
-		         <property name="Cost" value="" />
+		         <property name="Cost" value="1" />
 		         <property name="Upkeep" value="" />
 		         <property name="Production" value="" />
 		         <property name="Bullets" value="" />
@@ -45,7 +45,7 @@
 		         <property name="Rank" value="" />
 		         <property name="Suit" value="" />
 		         <property name="Type" value="Legend" />
-		         <property name="Cost" value="" />
+		         <property name="Cost" value="1" />
 		         <property name="Upkeep" value="" />
 		         <property name="Production" value="" />
 		         <property name="Bullets" value="" />
@@ -685,7 +685,7 @@
 		         <property name="Outfit" value="" />
 		         <property name="Keywords" value="Horse-Gadget 4" />
 		         <property name="Text" value="If Iron Mole is at an Out of Town deed, increase that deed's production by 1.&amp;#xD;&amp;#xD;Noon, Boot: Move this dude to an Out of Town deed.&amp;#xD;&amp;#xD;Shootout, Boot: If this dude is at an Out of Town deed, this dude joins your posse (moving if necessary)." />
-		         <property name="Instructions" value="" />
+		         <property name="Instructions" value="Noon, Boot: Move this dude to an Out of Town deed. || Shootout, Boot: If this dude is at an Out of Town deed, this dude joins your posse (moving if necessary)." />
       </card>
 		<card id="50c6b016-a26e-44dc-baab-0eb822d07fe5" name="Net Gun">
 		         <property name="Rank" value="4" />
@@ -736,7 +736,7 @@
 		         <property name="Outfit" value="" />
 		         <property name="Keywords" value="Weapon-Melee" />
 		         <property name="Text" value="React, Boot: After a Hymn is successfully cast at this location, this dude gains +1 influence.&amp;#xD;&amp;#xD;Noon, Boot: Discard this card to give an opposing dude at this location -2 bullets." />
-		         <property name="Instructions" value="" />
+		         <property name="Instructions" value="React, Boot: After a Hymn is successfully cast at this location, this dude gains +1 influence. || Noon, Boot: Discard this card to give an opposing dude at this location -2 bullets." />
       </card>
 		<card id="9fac6b82-b073-483a-a47b-ebb1499d4e9e" name="Bolts o' Doom">
 		         <property name="Rank" value="7" />
@@ -821,7 +821,7 @@
 		         <property name="Outfit" value="" />
 		         <property name="Keywords" value="Miracle" />
 		         <property name="Text" value="React Miracle 6: After another Miracle boots your dude,&amp;#xD;unboot that dude.&amp;#xD;&amp;#xD;Shootout Miracle 7, Boot: Boot this dude to boot an opposing card." />
-		         <property name="Instructions" value="" />
+		         <property name="Instructions" value="React Miracle 6: After another Miracle boots your dude, unboot that dude. || Shootout Miracle 7, Boot: Boot this dude to boot an opposing card." />
       </card>
 		<card id="e15cb91e-455f-4e9d-b66a-f14506011161" name="Ancestor's Reproach">
 		         <property name="Rank" value="8" />
@@ -838,7 +838,7 @@
 		         <property name="Outfit" value="" />
 		         <property name="Keywords" value="Spirit" />
 		         <property name="Text" value="Shootout Spirit 8, Boot: Ace a card from your hand. An Ancestor Spirit enters play at this location and joins your posse. &amp;#xD;&amp;#xD;Cheatin' Resolution Spirit 6, Boot: An Ancestor Spirit enters play at this location and joins your posse." />
-		         <property name="Instructions" value="" />
+		         <property name="Instructions" value="Shootout Spirit 8, Boot: Ace a card from your hand. An Ancestor Spirit enters play at this location and joins your posse. || Cheatin' Resolution Spirit 6, Boot: An Ancestor Spirit enters play at this location and joins your posse." />
       </card>
 		<card id="46dc8b80-1f05-4a1f-a5ea-f452c4e3dbac" name="Secret Paths">
 		         <property name="Rank" value="9" />

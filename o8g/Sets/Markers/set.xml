@@ -54,7 +54,8 @@
       <property name="Influence" value="0" />
       <property name="Control" value="" />
       <property name="Outfit" value="Drifter" />
-      <property name="Text" value="Token Dude. Remove from play at end of shootout" />
+	  <property name="Keywords" value="Token" />
+	  <property name="Text" value="Token Dude. Remove from play at end of shootout" />
       <property name="Instructions" value="" />
    </card>
    <card id="ac0b08ed-8f78-4cff-a63b-fa1010878af9" name="Town Square" size="townsquare">

@@ -26,7 +26,7 @@ def checkDeck(args):
    if player == me:
       #confirm(str([group.name for group in groups]))
       for group in args.groups:
-         if group == me.hand:
+         if group == me.piles['Play Hand']:
             for card in group:
                if card.Type == 'Outfit': 
                   notify("{} is playing {}".format(player,card.name))
@@ -53,7 +53,7 @@ def checkDeck(args):
                if counts[card.Rank + card.Suit] > 4: 
                   ok = False
                   notify(":::ERROR::: More than 4 cards of the same suit and rank ({} of {}) found in {}'s deck!".format(card.Rank,card.Suit,player))
-            deckLen = len(group) + len([c for c in me.hand if (c.Type != 'Outfit' and c.Type != 'Legend')]) - counts['Jokers']
+            deckLen = len(group) + len([c for c in me.piles['Play Hand'] if (c.Type != 'Outfit' and c.Type != 'Legend')]) - counts['Jokers']
             if deckLen != 52:
                ok = False
                notify(":::ERROR::: {}'s deck is not exactly 52 play cards ({})!".format(player,deckLen))
@@ -123,9 +123,9 @@ def checkMovedCards(args):
       toGroup = args.toGroups[iter]
       highlight = args.highlights[iter]
       #if isScriptMove: return # If the card move happened via a script, then all automations should have happened already.
-      if fromGroup == me.hand and toGroup == table: 
+      if fromGroup == me.piles['Play Hand'] and toGroup == table: 
          if card.Type == 'Outfit': 
-            card.moveTo(me.hand)
+            card.moveTo(me.piles['Play Hand'])
             update()
             setup(group = table)       
          else: playcard(card, retainPos = True)   
@@ -213,12 +213,15 @@ def compareHandRanks():
          if player.getGlobalVariable('Hand Rank') != 'N/A': competingPlayers.append(player)
          if len(competingPlayers) == 2: break
       if len(competingPlayers) == 2: 
-         if num(competingPlayers[0].getGlobalVariable('Hand Rank')) < num(competingPlayers[1].getGlobalVariable('Hand Rank')): 
-            notify("\n-- The winner is {} by {} ranks and {} must absorb as many casualties in this round.".format(competingPlayers[1], (num(competingPlayers[1].getGlobalVariable('Hand Rank')) - num(competingPlayers[0].getGlobalVariable('Hand Rank'))), competingPlayers[0]))
-         elif num(competingPlayers[0].getGlobalVariable('Hand Rank')) > num(competingPlayers[1].getGlobalVariable('Hand Rank')): 
-            notify("\n-- The winner is {} by {} ranks and {} must absorb as many casualties in this round.".format(competingPlayers[0], (num(competingPlayers[0].getGlobalVariable('Hand Rank')) - num(competingPlayers[1].getGlobalVariable('Hand Rank'))), competingPlayers[1]))
+         handRankDiff = num(competingPlayers[0].getGlobalVariable('Hand Rank')) - num(competingPlayers[1].getGlobalVariable('Hand Rank'))
+         if handRankDiff < 0: 
+            notify("\n-- The winner is {} by {} ranks and {} must absorb as many casualties in this round.".format(competingPlayers[1], abs(handRankDiff), competingPlayers[0]))
+         elif handRankDiff > 0: 
+            notify("\n-- The winner is {} by {} ranks and {} must absorb as many casualties in this round.".format(competingPlayers[0], abs(handRankDiff), competingPlayers[1]))
          else: 
             notify ("\n-- The Shootout is a tie. Both player suffer one casualty")
+         if competingPlayers[1] == me: autoscriptOtherPlayers('HandRevealed', count = handRankDiff * -1)
+         else: autoscriptOtherPlayers('HandRevealed', count = handRankDiff)
          clearHandRanks()
    else:
       winner = findLowballWinner()

@@ -141,18 +141,20 @@ def completeJob():
          card.markers[mdict['BulletShootoutMinus']] = 0 
          card.markers[mdict['ValueShootoutPlus']] = 0 
          card.markers[mdict['ValueShootoutMinus']] = 0 
-      if len(jobPosse): notify("{} is successful and the job posse {} goes home booted".format(jobCard,[c.name for c in jobPosse]))
-      else: notify("{} is unsuccessful".format(jobCard))
-      if confirm("Did the {} job succeed?".format(jobCard.Name)): # If we actually have scripts in the job, we try to execute them.
+      if len(jobPosse) and confirm("Did the {} job succeed?".format(jobCard.Name)): # If we actually have scripts in the job, we try to execute them.
          if re.search(r'-MarkNotTheTarget',jobResults[1]): targetCards = None
          elif re.search(r'-LeaderIsTarget',jobResults[1]): targetCards = [leader]
+         elif re.search(r'-JobCardIsTarget',jobResults[1]): targetCards = [jobCard]
          else: targetCards = [Card(eval(getGlobalVariable('Mark')))]
          executeAutoscripts(jobCard,jobResults[1].replace('++','$$'),action = 'USE',targetCards = targetCards) # If the spell is succesful, execute it's effects
-      elif jobResults[2] != 'None': # Otherwise we execute the job fail scripts
-         if re.search(r'-MarkNotTheTarget',jobResults[1]): targetCards = None
-         elif re.search(r'-LeaderIsTarget',jobResults[1]): targetCards = [leader]
-         else: targetCards = [Card(eval(getGlobalVariable('Mark')))]
-         executeAutoscripts(jobCard,jobResults[2].replace('++','$$'),action = 'USE',targetCards = targetCards) # If the spell is succesful, execute it's effects
+         notify("{} is successful and the job posse {} goes home booted".format(jobCard,[c.name for c in jobPosse]))
+      else:
+         if jobResults[2] != 'None': # Otherwise we execute the job fail scripts
+            if re.search(r'-MarkNotTheTarget',jobResults[1]): targetCards = None
+            elif re.search(r'-LeaderIsTarget',jobResults[1]): targetCards = [leader]
+            else: targetCards = [Card(eval(getGlobalVariable('Mark')))]
+            executeAutoscripts(jobCard,jobResults[2].replace('++','$$'),action = 'USE',targetCards = targetCards) # If the spell is succesful, execute it's effects
+         notify("{} is unsuccessful".format(jobCard))
       if getGlobalVariable('Shootout') == 'True': 
          if getGlobalVariable('Shootout') == 'True': atTimedEffects("ShootoutEnd")
       setGlobalVariable('Mark','None') # We also clear the Called Out variable just in case
@@ -215,7 +217,7 @@ def setup(group,x=0,y=0):
       TownSquareToken = table.create("ac0b08ed-8f78-4cff-a63b-fa1010878af9",-170,-50, 1, True) # Create a Town Square card in the middle of the table.
       TownSquareToken.anchor = True
    else: TownSquareToken = tstList[0]
-   for card in me.hand: # For every card in the player's hand... (which should be an outfit and a bunch of dudes usually)
+   for card in me.piles['Play Hand']: # For every card in the player's hand... (which should be an outfit and a bunch of dudes usually)
       if card.Type == "Outfit" :  # First we do a loop to find an play the outfit, (in case the player managed to mess the order somehow)
          placeCard(card,'SetupHome')
          card.filter = "#22{}".format(me.color[1:])
@@ -240,7 +242,7 @@ def setup(group,x=0,y=0):
    dudecount = 0
    concat_dudes = 'and has the following starting dudes: ' # A string where we collect the names of the dudes we bring in
    concat_other = '' # A string to remember any other card (like sweetrock's mine)
-   for card in me.hand: # For every card in the player's hand... (which should a bunch of dudes now)
+   for card in me.piles['Play Hand']: # For every card in the player's hand... (which should a bunch of dudes now)
       debugNotify("Placing {}".format(card),4)
       if card.Type == "Dude" : # If it's a dude...
          placeCard(card,'SetupDude',dudecount)
@@ -449,7 +451,7 @@ def upkeep(group = table, x = 0, y = 0): # Automatically receive production and 
    prod = 0 # Variable to track total production received.
    upk = 0 # Variable to track total upkeep paid.
    cards = (card for card in table # Create a group with all the cards you own and control on the table.
-                 if (card.owner == me or card.highlight == me.color) # you cannot pay or produce from cards you do not own.
+                 if (card.owner == me or card.highlight == me.color or card.name == "Jonah's Retreat") # you cannot pay or produce from cards you do not own.
                  and card.controller == me  # you cannot pay or produce from cards you do not control.
                  and card.highlight != DrawHandColor) # And avoid counting lowball cards
    for card in cards: # For each card...
@@ -1056,13 +1058,13 @@ def move(card, x = 0, y = 0, silent = False, targetCards = None, needToBoot = No
    if not card: return
    if card.Type == "Dude":
       origin = None;
-      if card.properties['Occupying'] and card.properties['Occupying'] != "": origin = Card(eval(card.properties['Occupying']))
+      if card.properties['Occupying'] and card.properties['Occupying'] != "": origin = getDudeLocation(card)
       if not origin: needToBoot = False;
       if not targetCards: targetCards = [c for c in table if c.targetedBy and c.targetedBy == me]
       if not targetCards:
           targetCards = findTarget("DemiAutoTargeted-atDeed_or_Town Square_or_Outfit-choose1", choiceTitle = "Where do you want to move?", ignoreCardList = [origin])
           if not targetCards: return
-      destination = targetCards[0]
+      destination = determineCardLocation(targetCards[0])
       if origin == destination: 
           if needToBoot: card.orientation = Rot90
           return
@@ -1084,14 +1086,22 @@ def move(card, x = 0, y = 0, silent = False, targetCards = None, needToBoot = No
       removeDudeFromLocation(card, origin)
       dudecount = len(getCardsControlledByMe(destination, 'Occupants'))
       placeCard(card, 'MoveDude', dudecount, destination)
-      token = ("Tse Che Nako", specialAbilityToken)
-      if card.markers[token] > 0: 
-          minusControl(card)
-          card.markers[token] = 0
       orgAttachments(card)
       addDudeToLocation(destination, card)
+      checkMoveEffects(card, origin, destination)
       determineControl(origin)
       determineControl(destination)
+
+
+def checkMoveEffects(card, origin, destination):
+      for marker in card.markers:
+          if re.search(r'Rumors',marker[0]) or re.search(r'Adler Needle',marker[0]):
+              locationOutfitCard = Card(eval(card.controller.getGlobalVariable('playerOutfit')))
+              if locationOutfitCard == destination: card.markers[mdict['InfluenceMinus']] -= 1
+              if locationOutfitCard == origin: card.markers[mdict['InfluenceMinus']] += 1
+          if re.search(r'Tse Che Nako', marker[0]) and origin != destination:
+              minusControl(card)
+              card.markers[marker] = 0
       
 def moveTownSquare(card, x = 0, y = 0): # Notifies that this dude is moving by booting
    mute()
@@ -1148,21 +1158,21 @@ def tradeGoods(card, x = 0, y = 0):
 # Posse actions
 #---------------------------------------------------------------------------        
 
-def joinAttack(card, x = 0, y = 0): # Informs that this dude joins an attack posse and highlights him accordingly. 
+def joinAttack(card, x = 0, y = 0, doNotBoot = False): # Informs that this dude joins an attack posse and highlights him accordingly. 
                                     # This is to help track who is shooting it out. The highlights are cleared by the goToShootout function.
    if card.Type == "Dude" : # This is something only dudes can do
        mute () 
        notify("{} is joining the leader's posse.".format(card))
        card.highlight = AttackColor
-       if card != Card(num(getGlobalVariable('Leader'))): moveToPosse(card, isAttacking = True)
+       if card != Card(num(getGlobalVariable('Leader'))): moveToPosse(card, isAttacking = True, doNotBoot = doNotBoot)
        executePlayScripts(card, 'PARTICIPATION')
 
-def joinDefence(card, x = 0, y = 0, silent = False): # Same as above, but about defensive posse.
+def joinDefence(card, x = 0, y = 0, silent = False, doNotBoot = False): # Same as above, but about defensive posse.
    if card.Type == "Dude" : 
       mute ()
       if not silent: notify("{} is joining the defending posse.".format(card))
       card.highlight = DefendColor   
-      if card != Card(num(getGlobalVariable('Mark'))): moveToPosse(card, isAttacking = False)
+      if card != Card(num(getGlobalVariable('Mark'))): moveToPosse(card, isAttacking = False, doNotBoot = doNotBoot)
       executePlayScripts(card, 'PARTICIPATION')
 
 def defend(card = None, x = 0, y = 0): # Same as the defending posse but with diferent notification.
@@ -1232,7 +1242,7 @@ def posseReady (group, x = 0, y = 0):
 # Hand and Deck actions
 #---------------------------------------------------------------------------
       
-def playcard(card,retainPos = False,costReduction = 0, preHost = None, scripted = False): 
+def playcard(card,retainPos = False, costReduction = 0, preHost = None, scripted = False, minCost = 0): 
 # This is the function to play cards from your hand. It's one of the core functions
 # It will automatically pay the cost of cards if you can, or inform you if you cannot.
 # If the card being played has influence or Control points, those will automatically be added to the player's total.
@@ -1297,7 +1307,8 @@ def playcard(card,retainPos = False,costReduction = 0, preHost = None, scripted 
          else: # if they're not on the table, they're in someone's boothill
             notify ("{} wanted to bring {} in play but it currently RIP in {}'s Boot Hill".format(me,card,chkcard.owner))
          return
-   if costReduction > num(card.Cost): costReduction = num(card.Cost)
+   if costReduction > num(card.Cost) - minCost: 
+       costReduction = num(card.Cost) - minCost
    reduction = reduceCost(card, action = 'PLAY', fullCost = num(card.Cost))
    if card.Type == "Dude":
       if not scripted: chkHighNoon()
@@ -1337,7 +1348,7 @@ def playcard(card,retainPos = False,costReduction = 0, preHost = None, scripted 
       else: hostCard = findHost(card)
       if not hostCard:
          whisper("You need to target the card which is going to attach the card")
-         if retainPos: card.moveTo(me.hand)
+         if retainPos: card.moveTo(me.piles['Play Hand'])
          return
       else:
          grimme = 0
@@ -1418,7 +1429,7 @@ def draw(group = me.Deck): # Draws one card from the deck into the player's hand
    if len(group) == 0: # In case the deck is empty, invoke the reshuffle function.
       notify("{}'s Deck empty. Will reshuffle discard pile".format(me))
       reshuffle()
-   group.top().moveTo(me.hand)
+   group.top().moveTo(me.piles['Play Hand'])
    notify("{} draws a card.".format(me))   
    
 def pull(group = me.Deck, x = 0, y = 0, silent = False): # Draws one card from the deck into the discard pile and announces its value.
@@ -1438,7 +1449,7 @@ def pull(group = me.Deck, x = 0, y = 0, silent = False): # Draws one card from t
 
 def drawMany(group, count = None, destination = None, silent = False): # This function draws a variable number cards into the player's hand.
    mute()
-   if destination == None: destination = me.hand
+   if destination == None: destination = me.piles['Play Hand']
    if count == None: count = askInteger("Draw how many cards to your Play Hand?", 5) # Ask the player how many cards they want.
    if count == None: return
    drawnC = 0
@@ -1459,7 +1470,7 @@ def setHandSize(group): # A function to modify a player's hand size. This is use
    if handsize == None: handsize = 5
    notify("{} sets their hand size to {}".format(me, handsize))
    
-def refill(group = me.hand): # Refill the player's hand to its hand size.
+def refill(group = me.piles['Play Hand']): # Refill the player's hand to its hand size.
    #global handsize
    handsize = 5 # 5 is the default, then we add any card effects which modify it
    for card in table:
@@ -1468,9 +1479,14 @@ def refill(group = me.hand): # Refill the player's hand to its hand size.
          if not handSizeRegex: continue
          if handSizeRegex.group(1) == 'Plus': handsize += num(handSizeRegex.group(2))
          else: handsize -= num(handSizeRegex.group(2))
-   playhand = len(me.hand) # count how many cards there are currently there.
+   playhand = len(me.piles['Play Hand']) # count how many cards there are currently there.
    if playhand < handsize: drawMany(me.Deck, handsize - playhand, silent = True) # If there's less cards than the handsize, draw from the deck until it's full.
    return handsize
+
+def returnToHand(card, silent = False):
+   mute()
+   card.moveTo(card.owner.piles['Play Hand'])
+   if not silent: notify("{} has returned {} to their owner's hand.".format(me, card)) 
 
 def handDiscard(card, x = 0, y = 0): # Discard a card from your hand.
    mute()
@@ -1490,7 +1506,7 @@ def handShuffle(group, x = 0, y = 0): # Shuffle your hand back into your deck
    shuffle(me.Deck) # We do a good shuffle this time.
    whisper("Shuffle completed.")
        
-def groupToDeck (group = me.hand, player = me, silent = False):
+def groupToDeck (group = me.piles['Play Hand'], player = me, silent = False):
    debugNotify(">>> groupToDeck(){}".format(extraASDebug())) #Debug
    mute()
    deck = player.Deck
@@ -1498,7 +1514,16 @@ def groupToDeck (group = me.hand, player = me, silent = False):
    for c in group: c.moveTo(deck)
    if not silent: notify ("{} moves their whole {} to their {}.".format(player,group.name,deck.name))
    if debugVerbosity >= 3: notify("<<< groupToDeck() with return:\n{}\n{}\n{}".format(group.name,deck.name,count)) #Debug
-   else: return(group.name,deck.name,count) # Return a tuple with the names of the groups.
+   return(group.name,deck.name,count) # Return a tuple with the names of the groups.
+
+def cardsToDeck (cardsToDeck, player = me, silent = False):
+   debugNotify(">>> cardsToDeck(){}".format(extraASDebug())) #Debug
+   mute()
+   deck = player.Deck
+   for c in cardsToDeck: c.moveTo(deck)
+   if not silent: notify ("{} moves {} cards to their {}.".format(player,len(cardsToDeck),deck.name))
+   if debugVerbosity >= 3: notify("<<< cardsToDeck() with return:\n{}\n{}\n{}".format('', deck.name,len(cardsToDeck))) #Debug
+   return('', deck.name,len(cardsToDeck)) # Return a tuple with the names of the groups.
    
 def drawDiscard(card, x = 0, y = 0): # Discard a card from your hand.
    mute()

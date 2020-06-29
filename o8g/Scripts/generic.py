@@ -548,7 +548,7 @@ def findMarker(card, markerDesc): # Goes through the markers on the card and loo
    return foundKey
       
 def getActivePlayers():
-   return [player for player in getPlayers() if len(player.Deck) > 0 or len(player.piles['Discard Pile']) > 0 or len(player.hand) > 0]
+   return [player for player in getPlayers() if len(player.Deck) > 0 or len(player.piles['Discard Pile']) > 0 or len(player.piles['Play Hand']) > 0]
    
 def claimCard(card, player = me): # Requests the controller of a card to pass control to another player (script runner by default)
    debugNotify("Player {}({}) is claiming card {} from controller {}({}).".format(player, player._id, card, card.controller, card.controller._id)) 
@@ -650,6 +650,13 @@ def insertIdToCardProperty(card, cardId, cardIdToInsert, propertyName):
        newPropertyStr += "|{}".format(newCardId)
    card.properties[propertyName] = newPropertyStr
    debugNotify("Card id {} inserted after id {} in property {} of card {}".format(cardIdToInsert, cardId, propertyName, card))
+
+def posseBulletsTotal(player = None):
+   totalBullets = 0
+   for c in table:
+      if (c.highlight == AttackColor or c.highlight == DefendColor) and (c.controller == player or (not player and c.controller != me)):
+          totalBullets += compileCardStat(c, 'Bullets')
+   return totalBullets
          
 #---------------------------------------------------------------------------
 # Card Placement functions
