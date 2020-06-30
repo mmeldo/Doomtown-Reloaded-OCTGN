@@ -17,7 +17,7 @@
 
 import re, time
 
-debugVerbosity = 4 # At -1, means no debugging messages display
+debugVerbosity = -1 # At -1, means no debugging messages display
 
 Automations = {'Play'                   : True, # If True, game will automatically trigger card effects when playing or double-clicking on cards. Requires specific preparation in the sets.
                'Triggers'               : True, # If True, game will search the table for triggers based on player's actions, such as installing a card, or discarding one.
