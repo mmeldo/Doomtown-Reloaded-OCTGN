@@ -1307,6 +1307,7 @@ def playcard(card,retainPos = False, costReduction = 0, preHost = None, scripted
          else: # if they're not on the table, they're in someone's boothill
             notify ("{} wanted to bring {} in play but it currently RIP in {}'s Boot Hill".format(me,card,chkcard.owner))
          return
+   if minCost == None: minCost = 0;
    if costReduction > num(card.Cost) - minCost: 
        costReduction = num(card.Cost) - minCost
    reduction = reduceCost(card, action = 'PLAY', fullCost = num(card.Cost))
@@ -1665,14 +1666,12 @@ def revealHand(group, type = 'lowball', event = None, silent = False):
       #cheatinNotice.highlight = DrawHandColor
       autoscriptOtherPlayers('CheatinRevealed',cheatinNotice)
    resultTXT = "{}{} ({} {}, {} {}, {} {}, {} {}, {} {})".format(PokerHand(rank,suit,type), cheatResult, fullrank(rank[0]), fullsuit(suit[0]), fullrank(rank[1]), fullsuit(suit[1]), fullrank(rank[2]), fullsuit(suit[2]), fullrank(rank[3]), fullsuit(suit[3]), fullrank(rank[4]), fullsuit(suit[4]))
-   handRank = PokerHand(rank,suit,type,'comparison')
    if not silent:
       if type == 'shootout': # Finally, inform the players on what the hand is.
          notify("{}'s Shootout hand is {}. ".format(me, resultTXT))
       else:
          notify("{}'s Lowball Hand is {}. ".format(me, resultTXT))
    else: return resultTXT
-   #me.HandRank = PokerHand(rank,suit,type,'comparison')
    me.setGlobalVariable('Hand Rank',str(PokerHand(rank,suit,type,'comparison')))
    #notify("===> Set my Hand Rank to {}".format(me.getGlobalVariable('Hand Rank'))) # Debug
    debugNotify("<<< revealHand()") 

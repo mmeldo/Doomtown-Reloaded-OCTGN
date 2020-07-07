@@ -11,49 +11,72 @@ def PokerHand(rank,suit,type = shootout, result = 'normal'): # Evaluates 5 cards
    asuits = [asuit(suit[0]), asuit(suit[1]), asuit(suit[2]), asuit(suit[3]), asuit(suit[4])] # Convert suits
    ssuit = sorted(asuits) # Sort the suits ascending. This is useful for checking for flushes
    chkpairs = pairschk(rank,jokers,type) # So that we don't run the procedure 6 times unnecessarily.
+   debugNotify("+++ PokerHand() pairs and high cards: {}".format(chkpairs))
 # Look for Dead Man's Hand
    if checkDMH(rank,suit,jokers,type) == 1: 
-      if result == 'comparison': return 11
+      if result == 'comparison': 
+          chkpairs[0] = 11
+          return chkpairs
       else: return "11: Dead Man's Hand!"
 # Look for five of a kind
-   if chkpairs == 5:  
-      if result == 'comparison': return 10
+   if chkpairs[0] == 5:  
+      if result == 'comparison': 
+          chkpairs[0] = 10
+          return chkpairs
       else: return "10: Five of a Kind"
 # Look for four of a kind
-   elif chkpairs == 4:  
-      if result == 'comparison': return 8
+   elif chkpairs[0] == 4:  
+      if result == 'comparison': 
+          chkpairs[0] = 8
+          return chkpairs
       else: return "8: Four of a Kind"
 # Look for Full House
-   elif chkpairs == 32:  
-      if result == 'comparison': return 7
+   elif chkpairs[0] == 32:  
+      if result == 'comparison': 
+          chkpairs[0] = 7
+          return chkpairs
       else: return '7: Full House'
 # Look for a Flush
    elif flushchk(ssuit,jokers,type) == 1: 
       if straightchk(srank,jokers,type) == 1:  
-         if result == 'comparison': return 9
+         if result == 'comparison': 
+             chkpairs[0] = 9
+             return chkpairs
          else: return "9: Straight Flush"
       else:  
-         if result == 'comparison': return 6
+         if result == 'comparison': 
+             chkpairs[0] = 6
+             return chkpairs
          else: return "6: Flush"
 # Look for a straight
    elif straightchk(srank,jokers,type) == 1:  
-      if result == 'comparison': return 5
+      if result == 'comparison': 
+          chkpairs[0] = 5
+          return chkpairs
       else: return "5: Straight"
 # Look for Three of a Kind
-   elif chkpairs == 3:  
-      if result == 'comparison': return 4
+   elif chkpairs[0] == 3:  
+      if result == 'comparison': 
+          chkpairs[0] = 4
+          return chkpairs
       else: return '4: Three of a kind'
 # Look for Two Pairs
-   elif chkpairs == 2:  
-      if result == 'comparison': return 3
+   elif chkpairs[0] == 2:  
+      if result == 'comparison': 
+          chkpairs[0] = 3
+          return chkpairs
       else: return '3: Two Pairs'
 # Look for One Pair
-   elif chkpairs == 1:  
-      if result == 'comparison': return 2
+   elif chkpairs[0] == 1:  
+      if result == 'comparison': 
+          chkpairs[0] = 2
+          return chkpairs
       else: return '2: One Pair'
 # If none of the above is true, return a high card result.   
    else:  
-      if result == 'comparison': return 1
+      if result == 'comparison': 
+          chkpairs[0] = 1
+          return chkpairs
       else: return '1: High Card'
 
 def numrank(rank, ask = False): # Convert card ranks into pure integers for comparison
@@ -85,6 +108,10 @@ def pairschk(rank,jokers = 0,type = shootout):
 # This function checks the hand for similar ranks and depending on how many it finds, it returns the appropriate hand code.
    i = 0
    j = 1
+   valueMatch1 = 0
+   valueMatch2 = 0
+   valueSingles = []
+   highCards = [0,[],[],0,0,0] # 6 items so the index represents the number of kind (e.g. index 3 contains 3oK), and 0 index for number of matching cards
    pairs = [0,0,0,0,0] 
 # The above variable is where we'll be storing the matches we find for each hand. 
 # The first pair we find will be labeled 1 and the second 2 as long as it's not the same rank as 1.
@@ -119,24 +146,91 @@ def pairschk(rank,jokers = 0,type = shootout):
          j += 1 
       i += 1 # here we increment the parent loop by one
       j = i+1 # And we set the second loop's iterator to start at one position further.
+   pairingIndex = 0
    for pair in pairs: # Now we count how many matching cards we have for each group
-      if pair == 1: match1 += 1
-      elif pair == 2: match2 += 1
-#   notify("match1 = {}, match2 = {}, type == {}".format(match1, match2, type)) # Used for testing
-   if match1 == 5 or (match1 + jokers == 5 and type == shootout): return 5 # Finally we check for hand ranks. 5 sames are Five of a Kind
-                                                                           # (Jokers count only in non-lowball hands)
-   if match1 == 4 or (match1 + jokers == 4 and type == shootout): return 4 # 4 Sames are Four of a Kind.
-   if ((match1 == 3 and match2 == 2) or 
-         (match1 == 2 and match2 == 3) or
-         (match1 + jokers == 3 and match2 == 2 and type == shootout) or
-         (match1 == 2 and match2 + jokers == 3 and type == shootout)): return 32 # Thee of a kind plus one pair is a Full House
+      if pair == 1: 
+          match1 += 1
+          valueMatch1 = numrank(rank[pairingIndex])
+      elif pair == 2: 
+          match2 += 1
+          valueMatch2 = numrank(rank[pairingIndex])
+      else:
+          if rank[pairingIndex] != '*': valueSingles.append(numrank(rank[pairingIndex]))
+      pairingIndex += 1
+   debugNotify("match1 = {}, match2 = {}, valueSingles = {}, type == {}".format(match1, match2, valueSingles, type)) # Used for testing
+   valueSingles.sort()
+   if jokers:
+      workList = list(valueSingles)
+      if valueMatch1: workList.append(valueMatch1)
+      if valueMatch2: workList.append(valueMatch2)
+      workList.sort()
+      jokerValues = []
+      jokerIndex = 0
+      while jokerIndex < jokers:
+         jokerValue = 1
+         valueIndex = 0
+         for singleValue in workList:
+            if singleValue == jokerValue: 
+               jokerValue += 1
+            else: break
+            valueIndex += 1
+         jokerValues.append(jokerValue)
+         workList.insert(valueIndex, jokerValue)
+         jokerIndex += 1 
+      valueSingles += jokerValues
+      valueSingles.sort()
+   if match1 == 5 or (match1 + jokers == 5 and type == shootout): # Finally we check for hand ranks. 5 sames are Five of a Kind
+      highCards[5] = valueMatch1                                  # (Jokers count only in non-lowball hands)
+      highCards[0] = 5
+      return highCards
+   if match1 == 4 or (match1 + jokers == 4 and type == shootout): # 4 Sames are Four of a Kind.
+      highCards[4] = valueMatch1
+      highCards[1] = valueSingles
+      highCards[0] = 4
+      return highCards
+   if (match1 == 3 and match2 == 2) or (match1 + jokers == 3 and match2 == 2 and type == shootout): # Thee of a kind plus one pair is a Full House
+      highCards[3] = valueMatch1
+      highCards[2] = valueMatch2
+      highCards[0] = 32
+      return highCards
+   if (match1 == 2 and match2 == 3) or (match1 == 2 and match2 + jokers == 3 and type == shootout): # Thee of a kind plus one pair is a Full House
+      highCards[2] = valueMatch1
+      highCards[3] = valueMatch2
+      highCards[0] = 32
+      return highCards
    if (match1 == 3 or # 3 sames is a Thee of a Kind
       (match1 + jokers == 3 and type == shootout) or # 1 pair and one joker is also a Three of a Kind
-      (jokers == 2 and type == shootout)): return 3 # Also 2 jokers and nothing else is always at the least a Three of a Kind
-   if match1 == 2 and match2 == 2: return 2 # 2 of each is Two Pairs 
-   if match1 == 2 or (jokers == 1 and type == shootout): return 1 # 2 matching cards is One Pair
-                                                                    # And one joker with nothing else is always at least a pair.
-   else: return 0
+      (jokers == 2 and type == shootout)): # Also 2 jokers and nothing else is always at the least a Three of a Kind
+      if jokers == 2 and type == shootout: 
+         maxValue = valueSingles[len(valueSingles) - 1]
+         highCards[3] = maxValue
+         valueSingles.remove(maxValue)
+      else: highCards[3] = valueMatch1
+      highCards[1] = valueSingles
+      highCards[0] = 3
+      return highCards
+   if match1 == 2 and match2 == 2: # 2 of each is Two Pairs 
+      if valueMatch1 > valueMatch2:
+         highCards[2].append(valueMatch2)
+         highCards[2].append(valueMatch1)
+      else:
+         highCards[2].append(valueMatch1)
+         highCards[2].append(valueMatch2)
+      highCards[1] = valueSingles
+      highCards[0] = 2
+      return highCards
+   if match1 == 2 or (jokers == 1 and type == shootout): # 2 matching cards is One Pair
+      if jokers == 1 and type == shootout:               # And one joker with nothing else is always at least a pair.
+         maxValue = valueSingles[len(valueSingles) - 1]
+         highCards[2] = [maxValue]
+         valueSingles.remove(maxValue)
+      else: highCards[2] = [valueMatch1]
+      highCards[1] = valueSingles
+      highCards[0] = 1
+      return highCards
+   else: 
+      highCards[1] = valueSingles
+      return highCards
    
 def checkDMH(rank,suit,jokers,type = shootout): # This function checks whether the player has a Dead Man's Hand
 # A DMH is 2 black Aces (clubs & spades), 2 black eights (clubs & spades) and one Diamond Jack.

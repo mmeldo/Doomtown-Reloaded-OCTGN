@@ -667,6 +667,20 @@ def fetchAllAllies(targetPL = me):
 # Shootout/Lowball Scripts
 #---------------------------------------------------------------------------
 
+def checkLowballValues(value1, value2, player1, player2, tieHandRank):
+   if value1 < value2: # If the player we're checking has a lower hand than the next player...
+      if tieHandRank: # If we have recorded a tie...
+         if value1 >= tieHandRank: return None # ...and if the tie is lower/equal than the current player. Then do nothing
+         else: return player1
+      else: return player1 # Else record the current player as the winner
+   elif value1 > value2: # If the primary player (activePlayers[i])has lost a hand comparison, 
+                                                   # then we take him completely off the comparison and move to the next one.
+      if tieHandRank: # but if there is a tie...
+         if value2 >= tieHandRank: return None # ...and if the winning player is not lower/equal than the tie. Then do nothing
+         else: return player2
+      else: return player2 # And the winner is the player who won the current player
+   return ''
+
 def findLowballWinner():
 # This is a function which evaluates the lowball poker hand ranks of all players on the table and determines the winner
 # This works for an indefinite number of players and it works as follows
@@ -678,6 +692,7 @@ def findLowballWinner():
    i = 0
    j = 1
    handtie = False
+   winner = None
    if len(getActivePlayers()) == 1: winner = me # Code to allow me debug with just one player in the match
    tied = [] # A list which holds the player objects of players who are tied. Not used atm.
              # We will pass it later to a variable to determine high card winners.
@@ -688,34 +703,46 @@ def findLowballWinner():
          return 'aborted' # If one player hasn't revealed their hand yet, abort this function
    activePlayers = getActivePlayers()
    handRanks = []
-   for PL in activePlayers: handRanks.append(num(PL.getGlobalVariable('Hand Rank')))
+   for PL in activePlayers: handRanks.append(eval(PL.getGlobalVariable('Hand Rank')))
    while i < len(activePlayers) - 1: # Go once through all the players except the last
       while j < len(activePlayers): # Then go through all the players except the starting one in the previous for loop.
          debugNotify("comp {} to {}. handtie {}.".format(activePlayers[i].name,activePlayers[j].name,handtie),4)
-         if handRanks[i] < handRanks[j]: # If the player we're checking has a lower hand than the next player...
-            if handtie: # If we have recorded a tie...
-               if handRanks[i] >= num(tied[0].getGlobalVariable('Hand Rank')): pass # ...and if the tie is lower/equal than the current player. Then do nothing
-               else: 
-                  handtie = False # If the tie is higher than the current player, then there's no more a tie.
-                  winner = activePlayers[i]
-            else: winner = activePlayers[i] # Else record the current player as the winner
-         elif handRanks[i] > handRanks[j]: # If the primary player (activePlayers[i])has lost a hand comparison, 
-                                                         # then we take him completely off the comparison and move to the next one.
-            if handtie: # but if there is a tie...
-               if handRanks[j] >= num(tied[0].getGlobalVariable('Hand Rank')): pass # ...and if the winning player is not lower/equal than the tie. Then do nothing
-               else: 
-                  handtie = False # If the tie is higher than the current player, then there's no more a tie.               
-                  winner = activePlayers[j]
-            else: winner = activePlayers[j] # And the winner is the player who won the current player
-            j += 1
-            break # No more need to check this player anymore as he's lost.
-         else: 
-            handtie = True # If none of the player's won, it's a tie
-            if len(tied) == 0: # If our list isn't populated yet, then add the first two tied players
-               tied = [activePlayers[i], activePlayers[j]]
-            else: # If we have some players in the list, only add the compared ones if they're not already in the list.
-               if activePlayers[i] not in tied: tied.append(activePlayers[i])
-               if activePlayers[j] not in tied: tied.append(activePlayers[j])
+         if handtie: tiedHandRank = eval(tied[0].getGlobalVariable('Hand Rank'))
+         else: tiedHandRank = None
+         # first we are checking ranks in index 0
+         partialWinner = checkLowballValues(handRanks[i][0], handRanks[j][0], activePlayers[i], activePlayers[j], (tiedHandRank[0] if tiedHandRank else None))
+         if partialWinner and partialWinner != '':
+             handtie = False # If the tie is higher than the current player, then there's no more a tie.
+             winner = partialWinner
+         else: # check high cards in case hand ranks are tied
+            k = 5
+            partialtie = True
+            while k > 0:
+                if (k == 1 or k == 2) and handRanks[i][k]: # 2 represents pair values and 1 single card values. we need to check only these as others (3oK, 4oK, 5oK) cannot have more values
+                    l = 0
+                    partialWinner = None
+                    for partialValue in handRanks[i][k]:
+                        partialWinner = checkLowballValues(handRanks[i][k][l], handRanks[j][k][l], activePlayers[i], activePlayers[j], (tiedHandRank[k][l] if tiedHandRank else None))
+                        if partialWinner and partialWinner != '':
+                           handtie = False # If the tie is higher than the current player, then there's no more a tie.
+                           winner = partialWinner
+                           break;
+                        l += 1
+                    if partialWinner and partialWinner != '': break
+                elif handRanks[i][k]:
+                    partialWinner = checkLowballValues(handRanks[i][k], handRanks[j][k], activePlayers[i], activePlayers[j], (tiedHandRank[k] if tiedHandRank else None))
+                    if partialWinner and partialWinner != '':
+                        handtie = False # If the tie is higher than the current player, then there's no more a tie.
+                        winner = partialWinner
+                        break;
+                k -= 1
+            if k == 0:
+               handtie = True # If none of the player's won, it's a tie
+               if len(tied) == 0: # If our list isn't populated yet, then add the first two tied players
+                  tied = [activePlayers[i], activePlayers[j]]
+               else: # If we have some players in the list, only add the compared ones if they're not already in the list.
+                  if activePlayers[i] not in tied: tied.append(activePlayers[i])
+                  if activePlayers[j] not in tied: tied.append(activePlayers[j])
          j += 1
          if not handtie: 
             if winner ==  activePlayers[i] and j == len(activePlayers): # If the player we're currently comparing has won all other hands,
