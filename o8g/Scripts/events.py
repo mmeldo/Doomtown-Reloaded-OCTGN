@@ -213,7 +213,9 @@ def compareHandRanks():
          if player.getGlobalVariable('Hand Rank') != 'N/A': competingPlayers.append(player)
          if len(competingPlayers) == 2: break
       if len(competingPlayers) == 2: 
-         handRankDiff = num(competingPlayers[0].getGlobalVariable('Hand Rank')) - num(competingPlayers[1].getGlobalVariable('Hand Rank'))
+         handRankPlayer0 = eval(competingPlayers[0].getGlobalVariable('Hand Rank'))
+         handRankPlayer1 = eval(competingPlayers[1].getGlobalVariable('Hand Rank'))
+         handRankDiff = handRankPlayer0[0] - handRankPlayer1[0]
          if handRankDiff < 0: 
             notify("\n-- The winner is {} by {} ranks and {} must absorb as many casualties in this round.".format(competingPlayers[1], abs(handRankDiff), competingPlayers[0]))
          elif handRankDiff > 0: 
@@ -225,7 +227,7 @@ def compareHandRanks():
          clearHandRanks()
    else:
       winner = findLowballWinner()
-      if winner == 'tie': notify ("\n-- It's a tie! Y'all need to compare high cards to determine the lucky bastard. (Winner needs to press Ctrl+W)")
+      if winner == 'tie': notify ("\n-- It's a tie! Y'all need to do some lottery betting. But before that, do another lowball round.")
       else: # Otherwise the evuation will fail which means that the winner variable holds is a player class.
          notify ("\n-- The winner is {}. (They need to press Ctrl+W once the resolution phase has ended.)".format(winner)) # Thus we can just announce them.
    

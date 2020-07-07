@@ -1233,7 +1233,7 @@ def ModifyStatus(Autoscript, announceText, card, targetCards = None, notificatio
                    if len(preReducRegex.groups()) == 3: minCost = preReducRegex.group(3)
                    preReduc = num(preReducRegex.group(1))
                else: preReduc = 0
-               playcard(c,costReduction = preReduc, preHost = preHost, scripted = True, minCost = minCost)
+               playcard(c,costReduction = preReduc, scripted = True, minCost = minCost)
             else:
                placeCard(targetCard)
                executePlayScripts(targetCard, 'PLAY') # We execute the play scripts here only if the card is 0 cost.
