@@ -43,7 +43,7 @@
 <!--       <font src="Fonts/Pixel-Western.ttf" size="8" target="chat"/>  -->
    </fonts>   
    <proxygen definitionsrc="Proxy/proxydef.xml">
-   </proxygen>    
+   </proxygen>   
   <documents>
   </documents>    
    <globalvariables> 
