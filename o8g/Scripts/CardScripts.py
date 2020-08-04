@@ -2701,7 +2701,7 @@ f0e6f9a4-1a55-4cd6-9296-e06c823e22b2
 -----
 
 +++++
-GR0B1R0:RehostTarget-Targeted-atTotem_or_Improvement_or_Condition
+GR0B1R0:RehostTarget-DemiAutoTargeted-atTotem_or_Improvement_or_Condition-choose1-rehostToDeed
 .....
 Eagle Wardens
 -----
@@ -2797,7 +2797,7 @@ Tummy Twister
 -----
 
 +++++
-GR0B0R0:RehostMyself-Targeted-atDude$$Put1ProdMinus-AutoTargeted-onHost
+GR0B0R0:RehostMyself-rehostToDude-inLocationSame$$Put1ProdMinus-AutoTargeted-onHost
 .....
 Backroom Deals
 -----
@@ -2819,7 +2819,7 @@ Forced Quarantine
 -----
 ea2b5db4-659a-4524-8ca3-e84ae8d1f9b5
 -----
-onPlay:StartJob-Targeted-atDude-bootLeader-jobEffects<RehostMyself-AutoTargeted-atDude-isMark++BootHost,None>||atPhaseGamblin:DiscardHost
+onPlay:StartJob-Targeted-atDude-bootLeader-jobEffects<Put1PermControlPlus-LeaderIsTarget++RehostMyself-rehostToDude-isMark++BootHost,None>||atPhaseGamblin:DiscardHost
 +++++
 
 .....
@@ -3389,7 +3389,7 @@ Blight Serum
 -----
 
 +++++
-GR0B0R1:SendHomeBootedTarget-Targeted-atDude$$AceMyself||GR0B1R0:RehostMyself
+GR0B0R1:SendHomeBootedTarget-Targeted-atDude$$AceMyself||GR0B1R0:RehostMyself-rehostToDeed-inLocationSame
 .....
 Marty
 -----
@@ -3492,7 +3492,7 @@ b791fa54-dbe2-4cda-90dd-91a0df866ed1
 -----
 
 +++++
-GR0B1R0:Retrieve1Cards-fromDiscard-grabGadget_and_Weapon-toTable-payCost-reduc2$$Put1Janosz Rig-AutoTargeted-atGadget_and_Weapon-onAttachment-choose1$$RehostTarget-AutoTargeted-atGadget_and_Weapon-onAttachment
+GR0B1R0:CustomScript
 .....
 Vasilis the Boar
 -----
@@ -3508,7 +3508,7 @@ Luke, the Errand Boy
 -----
 
 +++++
-GR0B0R0:RehostTarget-Targeted-atGadget_and_Goods
+GR0B0R0:RehostTarget-Targeted-atGadget_and_Goods-rehostToDude-isMine-inLocationSame_or_Adjacent
 .....
 Arnold McCadish
 -----
@@ -3763,7 +3763,7 @@ Fiddle Game
 -----
 2c318b93-e6b8-422d-b062-baecfc06e62a
 -----
-onPlay:StartJob-AutoTargeted-atOutfit-targetMine-jobEffects<RehostMyself-AutoTargeted-atOutfit-targetMine-isMark,None>
+onPlay:StartJob-AutoTargeted-atOutfit-targetMine-jobEffects<RehostMyself-rehostToOutfit-isMine-isMark++Put2ProdPlus-AutoTargeted-atOutfit-isMine,None>
 +++++
 
 .....

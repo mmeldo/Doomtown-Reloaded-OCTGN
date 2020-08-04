@@ -14,13 +14,14 @@
     # You should have received a copy of the GNU General Public License
     # along with this script.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
+
 #---------------------------------------------------------------------------
 # Global variables
 #---------------------------------------------------------------------------
 
 playerside = None # Variable to keep track on which side each player is
 playeraxis = None # Variable to keep track on which axis the player is
-strikeCount = 0 # Used to automatically place strikes
 posSideCount = 0 # Used to automatically place in-town deeds 
 negSideCount = 0 # Same as above
 handsize = 5 # Used when automatically refilling your hand
@@ -110,7 +111,7 @@ def goToShootout(group = table, x = 0, y = 0, silent = False): # Start or End a 
             elif getGlobalVariable('Mark') != 'None': 
                notify("{} accepts the call out. A shootout begins!".format(Card(num(getGlobalVariable('Mark')))))
                joinDefence(Card(num(getGlobalVariable('Mark'))),silent = True)
-            else: notify("A shootout is breaking out!".format(me))
+            else: notify("A shootout is breaking out!")
          setGlobalVariable('Shootout','True')
          for card in table: 
             if card.highlight == InitiateColor: 
@@ -118,7 +119,7 @@ def goToShootout(group = table, x = 0, y = 0, silent = False): # Start or End a 
                if getGlobalVariable('Job Active') == 'False': executePlayScripts(card, 'PARTICIPATION') # If they were part of a job posse, then these scripts have already been triggered, so we don't do it again.
          atTimedEffects("ShootoutStart")
    else: # When the shootout ends however, any card.highlights for attacker and defender are quickly cleared.
-      notify("The shootout has ended.".format(me))
+      notify("The shootout has ended.")
       if getGlobalVariable('Job Active') != 'False': remoteCall(me,'completeJob',[])
       else:
          clearShootout()
@@ -1047,7 +1048,7 @@ def callout(card, x = 0, y = 0, silent = False, targetDudes = None): # Notifies 
       chkHighNoon()
       if not silent: notify("{} is calling {} out.".format(card,targetD))
       setGlobalVariable('Mark',str(targetD._id)) # We store the called out dude as a global variable so that the owner can easier select their answer.
-      if card.orientation == Rot90: notify(":::WARNING::: Remember that you need a card effect to call out someone while booted)".format(card))
+      if card.orientation == Rot90: notify(":::WARNING::: Remember that you need a card effect to call out someone while booted)")
       card.highlight = InitiateColor
       successCallout = True
    else: whisper(":::ERROR::: You can only initiate a call-out with a dude")
@@ -1827,7 +1828,6 @@ def organizeLocationByPlayer(card):
             count += 1
 
 def showAdjacentLocations(card, x = 0, y = 0):
-    locations = []
     if card.properties['adjacentShown'] == 'True': 
         card.arrow(card, False)
         card.properties['adjacentShown'] = 'False'

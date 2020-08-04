@@ -39,13 +39,12 @@ costIncreasers = []
                
 def resetAll(): # Clears all the global variables in order to start a new game.
    # Import all our global variables and reset them.
-   global playerside, strikeCount, posSideCount, negSideCount, handsize
+   global playerside, posSideCount, negSideCount, handsize
    global harrowedDudes, ValueMemory, debugVerbosity
    debugNotify(">>> resetAll()") #Debug   
    setGlobalVariable('Shootout','False')
    me.setGlobalVariable('playerOutfit','None')
    #playerside = None
-   strikeCount = 0
    posSideCount = 0
    negSideCount = 0
    handsize = 5
@@ -279,29 +278,31 @@ def moveToPosse(card, leader = None, mark = None, isJob = None, isAttacking = Tr
    if saveProperty != '': card.properties['beforeParticipation'] = saveProperty
    return True
 
-def chkGadgetCraft(card):
+def chkGadgetCraft(card, MadScientist = None, boot = True):
    success = True
    if re.search('Gadget', card.Keywords):
       if confirm("You are trying to create a gadget {}. Would you like to do a gadget skill check at this point?".format(card.Type)):
-         myDudes = [dude for dude in table if dude.controller == me and dude.orientation == Rot0 and re.search(r'Mad Scientist',dude.Keywords)]
-         if not len(myDudes):
-            if confirm("You do not seem to have an available unbooted mad scientist to build this gadget. Abort the build?"):
-               success = False
-               return
-            else:
-               myDudes = [dude for dude in table if dude.controller == me and re.search(r'Mad Scientist',dude.Keywords)]
-         MadScientist = None
-         for dude in myDudes:
-            if dude.targetedBy and dude.targetedBy == me: 
-               MadScientist = dude
-               break
          if not MadScientist:
-            choice = SingleChoice('Choose one of your available Mad Scientists to build this gadget dude', makeChoiceListfromCardList(myDudes))
-            if choice != None: MadScientist = myDudes[choice]
+             myDudes = [dude for dude in table if dude.controller == me and (dude.orientation == Rot0 or not boot) and re.search(r'Mad Scientist',dude.Keywords)]
+             if not len(myDudes):
+                if confirm("You do not seem to have an available unbooted mad scientist to build this gadget. Abort the build?"):
+                   success = False
+                   return
+                else:
+                   myDudes = [dude for dude in table if dude.controller == me and re.search(r'Mad Scientist',dude.Keywords)]
+             for dude in myDudes:
+                if dude.targetedBy and dude.targetedBy == me: 
+                   MadScientist = dude
+                   break
+             if not MadScientist:
+                choice = SingleChoice('Choose one of your available Mad Scientists to build this gadget dude', makeChoiceListfromCardList(myDudes))
+                if choice != None: MadScientist = myDudes[choice]
          if MadScientist:
             gadgetPull = pull(silent = True) # pull returns a tuple with the results of the pull
-            MadScientist.orientation = Rot90
-            notify("{} attempted to manufacture a {} and pulled a {} {}".format(MadScientist,card,fullrank(gadgetPull[0]), fullsuit(gadgetPull[1])))
+            bootTXT = ''
+            if boot: MadScientist.orientation = Rot90
+            else: bootTXT = ' without booting'
+            notify("{} attempted to manufacture a {}{} and pulled a {} {}".format(MadScientist, card, bootTXT, fullrank(gadgetPull[0]), fullsuit(gadgetPull[1])))
          else: notify("{} has built a {} without a gadget skill check.".format(me, card))
       else: notify("{} has built a {} without a gadget skill check.".format(me, card))
    return success
@@ -529,7 +530,7 @@ def highlightLocation(card, clear = True):
        # Putting here try catch blok in case update for card selection is not in this OCTGN client version 
        # TODO should be removed once the selection update is available
        try: clearSelection()
-       except: notifyDebug("::DEBUG:: This version of OCTGN client does not support clearing of the selection!")
+       except: debugNotify("::DEBUG:: This version of OCTGN client does not support clearing of the selection!")
    card.select()
    dudesHere = getDudesAtLocation(card)
    for dude in dudesHere:
@@ -550,7 +551,7 @@ def determineCardLocation(targetCard):
        return
    if targetCard.Type == 'Dude': resultCard = getDudeLocation(targetCard)
    elif targetCard.Type == 'Deed' or targetCard.Type == 'Outfit' or targetCard.name == 'Town Square': resultCard = targetCard
-   elif targetCard.Type == 'Action': resultCard = None
+   elif targetCard.Type == 'Action' and not re.search(r'Condition', targetCard.Keywords): resultCard = None
    else:
       host = fetchHost(targetCard)
       if host:
@@ -576,7 +577,7 @@ def determineControl(card):
                 if re.search(r'Rowdy Dude', marker[0]): determinator = 'Bullets'
         amount = compileCardStat(dude, stat = determinator)
         if (amount < 1) : continue
-        if playersStats.has_key(dude.controller._id): playersStats[dude.controller._id] += amount
+        if dude.controller._id in playersStats: playersStats[dude.controller._id] += amount
         else: playersStats[dude.controller._id] = amount
         debugNotify("Dude controller inf: {}, Player with most Inf: {}".format(playersStats.get(dude.controller._id), playersStats.get(playerWithMost._id)))
         if dude.controller == playerWithMost:
@@ -964,7 +965,7 @@ def orgAttachments(card,facing = 'Same'):
    debugNotify(">>> orgAttachments()") #Debug
    attNR = 1
    debugNotify(" Card Name : {}".format(card.name), 4)
-   if specialHostPlacementAlgs.has_key(card.name):
+   if card.name in specialHostPlacementAlgs:
       debugNotify("Found specialHostPlacementAlgs", 3)
       xAlg = specialHostPlacementAlgs[card.name][0]
       yAlg = specialHostPlacementAlgs[card.name][1]

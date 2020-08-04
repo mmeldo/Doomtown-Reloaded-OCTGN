@@ -147,7 +147,7 @@ def useAbility(card, x = 0, y = 0, manual = True): # The start of autoscript act
    AutoscriptsList = [] # An empty list which we'll put the AutoActions to execute.
    failedRequirement = False # We set it to false when we start a new autoscript.
    if not Automations['Play']:
-      whisper(":::WARNING::: Play automations have been deactivated. Aborting!",4)
+      whisper(":::WARNING::: Play automations have been deactivated. Aborting!")
       return
    Autoscripts = CardsAA.get(card.model,'').split('||')
    AutoScriptSnapshot = list(Autoscripts)
@@ -258,13 +258,6 @@ def autoscriptOtherPlayers(lookup, origin_card = OutfitCard, count = 1, origin_p
             debugNotify("Target Card is the origin card",2)
             targetCardID = origin_card._id # if we have the "-onTriggerCard" modulator, then the target of the script will be the original card
          else: targetCardID = None
-         if re.search(r'-isReact', autoS): #If the effect -isReact, then the opponent has a chance to interrupt so we need to give them a window.
-            if card.highlight != ReadyEffectColor:
-               ### Setting card's selectedAbility Global Variable.
-               storeCardEffects(card,autoS,0,card.highlight,'Automatic',targetCardID,count) # We pass the special target's ID in our global variable to allow it to be retrieved by later scripts.
-               if re.search(r'-isForced', autoS): readyEffect(card,True)
-               else: readyEffect(card)
-            continue
          ### Otherwise the automation is uninterruptible and we just go on with the scripting.
          if targetCardID: executeAutoscripts(card,autoS,count,action = 'Automatic',targetCards = [Card(targetCardID)])
          else: executeAutoscripts(card,autoS,count,action = 'Automatic')
@@ -308,7 +301,7 @@ def atTimedEffects(Time = 'Gamblin'): # Function which triggers card effects at 
             for cmarker in card.markers: # If the card has any markers, we mention them do that the player can better decide which one they wanted to use (e.g. multiple bank jobs)
                extraCountersTXT += " {}x {}\n".format(card.markers[cmarker],cmarker[0])
             if extraCountersTXT != '': extraCountersTXT = "\n\nThis card has the following counters on it\n" + extraCountersTXT
-            if not confirm("{} can have its optional ability take effect at this point. Do you want to activate it?{}".format(card.name),extraCountersTXT): continue 
+            if not confirm("{} can have its optional ability take effect at this point. Do you want to activate it?{}".format(card.name, extraCountersTXT)): continue 
          executeAutoscripts(card,autoS,action = Time)
    markerEffects(Time) 
    if TitleDone: notify(":::{:=^30}:::".format('='))
@@ -390,11 +383,6 @@ def redirect(Autoscript, card, action, X = 0, targetC = None, skilledDude = None
    elif regexHooks['TokensX'].search(Autoscript): 
       debugNotify("in TokensX hook")
       if TokensX(Autoscript, announceText, card, targetC, notification = 'Quick', n = X) == 'ABORT': return 'ABORT'
-   elif regexHooks['RollX'].search(Autoscript): 
-      debugNotify("in RollX hook")
-      rollTuple = RollX(Autoscript, announceText, card, targetC, notification = 'Quick', n = X)
-      if rollTuple == 'ABORT': return 'ABORT'
-      X = rollTuple[1] 
    elif regexHooks['RequestInt'].search(Autoscript): 
       debugNotify("in RequestInt hook")
       numberTuple = RequestInt(Autoscript, announceText, card, targetC, notification = 'Quick', n = X)
@@ -413,15 +401,9 @@ def redirect(Autoscript, card, action, X = 0, targetC = None, skilledDude = None
    elif regexHooks['ShuffleX'].search(Autoscript): 
       debugNotify("in ShuffleX hook")
       if ShuffleX(Autoscript, announceText, card, targetC, notification = 'Quick', n = X) == 'ABORT': return 'ABORT'
-   elif regexHooks['ChooseKeyword'].search(Autoscript): 
-      debugNotify("in ChooseKeyword hook")
-      if ChooseKeyword(Autoscript, announceText, card, targetC, notification = 'Quick', n = X) == 'ABORT': return 'ABORT'
    elif regexHooks['SpawnX'].search(Autoscript): 
       debugNotify("in SpawnX hook")
       if SpawnX(Autoscript, announceText, card, targetC, notification = 'Quick', n = X) == 'ABORT': return 'ABORT'
-   elif regexHooks['GameX'].search(Autoscript): 
-      debugNotify("in GameX hook")
-      if GameX(Autoscript, announceText, card, targetC, notification = 'Quick', n = X) == 'ABORT': return 'ABORT'
    elif regexHooks['UseCustomAbility'].search(Autoscript): 
       debugNotify("in UseCustomAbility hook")
       if UseCustomAbility(Autoscript, announceText, card, targetC, notification = 'Quick', n = X, skilledDude = skilledDude) == 'ABORT': return 'ABORT'
@@ -624,7 +606,6 @@ def TokensX(Autoscript, announceText, card, targetCards = None, notification = N
          else: targetCard.markers[token] += modtokens # Finally we apply the marker modification
    if abs(num(action.group(2))) == abs(999): total = 'all'
    else: total = abs(modtokens)
-   if re.search(r'isPriority', Autoscript): card.highlight = PriorityColor
    countersTXT = 'counters'
    debugNotify("About to set announceString",2)
    if action.group(1) == 'Transfer': announceString = "{} {} {} {} {} from {} to {}".format(announceText, action.group(1).lower(), total, token[0],countersTXT,sourceCard,targetCard)
@@ -693,7 +674,7 @@ def DrawX(Autoscript, announceText, card, targetCards = None, notification = Non
    #if count == 0: return announceText # If there are no cards, then we effectively did nothing, so we don't change the notification.
    if notification == 'Quick': announceString = "{} {} {} cards{}{}".format(announceText, destiVerb, count,sourcePath,destPath)
    elif source.name == 'Deck' and destination.name == 'Hand': announceString = "{}{} draw {} cards.".format(announceText, otherTXT, count)
-   else: announceString = "{}{} {} cards from {}{}".format(announceText,otherTXT, destiVerb, count, source.name, destPath)
+   else: announceString = "{}{} {} cards from {}{} {}".format(announceText,otherTXT, destiVerb, count, source.name, destPath)
    if notification and multiplier > 0: notify(':> {}.'.format(announceString))
    debugNotify("<<< DrawX()")
    return announceString
@@ -707,23 +688,14 @@ def DiscardX(Autoscript, announceText, card, targetCards = None, notification = 
    else: otherTXT = ''
    for targetPL in targetPLs:
       discardNR = num(action.group(1))
-      if discardNR == 999:
-         multiplier = 1
-         discardNR = len(targetPL.piles['Play Hand']) # 999 means we discard our whole hand
-      if re.search(r'-isRandom',Autoscript): # the -isRandom modulator just discard as many cards at random.
-         multiplier = per(Autoscript, card, n, targetCards, notification)
-         count = handRandomDiscard(targetPL.piles['Play Hand'], discardNR * multiplier, targetPL, silent = True)
-         if re.search(r'isCost', Autoscript) and count < discardNR:
-            whisper("You do not have enough cards in your hand to discard")
-            return ('ABORT',0)
-      else: # Otherwise we just discard the targeted cards from hand  
-         multiplier = 1
-         count = len(targetCards)
-         if re.search(r'isCost', Autoscript) and count < discardNR:
-            whisper("You do not have enough cards in your hand to discard")
-            return ('ABORT',0)
-         for targetC in targetCards: handDiscard(targetC)
-         debugNotify("Finished discarding targeted cards from hand")
+      if discardNR == 999: discardNR = len(targetPL.piles['Play Hand']) # 999 means we discard our whole hand
+      multiplier = 1
+      count = len(targetCards)
+      if re.search(r'isCost', Autoscript) and count < discardNR:
+         whisper("You do not have enough cards in your hand to discard")
+         return ('ABORT',0)
+      for targetC in targetCards: handDiscard(targetC)
+      debugNotify("Finished discarding targeted cards from hand")
       if count == 0: 
          debugNotify("Exiting because count == 0")
          return (announceText,count) # If there are no cards, then we effectively did nothing, so we don't change the notification.
@@ -789,30 +761,6 @@ def ShuffleX(Autoscript, announceText, card, targetCards = None, notification = 
    debugNotify("<<< ShuffleX()")
    return announceString
    
-def ReturnX(Autoscript, announceText, card, targetCards = None, notification = None, n = 0): # Core Command for drawing X Cards from the house deck to your hand.
-   debugNotify(">>> RollX(){}".format(extraASDebug())) #Debug
-   if targetCards is None: targetCards = []
-   d6 = 0
-   d6list = []
-   result = 0
-   action = re.search(r'\bReturn([0-9]+)Dice(-chk)?([1-6])?', Autoscript)
-   multiplier = per(Autoscript, card, n, targetCards, notification)
-   count = num(action.group(1)) * multiplier 
-   for d in range(count):
-      if d == 2: whisper("-- Please wait. Rolling {} dice...".format(count))
-      if d == 8: whisper("-- A little while longer...")
-      d6 = rolld6(silent = True)
-      d6list.append(d6)
-      if action.group(3): # If we have a chk modulator, it means we only increase our total if we hit a specific number.
-         if num(action.group(3)) == d6: result += 1
-      else: result += d6 # Otherwise we add all totals together.
-      debugNotify("iter:{} with roll {} and total result: {}".format(d,d6,result))
-   if notification == 'Quick': announceString = "{} rolls {} on {} dice".format(announceText, d6list, count)
-   else: announceString = "{} roll {} dice with the following results: {}".format(announceText,count, d6list)
-   if notification: notify(':> {}.'.format(announceString))
-   debugNotify("<<< RollX() with result: {}".format(result))
-   return (announceString, result)
-
 def StartJob(Autoscript, announceText, card, targetCards = None, notification = None, n = 0): # Core Command for starting a job
    debugNotify(">>> StartJob(){}".format(extraASDebug())) #Debug
    if targetCards is None: targetCards = []
@@ -1020,7 +968,6 @@ def SimplyAnnounce(Autoscript, announceText, card, targetCards = None, notificat
        information(actionLoud.group(1))
        announceString = ""
    else:
-      if re.search(r'break',Autoscript) and re.search(r'subroutine',Autoscript): penaltyNoisy(card)
       if notification == 'Quick': announceString = "{} {}".format(announceText, action.group(1))
       else: announceString = "{} {}".format(announceText, action.group(1))
       if notification: notify(':> {}.'.format(announceString))
@@ -1151,11 +1098,11 @@ def ModifyStatus(Autoscript, announceText, card, targetCards = None, notificatio
    targetCardlist = '' # A text field holding which cards are going to get tokens.
    extraTXT = ''
    SentHomeCount = 0
-   action = re.search(r'\b(Boot|Unboot|SendHome|SendHomeBooted|Discard|Ace|Return|Play|SendToBottom|SendToDraw|Takeover|Participate|Unparticipate|Callout|Move|Rehost)(Target|Host|Multi|Myself)[-to]*([A-Z][A-Za-z&_ ]+)?', Autoscript)
+   action = re.search(r'\b(Boot|Unboot|SendHome|SendHomeBooted|Discard|Ace|Return|Play|SendToDraw|Takeover|Participate|Unparticipate|Callout|Move|Rehost)(Target|Host|Multi|Myself)[-to]*([A-Z][A-Za-z&_ ]+)?', Autoscript)
    if action.group(2) == 'Myself': 
       if action.group(1) != 'Move':
          del targetCards[:] # Empty the list, just in case.
-         targetCards.append(card)
+      if len(targetCards) == 0: targetCards.append(card)
    if action.group(2) == 'Host': 
       del targetCards[:] # Empty the list, just in case.
       debugNotify("Finding Host")
@@ -1176,114 +1123,107 @@ def ModifyStatus(Autoscript, announceText, card, targetCards = None, notificatio
    rnd(1,10) # Dela yto be able to grab the names
    debugNotify("Preparing targetCardlist",2)      
    targetCardlist = targetCardlist.strip(',') # Re remove the trailing comma
-   if action.group(1) == 'SendToBottom': # For SendToBottom, we need a different mthod, as we need to shuffle the cards.
-      if action.group(2) == 'Multi': 
-         debugNotify("Sending Multiple card to the bottom",3)   
-         sendToBottom(targetCards)
-      else: 
-         debugNotify("Sending Single card to the bottom",3)   
-         try: sendToBottom([targetCards[0]])
-         except: 
-            delayed_whisper(":::ERROR::: You have not targeted a valid card")
+   if re.search(r'-isCost',Autoscript) and not len(targetCards): return 'ABORT' # If the modification is a cost, but there was no valid target, we abort.
+   for targetCard in targetCards:
+      if action.group(1) == 'Boot':
+         if boot(targetCard, silent = True, forced = 'boot') == 'FAIL' and re.search(r'-isCost',Autoscript):
+            whisper(":::INFO::: Failed to pay the boot cost. ABORTING")
             return 'ABORT'
-   else:
-      if re.search(r'-isCost',Autoscript) and not len(targetCards): return 'ABORT' # If the modification is a cost, but there was no valid target, we abort.
-      for targetCard in targetCards:
-         if action.group(1) == 'Boot':
-            if boot(targetCard, silent = True, forced = 'boot') == 'FAIL' and re.search(r'-isCost',Autoscript):
-               whisper(":::INFO::: Failed to pay the boot cost. ABORTING")
-               return 'ABORT'
-         elif action.group(1) == 'Unboot': boot(targetCard, silent = True, forced = 'unboot') 
-         elif action.group(1) == 'Discard' and targetCard.group.name != 'Boot Hill': discardTarget(targetCards = [targetCard], silent = True)        
-         elif action.group(1) == 'Ace' and targetCard.group.name != 'Discard Pile': aceTarget(targetCards = [targetCard], silent = True)
-         elif action.group(1) == 'SendToDraw': sendToDrawHand(targetCard)
-         elif action.group(1) == 'Rehost':
-            newHost = findHost(targetCard,Autoscript)
-            if not newHost: 
-               whisper("You need to target the card which is going to attach the card")
-               return 'ABORT'
-            else: attachCard(targetCard,newHost)
-         elif action.group(1) == 'Participate':
-            doNotBootSearch = re.search(r'-doNotBoot', Autoscript)
-            if doNotBootSearch: doNotBoot = True
-            else: doNotBoot = False
-            if not participateDude(targetCard, doNotBoot = doNotBoot): 
-               whisper(":::ERROR::: {} is already in this shootout!".format(targetCard))
-               return 'ABORT'
-         elif action.group(1) == 'Unparticipate': leavePosse(targetCard, scripted = True)
-         elif action.group(1) == 'Callout':
-            leaderTarget = re.search(r"-leaderTarget\{(.+)\}", Autoscript)
-            if leaderTarget:
-               possibleTargets = findTarget("DemiAutoTargeted-at{}-targetMine-choose1".format(leaderTarget.group(1)),choiceTitle = "Choose which of your dudes performs the call out")
-               if not len(possibleTargets): 
-                  notify(":::ERROR::: No valid Target to move to found. Aborting!")
-                  return 'ABORT'
-               else: 
-                  callout(possibleTargets[0], silent = True, targetDudes = [targetCard])
-                  extraTXT = " with {}".format(possibleTargets[0])
-            else: callout(card, silent = True, targetDudes = [targetCard])
-         elif action.group(1) == 'Return' and targetCard.group == table: 
-            returnToHand(targetCard, silent = True)
-            extraTXT = " to their owner's hand"
-         elif action.group(1) == 'Play': 
-            if re.search(r'-payCost',Autoscript): # This modulator means the script is going to pay for the card normally
-               preReducRegex = re.search(r'-reduc([0-9])(min)?([0-9])?',Autoscript) # this one means its going to reduce the cost a bit.
-               minCost = 0
-               if preReducRegex: 
-                   if len(preReducRegex.groups()) == 3: minCost = preReducRegex.group(3)
-                   preReduc = num(preReducRegex.group(1))
-               else: preReduc = 0
-               playcard(c,costReduction = preReduc, scripted = True, minCost = minCost)
-            else:
-               placeCard(targetCard)
-               executePlayScripts(targetCard, 'PLAY') # We execute the play scripts here only if the card is 0 cost.
-               autoscriptOtherPlayers('CardPlayed',targetCard)            
-         elif action.group(1) == 'Move' and targetCard.group == table:
-            moveTarget = re.search(r"-moveTo(.+)", Autoscript)
-            if not moveTarget: 
-               notify(":::ERROR::: No valid moveTarget. Aborting!")
-               return 'ABORT'
-            moveFromCard = targetCard
-            if moveTarget.group(1) == 'Here' or moveTarget.group(1) == 'Target': # If the moveTarget is "Here", then we try to figure out the current card's location and set it as the destination.
-               if moveTarget.group(1) == 'Here': 
-                   moveToCard = card
-               if moveTarget.group(1) == 'Target': 
-                   moveFromCard = card
-                   moveToCard = targetCard
-               if not moveToCard: 
-                  notify(":::ERROR::: No valid Target to move to found. Aborting!")
-                  return 'ABORT'
-               targetLocation = determineCardLocation(moveToCard)
-               if not targetLocation:
-                  notify(":::ERROR::: Bad Script. Actions should never 'moveToHere'. Aborting!")
-                  return 'ABORT'
-               else: possibleTargets = [targetLocation]
-            else:
-               possibleTargets = findTarget("DemiAutoTargeted-at{}-choose1".format(moveTarget.group(1)), choiceTitle = "Choose which (or to whose) location you're moving to")
-               if len(possibleTargets) > 0:
-                   possTargetLocation = determineCardLocation(possibleTargets[0])
-                   possibleTargets = [possTargetLocation]
+      elif action.group(1) == 'Unboot': boot(targetCard, silent = True, forced = 'unboot') 
+      elif action.group(1) == 'Discard' and targetCard.group.name != 'Boot Hill': discardTarget(targetCards = [targetCard], silent = True)        
+      elif action.group(1) == 'Ace' and targetCard.group.name != 'Discard Pile': aceTarget(targetCards = [targetCard], silent = True)
+      elif action.group(1) == 'SendToDraw': sendToDrawHand(targetCard)
+      elif action.group(1) == 'Rehost':
+         rehostTarget = re.search(r"-rehostTo(.+)", Autoscript)
+         if not rehostTarget: 
+            notify(":::ERROR::: No valid rehost Target. Script is incorrect, Aborting!")
+            return 'ABORT'
+         possibleTargets = findTarget("AutoTargeted-at{}-choose1".format(rehostTarget.group(1)), card = card, choiceTitle = "Choose where you want to rehost {}".format(targetCard.name))
+         if len(possibleTargets) == 0:
+            notify(":::ERROR::: No valid rehost Target. Aborting!")
+            return 'ABORT'
+         else: attachCard(targetCard, possibleTargets[0])
+      elif action.group(1) == 'Participate':
+         doNotBootSearch = re.search(r'-doNotBoot', Autoscript)
+         if doNotBootSearch: doNotBoot = True
+         else: doNotBoot = False
+         if not participateDude(targetCard, doNotBoot = doNotBoot): 
+            whisper(":::ERROR::: {} is already in this shootout!".format(targetCard))
+            return 'ABORT'
+      elif action.group(1) == 'Unparticipate': leavePosse(targetCard, scripted = True)
+      elif action.group(1) == 'Callout':
+         leaderTarget = re.search(r"-leaderTarget\{(.+)\}", Autoscript)
+         if leaderTarget:
+            possibleTargets = findTarget("DemiAutoTargeted-at{}-targetMine-choose1".format(leaderTarget.group(1)),choiceTitle = "Choose which of your dudes performs the call out")
             if not len(possibleTargets): 
                notify(":::ERROR::: No valid Target to move to found. Aborting!")
                return 'ABORT'
-            allowBooted = True
-            if re.search(r'-bootedNotAllowed',Autoscript): allowBooted = False
-            if moveFromCard.controller == me: move(moveFromCard, silent = True, targetCards = possibleTargets, needToBoot = False, allowBooted = allowBooted)
-            else: remoteCall(moveFromCard.controller,'move',[moveFromCard, 0, 0, True, possibleTargets, False, allowBooted])
-            extraTXT = " to {}".format(possibleTargets[0])
-         elif (action.group(1) == 'SendHomeBooted' or action.group(1) == 'SendHome') and targetCard.group == table:
-            shouldBoot = True
-            if action.group(1) == 'SendHome': shouldBoot = None
-            if re.search(r'-doNotBoot', Autoscript): shouldBoot = False
-            if targetCard.controller == me: moveHome(targetCard, shouldBoot)
-            else: remoteCall(targetCard.controller,'moveHome',[targetCard, shouldBoot])
-            if targetCard.highlight == AttackColor or targetCard.highlight == DefendColor: leavePosse(targetCard, scripted = True)
-         elif action.group(1) == 'Takeover':
-            targetPLs = ofwhom(Autoscript, card.controller)
-            claimCard(targetCard,targetPLs[0])
-            remoteCall(targetPLs[0],'placeCard',[targetCard])
-         else: return 'ABORT'
-         if action.group(2) != 'Multi': break # If we're not doing a multi-targeting, abort after the first run.
+            else: 
+               callout(possibleTargets[0], silent = True, targetDudes = [targetCard])
+               extraTXT = " with {}".format(possibleTargets[0])
+         else: callout(card, silent = True, targetDudes = [targetCard])
+      elif action.group(1) == 'Return' and targetCard.group == table: 
+         returnToHand(targetCard, silent = True)
+         extraTXT = " to their owner's hand"
+      elif action.group(1) == 'Play': 
+         if re.search(r'-payCost',Autoscript): # This modulator means the script is going to pay for the card normally
+            preReducRegex = re.search(r'-reduc([0-9])(min)?([0-9])?',Autoscript) # this one means its going to reduce the cost a bit.
+            minCost = 0
+            if preReducRegex: 
+                if len(preReducRegex.groups()) == 3: minCost = preReducRegex.group(3)
+                preReduc = num(preReducRegex.group(1))
+            else: preReduc = 0
+            playcard(targetCard, costReduction = preReduc, scripted = True, minCost = minCost)
+         else:
+            placeCard(targetCard)
+            executePlayScripts(targetCard, 'PLAY') # We execute the play scripts here only if the card is 0 cost.
+            autoscriptOtherPlayers('CardPlayed',targetCard)            
+      elif action.group(1) == 'Move' and targetCard.group == table:
+         moveTarget = re.search(r"-moveTo(.+)", Autoscript)
+         if not moveTarget: 
+            notify(":::ERROR::: No valid moveTarget. Aborting!")
+            return 'ABORT'
+         moveFromCard = targetCard
+         if moveTarget.group(1) == 'Here' or moveTarget.group(1) == 'Target': # If the moveTarget is "Here", then we try to figure out the current card's location and set it as the destination.
+            if moveTarget.group(1) == 'Here': 
+                moveToCard = card
+            if moveTarget.group(1) == 'Target': 
+                moveFromCard = card
+                moveToCard = targetCard
+            if not moveToCard: 
+               notify(":::ERROR::: No valid Target to move to found. Aborting!")
+               return 'ABORT'
+            targetLocation = determineCardLocation(moveToCard)
+            if not targetLocation:
+               notify(":::ERROR::: Bad Script. Actions should never 'moveToHere'. Aborting!")
+               return 'ABORT'
+            else: possibleTargets = [targetLocation]
+         else:
+            possibleTargets = findTarget("DemiAutoTargeted-at{}-choose1".format(moveTarget.group(1)), choiceTitle = "Choose which (or to whose) location you're moving to")
+            if len(possibleTargets) > 0:
+                possTargetLocation = determineCardLocation(possibleTargets[0])
+                possibleTargets = [possTargetLocation]
+         if not len(possibleTargets): 
+            notify(":::ERROR::: No valid Target to move to found. Aborting!")
+            return 'ABORT'
+         allowBooted = True
+         if re.search(r'-bootedNotAllowed',Autoscript): allowBooted = False
+         if moveFromCard.controller == me: move(moveFromCard, silent = True, targetCards = possibleTargets, needToBoot = False, allowBooted = allowBooted)
+         else: remoteCall(moveFromCard.controller,'move',[moveFromCard, 0, 0, True, possibleTargets, False, allowBooted])
+         extraTXT = " to {}".format(possibleTargets[0])
+      elif (action.group(1) == 'SendHomeBooted' or action.group(1) == 'SendHome') and targetCard.group == table:
+         shouldBoot = True
+         if action.group(1) == 'SendHome': shouldBoot = None
+         if re.search(r'-doNotBoot', Autoscript): shouldBoot = False
+         if targetCard.controller == me: moveHome(targetCard, shouldBoot)
+         else: remoteCall(targetCard.controller,'moveHome',[targetCard, shouldBoot])
+         if targetCard.highlight == AttackColor or targetCard.highlight == DefendColor: leavePosse(targetCard, scripted = True)
+      elif action.group(1) == 'Takeover':
+         targetPLs = ofwhom(Autoscript, card.controller)
+         claimCard(targetCard,targetPLs[0])
+         remoteCall(targetPLs[0],'placeCard',[targetCard])
+      else: return 'ABORT'
+      if action.group(2) != 'Multi': break # If we're not doing a multi-targeting, abort after the first run.
    debugNotify("Finished Processing Modifications. About to announce",2)
    if notification == 'Quick': announceString = "{} {} {}{}".format(announceText, action.group(1), targetCardlist,extraTXT)
    else: announceString = "{} {} {}{}".format(announceText, action.group(1), targetCardlist, extraTXT)
@@ -1291,32 +1231,6 @@ def ModifyStatus(Autoscript, announceText, card, targetCards = None, notificatio
    debugNotify("<<< ModifyStatus()")
    if re.search(r'isSilent', Autoscript): return announceText
    else: return announceString
-
-def GameX(Autoscript, announceText, card, targetCards = None, notification = None, n = 0): # Core Command for alternative victory conditions
-   debugNotify(">>> GameX(){}".format(extraASDebug(Autoscript))) #Debug
-   if targetCards is None: targetCards = []
-   action = re.search(r'\b(Lose|Win)Game', Autoscript)
-   if debugVerbosity >= 2: #Debug
-      if action: notify("!!! regex: {}".format(action.groups())) 
-      else: notify("!!! regex failed :(") 
-   if re.search(r'forController', Autoscript): player = card.controller
-   elif re.search(r'forOwner', Autoscript): player = card.owner 
-   elif re.search(r'forDark Side', Autoscript): 
-      if Side == 'Dark': player = me
-      else: player == findOpponent('Ask',"Please choose which opponent has won the game.")
-   elif re.search(r'forLight Side', Autoscript): 
-      if Side == 'Light': player = me
-      else: player == findOpponent('Ask',"Please choose which opponent has won the game.")
-   else: player == me
-   if action.group(1) == 'Lose': 
-      announceString = "=== {} loses the game! ===".format(player)
-      reportGame('SpecialDefeat')
-   else: 
-      announceString = "=== {} wins the game! ===".format(player)
-      reportGame('SpecialVictory')
-   notify(announceString)
-   debugNotify("<<< GameX()")
-   return announceString
 
 def RetrieveX(Autoscript, announceText, card, targetCards = None, notification = None, n = 0): # Core Command for finding a specific card from a pile and putting it in hand or discard pile
    debugNotify(">>> RetrieveX(){}".format(extraASDebug(Autoscript))) #Debug
@@ -1457,10 +1371,6 @@ def findTarget(Autoscript, fromHand = False, card = None, choiceTitle = None, ig
    elif re.search(r'-fromTopDeckMine',Autoscript): # Quick job because I cannot be bollocksed.
       debugNotify("Returing my top deck card",2)
       return [me.piles['Deck'].top()]
-   elif re.search(r'-fromTopDeckOpponents',Autoscript): 
-      debugNotify("Returing opponent top deck card",2)
-      opponentPL = findOpponent('Ask')
-      return [opponentPL.piles['Deck'].top()]
    else: group = table
    debugNotify("fromHand = {}. card = {}. fromGroup = {}".format(fromHand,card,group)) #Debug
    #confirm(Autoscript) # Debug
@@ -2055,21 +1965,6 @@ def per(Autoscript, card = None, count = 0, targetCards = None, notification = N
             property = re.search(r'Property{([\w ]+)}',per.group(3))           
             multiplier = compileCardStat(card,property.group(1)) 
          elif re.search(r'Opponent',per.group(3)): multiplier = len(fetchAllOpponents())
-         elif re.search(r'Ally',per.group(3)): multiplier = len(fetchAllAllies()) - 1 # -1 because we exclude ourselves.
-         elif re.search(r'Reserves',per.group(3)):
-            if not card: debugNotify("0 Reserves multiplier because card is Null")
-            else:
-               reservesTotal = 0
-               if re.search(r'ReservesTeam',per.group(3)):
-                  for player in fetchAllAllies(card.controller): reservesTotal += len(player.piles['Common Reserve'])
-               elif re.search(r'ReservesAllied',per.group(3)):
-                  for player in fetchAllAllies(card.controller): 
-                     if player != card.controller: reservesTotal += len(player.piles['Common Reserve'])
-               elif re.search(r'ReservesOpponents',per.group(3)):
-                  for player in fetchAllOpponents(card.controller): reservesTotal += len(player.piles['Common Reserve'])
-               elif re.search(r'ReservesMyself',per.group(3)):
-                  reservesTotal += len(card.controller.piles['Common Reserve'])
-               multiplier = reservesTotal
       debugNotify("Checking ignore") # Debug.            
       ignS = re.search(r'-ignore([0-9]+)',Autoscript)
       if ignS: ignore = num(ignS.group(1))

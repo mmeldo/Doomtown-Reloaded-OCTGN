@@ -28,6 +28,7 @@
       <script src="Scripts/autoscripts.py" />
       <script src="Scripts/customscripts.py" />
       <script src="Scripts/CardScripts.py" />
+      <script src="Scripts/winForms.py" />
 	</scripts> 
    <events>
 	   <event name="OnTableLoaded" action="validateOnLoad" />
@@ -44,13 +45,6 @@
    </fonts>   
    <proxygen definitionsrc="Proxy/proxydef.xml">
    </proxygen>
-	<phases>
-		<phase name="Gambling" icon="Counters/gamblin_phase.jpg" />
-		<phase name="Upkeep" icon="Counters/upkeep_phase.jpg" />
-		<phase name="High Noon" icon="Counters/high_noon_phase.jpg" />
-		<phase name="Shootout" icon="Counters/shootout_phase.jpg" />
-		<phase name="Sundown" icon="Counters/sundown_phase.jpg" />
-	</phases>
 	<documents>
   </documents>    
    <globalvariables> 
