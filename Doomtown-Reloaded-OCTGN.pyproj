@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{7cffda7e-e6e6-4d7f-8f9a-5288494dd4a6}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>actions.py</StartupFile>
+    <SearchPath>o8g\Scripts</SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId>Global|PythonCore|3.7</InterpreterId>
+    <IsWindowsApplication>False</IsWindowsApplication>
+    <PythonCommands>
+	  RunBuild;
+	  PrepareForDev;
+	  CleanupAfterDev
+    </PythonCommands>
+    <SuppressConfigureTestFrameworkPrompt>true</SuppressConfigureTestFrameworkPrompt>
+  </PropertyGroup>
+  <Target Name="PrepareForDev" Label="Prepare development" Returns="@(Commands)">
+    <CreatePythonCommandItem TargetType="script" Target=".\internal\dev_scripts\prepare_for_dev.py" Arguments="" WorkingDirectory="$(MSBuildProjectDirectory)" ExecuteIn="output">
+      <Output TaskParameter="Command" ItemName="Commands" />
+    </CreatePythonCommandItem>
+  </Target>
+  <Target Name="CleanupAfterDev" Label="Cleanup development" Returns="@(Commands)">
+    <CreatePythonCommandItem TargetType="script" Target=".\internal\dev_scripts\cleanup_after_dev.py" Arguments="" WorkingDirectory="$(MSBuildProjectDirectory)" ExecuteIn="output">
+      <Output TaskParameter="Command" ItemName="Commands" />
+    </CreatePythonCommandItem>
+  </Target>
+  <Target Name="RunBuild" Label="Run build" Returns="@(Commands)">
+    <CreatePythonCommandItem TargetType="script" Target=".\internal\dev_scripts\run_build.py" Arguments="$(OCTGN_PATH)" WorkingDirectory="$(MSBuildProjectDirectory)" ExecuteIn="output">
+      <Output TaskParameter="Command" ItemName="Commands" />
+    </CreatePythonCommandItem>
+  </Target>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include=".\o8g\Scripts\actions.py" />
+    <Compile Include=".\o8g\Scripts\autoscripts.py" />
+    <Compile Include=".\o8g\Scripts\CardScripts.py" />
+    <Compile Include=".\o8g\Scripts\constants.py" />
+    <Compile Include=".\o8g\Scripts\customscripts.py" />
+    <Compile Include=".\o8g\Scripts\events.py" />
+    <Compile Include=".\o8g\Scripts\generic.py" />
+    <Compile Include=".\o8g\Scripts\meta.py" />
+    <Compile Include=".\o8g\Scripts\poker.py" />
+    <Compile Include=".\o8g\definition.xml" />
+    <Compile Include="internal\dev_scripts\cleanup_after_dev.py" />
+    <Compile Include="internal\dev_scripts\prepare_for_dev.py" />
+    <Compile Include="internal\dev_scripts\run_build.py" />
+    <Compile Include="internal\imports\actions_import.py" />
+    <Compile Include="internal\imports\autoscripts_import.py" />
+    <Compile Include="internal\imports\constants_import.py" />
+    <Compile Include="internal\imports\customscripts_import.py" />
+    <Compile Include="internal\imports\events_import.py" />
+    <Compile Include="internal\imports\generic_import.py" />
+    <Compile Include="internal\imports\meta_import.py" />
+    <Compile Include="internal\imports\octgnAPI.py" />
+    <Compile Include="internal\imports\poker_import.py" />
+    <Compile Include="o8g\Scripts\winForms.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="Global|PythonCore|3.7" />
+    <InterpreterReference Include="IronPython|2.7-64" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="internal\" />
+    <Folder Include="internal\dev_scripts\" />
+    <Folder Include="internal\imports\" />
+    <Folder Include="o8g\" />
+    <Folder Include="o8g\Scripts\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+</Project>

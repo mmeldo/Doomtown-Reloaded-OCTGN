@@ -1,3 +1,4 @@
+    # events.py
 import re
 import collections
 import time
@@ -6,18 +7,17 @@ def validateOnLoad():
    mute()
    if table.isTwoSided(): information(":::WARNING::: This game is NOT designed to be played on a two-sided table. Things will not look right!! Please start a new game and unckeck the appropriate button.")
    for player in getPlayers():
-      try: playerVersion = remoteCall(player, 'chkVersions', gameVersion)
-      except: 
-          playerVersion = "N/A"
-      if playerVersion:
-          information(":::ERROR::: Player {}'s game version {} is incompatible with your version {}. Make sure all players have compatible version before starting the play!".format(player.name, playerVersion, gameVersion))
+      try: remoteCall(player, 'chkVersions', [gameVersion, me])
+      except: pass
    fetchCardScripts()
 
-def chkVersions(version):
+def chkVersions(version, player):
    versionNumbers = version.split(".")
    myVersionNumbers = gameVersion.split(".")
-   if versionNumbers[0] != myVersionNumbers[0] or versionNumbers[1] != myVersionNumbers[1]: return gameVersion
-   return None
+   if versionNumbers[0] != myVersionNumbers[0] or versionNumbers[1] != myVersionNumbers[1]: 
+       notify(":::ERROR::: Player {}'s game version {} is incompatible with player {} version {}. Make sure all players have compatible version before starting the play!".format(player.name, version, me, gameVersion))
+       information(":::ERROR::: Player {}'s game version {} is incompatible with your version {}. Make sure all players have compatible version before starting the play!".format(player.name, version, gameVersion))
+       remoteCall(player, 'information', [":::ERROR::: Player {}'s game version {} is incompatible with your version {}. Make sure all players have compatible version before starting the play!".format(player.name, version, gameVersion)])
 
 def checkDeck(args):
    mute()
