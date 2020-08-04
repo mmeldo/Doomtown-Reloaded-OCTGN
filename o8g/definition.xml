@@ -4,7 +4,7 @@
       name="Doomtown-Reloaded" 
       id="b440d120-025a-4fbe-9f8d-3873acacb37b" 
       octgnVersion="3.2.75.0"
-      version="1.20.3.5"
+      version="1.20.3.6"
       markersize="16"
       tags="western deadlands poker maneuvering multiplayer"
       description="Doomtown Rides again! The award winning game of poker gunfights and spatial maneuvering is back.
@@ -45,8 +45,8 @@
    </fonts>   
    <proxygen definitionsrc="Proxy/proxydef.xml">
    </proxygen>
-	<documents>
-  </documents>    
+   <documents>
+   </documents>    
    <globalvariables> 
      <globalvariable name="Host Cards" value="{}" />      
      <globalvariable name="Shootout" value="False" />

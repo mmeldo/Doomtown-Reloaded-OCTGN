@@ -16,8 +16,7 @@
     <PythonCommands>
 	  RunBuild;
 	  PrepareForDev;
-	  CleanupAfterDev;
-	  Test
+	  CleanupAfterDev
     </PythonCommands>
     <SuppressConfigureTestFrameworkPrompt>true</SuppressConfigureTestFrameworkPrompt>
   </PropertyGroup>
@@ -32,12 +31,7 @@
     </CreatePythonCommandItem>
   </Target>
   <Target Name="RunBuild" Label="Run build" Returns="@(Commands)">
-    <CreatePythonCommandItem TargetType="script" Target=".\internal\dev_scripts\run_build.py" Arguments="" WorkingDirectory="$(MSBuildProjectDirectory)" ExecuteIn="output">
-      <Output TaskParameter="Command" ItemName="Commands" />
-    </CreatePythonCommandItem>
-  </Target>
-  <Target Name="Test" Label="Test" Returns="@(Commands)">
-    <CreatePythonCommandItem TargetType="script" Target=".\internal\dev_scripts\test.py" Arguments="arg1" WorkingDirectory="$(MSBuildProjectDirectory)" ExecuteIn="output">
+    <CreatePythonCommandItem TargetType="script" Target=".\internal\dev_scripts\run_build.py" Arguments="$(OCTGN_PATH)" WorkingDirectory="$(MSBuildProjectDirectory)" ExecuteIn="output">
       <Output TaskParameter="Command" ItemName="Commands" />
     </CreatePythonCommandItem>
   </Target>
@@ -59,7 +53,6 @@
     <Compile Include=".\o8g\definition.xml" />
     <Compile Include="internal\dev_scripts\cleanup_after_dev.py" />
     <Compile Include="internal\dev_scripts\prepare_for_dev.py" />
-    <Compile Include="internal\dev_scripts\test.py" />
     <Compile Include="internal\dev_scripts\run_build.py" />
     <Compile Include="internal\imports\actions_import.py" />
     <Compile Include="internal\imports\autoscripts_import.py" />
@@ -78,26 +71,10 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="internal\" />
-    <Folder Include="internal\Data\" />
-    <Folder Include="internal\Data\Config\" />
-    <Folder Include="internal\Data\LocalFeed\" />
     <Folder Include="internal\dev_scripts\" />
     <Folder Include="internal\imports\" />
     <Folder Include="o8g\" />
     <Folder Include="o8g\Scripts\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="internal\data.path" />
-    <Content Include="internal\IronPython.dll" />
-    <Content Include="internal\log4net.dll" />
-    <Content Include="internal\Microsoft.Dynamic.dll" />
-    <Content Include="internal\Microsoft.Scripting.dll" />
-    <Content Include="internal\Mono.Options.dll" />
-    <Content Include="internal\NuGet.Core.dll" />
-    <Content Include="internal\o8build.exe" />
-    <Content Include="internal\Octgn.Library.dll" />
-    <Content Include="internal\Octgn.ProxyGenerator.dll" />
-    <Content Include="internal\System.IO.Abstractions.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
 </Project>

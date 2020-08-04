@@ -1,9 +1,13 @@
 from subprocess import run
-from sys import exit
+from sys import exit, argv
 from shutil import copy, move
 from os import path
 
 overall_cp = 0
+
+deploy_path = ""
+if len(argv) > 1: 
+    deploy_path = argv[1]
 
 print("*** BUILD starting ...")
 print("** pylint executions ...")
@@ -70,7 +74,7 @@ else:
     print("!! ABORTING execution  ...")
     exit(-1)
 
-print("** Deploy files to c:\\Users\\mm611932\\AppData\\Local\\Programs\\OCTGN\\Data\\GameDatabase\\b440d120-025a-4fbe-9f8d-3873acacb37b")
+print("** Deploy files to " + deploy_path + "\\Data\\GameDatabase\\b440d120-025a-4fbe-9f8d-3873acacb37b\\Scripts\\")
 
 cp = run(["python", ".\\internal\\dev_scripts\\cleanup_after_dev.py", "build"])
 
@@ -79,8 +83,8 @@ for f in files:
     file_to_copy = '.\\o8g\\Scripts\\' + f
     if path.isfile(file_to_copy + '.tmp'): 
         file_to_copy += '.tmp'
-        move(file_to_copy, 'c:\\Users\\mm611932\\AppData\\Local\\Programs\\OCTGN\\Data\\GameDatabase\\b440d120-025a-4fbe-9f8d-3873acacb37b\\Scripts\\' + f)
-    else: copy(file_to_copy, 'c:\\Users\\mm611932\\AppData\\Local\\Programs\\OCTGN\\Data\\GameDatabase\\b440d120-025a-4fbe-9f8d-3873acacb37b\\Scripts\\')
-copy('.\\o8g\\definition.xml', 'c:\\Users\\mm611932\\AppData\\Local\\Programs\\OCTGN\\Data\\GameDatabase\\b440d120-025a-4fbe-9f8d-3873acacb37b')
+        move(file_to_copy, deploy_path + '\\Data\\GameDatabase\\b440d120-025a-4fbe-9f8d-3873acacb37b\\Scripts\\' + f)
+    else: copy(file_to_copy, deploy_path + '\\Data\\GameDatabase\\b440d120-025a-4fbe-9f8d-3873acacb37b\\Scripts')
+copy('.\\o8g\\definition.xml', deploy_path + '\\Data\\GameDatabase\\b440d120-025a-4fbe-9f8d-3873acacb37b')
 
 print("** Deploy DONE")
