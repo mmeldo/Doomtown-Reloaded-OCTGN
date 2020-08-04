@@ -158,8 +158,8 @@ def pairschk(rank,jokers = 0,type = shootout):
           if rank[pairingIndex] != '*': valueSingles.append(numrank(rank[pairingIndex]))
       pairingIndex += 1
    debugNotify("match1 = {}, match2 = {}, valueSingles = {}, type == {}".format(match1, match2, valueSingles, type)) # Used for testing
-   valueSingles.sort()
    if jokers:
+      valueSingles.sort()
       workList = list(valueSingles)
       if valueMatch1: workList.append(valueMatch1)
       if valueMatch2: workList.append(valueMatch2)
@@ -178,7 +178,7 @@ def pairschk(rank,jokers = 0,type = shootout):
          workList.insert(valueIndex, jokerValue)
          jokerIndex += 1 
       valueSingles += jokerValues
-      valueSingles.sort()
+   valueSingles.sort(reverse = True)
    if match1 == 5 or (match1 + jokers == 5 and type == shootout): # Finally we check for hand ranks. 5 sames are Five of a Kind
       highCards[5] = valueMatch1                                  # (Jokers count only in non-lowball hands)
       highCards[0] = 5
@@ -211,11 +211,11 @@ def pairschk(rank,jokers = 0,type = shootout):
       return highCards
    if match1 == 2 and match2 == 2: # 2 of each is Two Pairs 
       if valueMatch1 > valueMatch2:
-         highCards[2].append(valueMatch2)
          highCards[2].append(valueMatch1)
+         highCards[2].append(valueMatch2)
       else:
-         highCards[2].append(valueMatch1)
          highCards[2].append(valueMatch2)
+         highCards[2].append(valueMatch1)
       highCards[1] = valueSingles
       highCards[0] = 2
       return highCards

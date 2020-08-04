@@ -6,6 +6,7 @@ import time
 def validateOnLoad():
    mute()
    if table.isTwoSided(): information(":::WARNING::: This game is NOT designed to be played on a two-sided table. Things will not look right!! Please start a new game and unckeck the appropriate button.")
+   notify("{}'s Doomtown-Reloaded-OCTGN version is {}".format(me, gameVersion))
    for player in getPlayers():
       try: remoteCall(player, 'chkVersions', [gameVersion, me])
       except: pass
