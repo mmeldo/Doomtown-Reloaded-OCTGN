@@ -180,7 +180,7 @@ def useAbility(card, x = 0, y = 0, manual = True): # The start of autoscript act
    # R is repeat switch. 0 means no repeat (i.e. only once per turn), 1 means it's a repeat ability (or just a card trait which can be used as many times as its trigger hits)
    if actionCostRegex:
       if (actionCostRegex.group(2) == '1' and card.orientation == Rot0) or actionCostRegex.group(2) == '0' or (actionCostRegex.group(2) == '1' and card.orientation == Rot90 and confirm("Card requires to be booted to use its ability. Bypass?")): # First we check if the card is booted and it needs to boot.
-         if actionCostRegex.group(3) == '1' or not card.markers[mdict['UsedAbility']] or (getGlobalVariable('Shootout') != 'True' and card.markers[mdict['UsedAbility']] and confirm("You've already used {}'s Ability this turn. Bypass Restriction?".format(card.name))):
+         if actionCostRegex.group(3) == '1' or not card.markers[mdict['UsedAbility']] or (card.markers[mdict['UsedAbility']] and confirm("You've already used {}'s Ability this turn. Bypass Restriction?".format(card.name))):
             if payCost(actionCostRegex.group(1), silent) != 'ABORT': 
                if executeAutoscripts(card,selectedAutoscript,action = 'USE') != 'ABORT':
                   if card.group == table: # If the card is still on the table, then we take care of the other costs
@@ -188,9 +188,8 @@ def useAbility(card, x = 0, y = 0, manual = True): # The start of autoscript act
                         if card.orientation == Rot0: boot(card, silent = True) # If the B cost is 1, card is supposed to boot.
                         else: notify(":::WARN::: {} bypassed requirement to boot {} to use its ability".format(me,card))
                      if actionCostRegex.group(3) == '0':
-                        if getGlobalVariable('Shootout') != 'True':
-                            if not card.markers[mdict['UsedAbility']]: card.markers[mdict['UsedAbility']] += 1 # If a card is repeat, we don't put a marker
-                            else: notify(":::WARN::: {} bypassed once-per turn restriction on {}'s ability".format(me,card))
+                        if not card.markers[mdict['UsedAbility']]: card.markers[mdict['UsedAbility']] += 1 # If a card is repeat, we don't put a marker
+                        else: notify(":::WARN::: {} bypassed once-per turn restriction on {}'s ability".format(me,card))
                      if re.search(r'-isResolution',selectedAutoscript): autoscriptOtherPlayers('Resolution',card) # This is used for cards which specifically trigger from Resolution effects.
                      if re.search(r'-isShootout',selectedAutoscript): autoscriptOtherPlayers('Shootout',card) # This is used for cards which specifically trigger from Shootout effects.
                else:
@@ -218,6 +217,8 @@ def autoscriptOtherPlayers(lookup, origin_card = OutfitCard, count = 1, origin_p
       autoScriptSnapshot = list(Autoscripts)
       for autoS in autoScriptSnapshot: # Checking and removing anything other than whileRezzed or whileScored.
          if not re.search(r'whileInPlay', autoS): Autoscripts.remove(autoS)
+         elif re.search(r'-onlyInShootouts',autoS) and getGlobalVariable('Shootout') != 'True': Autoscripts.remove(autoS)
+         elif re.search(r'-onlyInNoon',autoS) and getGlobalVariable('Shootout') == 'True': Autoscripts.remove(autoS) 
       if len(Autoscripts) == 0: continue
       for autoS in Autoscripts:
          debugNotify(' autoS: {}'.format(autoS)) # Debug
@@ -344,7 +345,7 @@ def redirect(Autoscript, card, action, X = 0, targetC = None, skilledDude = None
    debugNotify(">>> redirect(){}".format(Autoscript)) #Debug
    global TitleDone
    if re.search(r':Pass\b', Autoscript): return X # Pass is a simple command of doing nothing ^_^. We put it first to avoid checking for targets and so on
-   if not targetC: 
+   if not targetC or re.search(r'-ResetTarget-(.*)Targeted', Autoscript): 
       #confirm("finding target for {}".format(Autoscript)) #DEbug
       targetC = findTarget(Autoscript,card = card) # If it's a spell effect, we don't want to select a target until the spell activates.
    if not TitleDone and not (len(targetC) == 0 and re.search(r'AutoTargeted',Autoscript)): # We don't want to put a title if we have a card effect that activates only if we have some valid targets 
@@ -1653,8 +1654,13 @@ def checkSpecialRestrictions(Autoscript,card, playerChk = me, originCard = None)
                    debugNotify("!!! Partial Fail because dude is not in Town Square location. Card loc: {}".format(cardLocation))
                    partialValidCard = False
            elif locRestriction == 'In Town':
-               if cardLocation == TownSquareToken or re.search(r'Out of Town', cardLocation.Keywords): 
+               if re.search(r'Out of Town', cardLocation.Keywords): 
                    debugNotify("!!! Partial Fail because dude is not in In Town location. Card loc: {}".format(cardLocation))
+                   partialValidCard = False
+           elif locRestriction == 'Deed':
+               locationOutfitCard = Card(eval(card.controller.getGlobalVariable('playerOutfit')))
+               if cardLocation == TownSquareToken or cardLocation == locationOutfitCard: 
+                   debugNotify("!!! Partial Fail because dude is not in Deed location. Card loc: {}".format(cardLocation))
                    partialValidCard = False
            elif locRestriction == 'Keyword':
                keywordRegex = re.search(r'Keyword{([\w ]+)}', locRestriction)

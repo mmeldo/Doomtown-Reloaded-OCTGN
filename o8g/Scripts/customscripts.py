@@ -35,6 +35,11 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
       else: remoteCall(targetDeed[0].owner,'PlasmaDrill',[targetDeed[0]])      
    elif card.name == "Allie Hensman":    
       remoteCall(targetCards[0].controller,'AllieHensmanXP',[targetCards[0],card])
+   ### Double dealin' ###
+   elif card.name =='Mortimer Parsons':
+      if card.highlight == AttackColor or card.highlight == DefendColor:
+          ModifyStatus('SendHomeBootedTarget-DemiAutoTargeted-atDude', '',card, [card])
+          TokensX('Put1InfluenceMinus-perProperty{Influence}', '', card)
    ### F&F ###    
    
    elif card.name == "Desolation Row":
@@ -276,6 +281,21 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
          notify(":> {} booted {} to draw 1 card".format(me,shamanHost))
    elif card.name == 'Inner Struggle':
       remoteCall(card.controller,'randomDiscard',[card.controller.piles['Play Hand']])
+   ### The Showstopper ###
+   elif card.name == 'Grimoires & More':
+      if len(targetCards) == 0: return 'ABORT'
+      huckster = targetCards[0]
+      rank,suit = pull()
+      if suit == 'Clubs':
+          ModifyStatus('SendHomeBootedTarget-Targeted-atDude', '',huckster, [huckster])
+          notify("{} misspells new spell he tried to learn in {} and rather goes home (booted).".format(huckster, card))
+      else:
+          retrieveTuple = RetrieveX('Retrieve1Card-grabHex-fromDiscard-toScripringPile', '', card)
+          if retrieveTuple == 'ABORT':return 'ABORT'
+          elif len(retrieveTuple[1]):
+              hex = retrieveTuple[1][0]
+              playcard(hex, preHost = huckster)
+              notify("{} learns new spell {} in {}.".format(huckster, hex, card))
    ### Blood Moon Rising ###
    elif card.name == "Tse-Che-Nako's Weaving":
       targetDudes = findTarget("DemiAutoTargeted-atDude-targetMine-choose1", choiceTitle = "Select Dude to move")
@@ -286,13 +306,41 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
       if len(targetLocations) == 0: 
           notify("No location was selected/found for the {}!".format(card))
           return 'ABORT'
-      move(targetDudes[0], targetCards = targetLocations, allowBooted = True)
+      move(targetDudes[0], targetCards = targetLocations, needToBoot = False, allowBooted = True)
       host = fetchHost(card)
       if host.type == 'Deed' and host.orientation == Rot90 and confirm("Do you want to unboot {} to give {} control point until they move?".format(host.name, skilledDude.name)):
           host.orientation = Rot0
           plusControl(skilledDude)
           token = ("Tse Che Nako", specialAbilityToken)
           skilledDude.markers[token] = 1
+   elif card.name == "Morgan Regulators":
+       notify("targetCards: {}".format(targetCards))
+       if len(targetCards) == 0: return 'ABORT'
+       hostCards = eval(getGlobalVariable('Host Cards'))
+       for att_id in hostCards:
+          notify("> Card(att_id): {}".format(Card(att_id)))
+          if hostCards[att_id] == targetCards[0]._id and re.search(r'Horse', Card(att_id).Keywords):
+              boot(targetCards[0], forced = 'unboot')
+              break
+   elif card.name == "Protection Racket":
+       if len(targetCards) == 0: 
+           notify("No dude was selected/found for the {}!".format(card))
+           return 'ABORT'
+       oppDeeds = [c for c in table if c.owner != me and c.Type == 'Deed']
+       oppDeedsControlledByMe = [c for c in oppDeeds if c.controller == me]
+       notifyTXT = ""
+       if len(oppDeedsControlledByMe) > 0: 
+           notifyTXT = " {}GR for protecting opponents's deeds".format(len(oppDeedsControlledByMe))
+           me.GhostRock += len(oppDeedsControlledByMe)
+       if len(oppDeeds) < 3:
+           if notifyTXT != "": notifyTXT += " and "
+           notifyTXT += " 2GR because opponents do not have enough deeds"
+           me.GhostRock += 2
+       if len(oppDeedsControlledByMe) >=3 :
+           targetCards[0].markers[mdict['PermControlPlus']] += 1
+           notify("{} uses {} to get{}. {} gets 1 CP for protecting more than 2 deeds.".format(me, card, notifyTXT, targetCards[0]))
+       elif notifyTXT == "":  notify("{} uses {} to get ... nothing, nada, nic.".format(me, card))
+       else: notify("{} uses {} to get{}.".format(me, card, notifyTXT))
    #There comes a reconing
    elif card.name == "Intercession":        
         if re.search(r'-isFirstCustom',Autoscript):
@@ -331,7 +379,11 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
         TokensX('Put1BulletNoonPlus', '',host)
         TokensX('Put1Sentinel', '', host)
         TokensX('Put1High Noon:Skill Bonus:1', '', host)
-        notify("You might move {} to adjecent location or Town Square".format(host))
+        if confirm("Do you want to move {} to adjacent location or Town Square?".format(host.name)):
+            targetLocation = findTarget("AutoTargeted-atDeed_or_Outfit_or_Town Square-inLocationAdjacent_or_Town Square-choose1", card = host)
+            if targetLocation and len(targetLocation) > 0:
+                move(host, silent = True, targetCards = targetLocation, needToBoot = False, allowBooted = True)
+                notify("{} uses {} and moves {} to guard the {}.".format(me, card, host, targetLocation[0]))
    elif card.name == "Ezekiah Grimme":
         if re.search(r'-isFirstCustom',Autoscript):
             spell = me.piles['Discard Pile'].top()
@@ -347,7 +399,13 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
                 return
             boot(dude[0], forced = 'boot')
             topCards = list(me.piles['Deck'].top(5))
-            availSpells = [c for c in topCards if re.search(r'Spell',c.Type)]
+            availSpells = []
+            topCardNames = []
+            for c in topCards:
+                c.isFaceUp = True
+                if re.search(r'Spell',c.Type): availSpells.append(c)
+                topCardNames.append(c.name)
+            notify("{} uses {} to look for a spell from cards: {}".format(me, card, topCardNames))
             playSpells = []
             for c in table:
                 if c.type == "Spell" and c.controller == me:
@@ -361,8 +419,9 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
                             availSpells.remove(spell)
             if availSpells:
                 choiceSpell = askCardFromList(availSpells,'These were the available Spells that were at the top of your deck. Do you want to play one on your dude',card.Name)
-                notify("{} decided to play {} on {} ".format(me,choiceSpell, dude[0]))
                 playcard(choiceSpell, preHost=dude[0]) 
+                choiceSpell.isFaceUp = True
+                notify(":> {} decided to play {} on {} ".format(me,choiceSpell, dude[0]))
             else:
                 notify(":> {} didn't discover any spells available to play.".format(card))
             me.Deck.shuffle()
@@ -613,6 +672,113 @@ def UseCustomAbility(Autoscript, announceText, card, targetCards = None, notific
               notifyTXT += "It happens to be a weapon which is not allowed in this town so {} becomes wanted."
               notify(notifyTXT.format(card, goods, targetDudes[0], targetDudes[0]))
           else: notify(notifyTXT.format(card, goods, targetDudes[0]))
+   elif card.name == "Frontier Feud":
+       for player in getActivePlayers():
+           if player != me or len(getActivePlayers()) == 1: 
+               notify("{} plays {} to settle a feud with opponents.".format(me, card))
+               remoteCall(player, "FrontierFeud", [dude, me])
+   elif card.name == "Tumblebleeds!":
+       tumbleList = [c for c in table if c.name == "Tumblebleeds!"]
+       if len(tumbleList) == 1:
+           discard(tumbleList[0], silent = True)
+           index = 1
+       else:
+           number = askInteger("How many dudes were in your posse?",1)
+           index = 0
+           for tumble in tumbleList:
+               discard(tumbleList[index], silent = True)
+               index += 1
+               if index > number: break
+       notify("{} made little gardening on Town Square by removing {} {}".format(me, index, card))
+   elif card.name == "Mind Twist":
+       if len(targetCards) == 0: return 'ABORT'
+       infCount = num(targetCards[0].properties['Influence'])
+       reduction = infCount - 1
+       if reduction > 0: targetCards[0].markers[mdict['InfluenceMinus']] += reduction
+       elif reduction < 0: targetCards[0].markers[mdict['InfluencePlus']] += abs(reduction)
+       notify("{} used {} to set {}'s influence to 1 until after Sundown and cannot be modified.".format(me, card, targetCards[0]))
+   elif card.name == "Bolts o' Doom":
+       if len(targetCards) == 0: return 'ABORT'
+       victim = targetCards[0]
+       host = fetchHost(card)
+       hostInf = compileCardStat(host, 'Influence')
+       victimBull = compileCardStat(victim, 'Bullets')
+       reduction = hostInf
+       if victimBull - hostInf < 0: reduction = victimBull
+       if reduction > 0:
+           victim.markers[mdict['BulletShootoutMinus']] += reduction
+           notify("{} uses {} to reduce {}'s bullets by {}'s influence ({})".format(me, card, victim, host, reduction))
+       if victimBull == 0 or reduction == victimBull:
+           host.markers[mdict['BulletShootoutPlus']] += 1
+           notify("{}'s bullets are increased by 1 because {}'s has 0 bullets.".format(host, victim))
+   elif card.name == "Jonah Essex":
+       targetAttachments = findTarget('AutoTargeted-onAttachment-targetOpponents-inSameLocation', card = card)
+       attListToChoose = []
+       for att in targetAttachments:
+           if att.Cost <= card.markers[mdict['Bounty']]: attListToChoose.append(att)
+       if len(attListToChoose) == 1: targetAttachment = attListToChoose[0]
+       else: targetAttachment = SingleChoice("Choose atachment to discard", attListToChoose)
+       if targetAttachment: discard(targetAttachment, silent = True)
+       else: return 'ABORT'
+       targetDude = findTarget('AutoTargeted-atDude-targetMine-inSameLocation-choose1', card = card, choiceTitle = 'Choose one of your dudes to increase bounty')
+       if len(targetDude) > 0: 
+           targetDude[0].markers[mdict['Bounty']] += 1
+           notify("{} uses {} to discard opponent's attachment {} and increase bounty on {} by 1.".format(me, card, targetAttachment, targetDude[0]))
+       else: notify("{} uses {} to discard opponent's attachment {}.".format(me, card, targetAttachment))
+   elif card.name == "Judge Wells Spicer":
+       targetList = [c for c in targetCards if c.markers[mdict['Bounty']] > compileCardStat(c, 'Influence')]
+       if len(targetList) == 0:
+           notify("No valid target for {}".format(card))
+           return 'ABORT'
+       choice = SingleChoice('Choose a dude to sentence.', targetList)
+       if choice == None: return 'ABORT'
+       moveHome(targetList[choice], True)
+       remoteCall(targetList[choice].controller, "JudgeWellsSpicer", [targetList[choice]])
+   elif card.name == "Cooper Grannon":
+       if not targetCards or len(targetCards) == 0: return 'ABORT'
+       gadget = targetCards[0]
+       boot(gadget, silent = True)
+       pulls = []
+       pulls.append(pull()[1])
+       if re.search(r'Experimental', gadget.Keywords): pulls.append(pull()[1])
+       for pullSuit in pulls:
+           if pullSuit == 'Clubs': 
+               boot(card, silent = True)
+               notify("{} uses {} to tinker with the {}, which blew up in his face.".format(me, card, gadget))
+           if pullSuit == 'Diamonds': 
+               draw()
+               choicehand = askCardFromList([c for c in me.piles['Play Hand']],'Choose which card to discard from your hand',card.Name)
+               if not choicehand: 
+                   notify("ERROR: {} did not discard card as a result of {}'s ability!".format(me, card))
+                   return 'ABORT'
+               choicehand.moveTo(me.piles['Discard Pile'])
+               notify("{} uses {}, pulls a Diamond to draw a card and discard a card.".format(me, card))
+           if pullSuit == 'Hearts': 
+               card.markers[mdict['BulletNoonPlus']] += 2
+               notify("{} uses {}, pulls a Heart to increase his bullets by 2.".format(me, card))
+           if pullSuit == 'Spades': 
+               card.markers[mdict['InfluencePlus']] += 1
+               notify("{} uses {}, pulls a Spade to increase his influence by 1.".format(me, card))
+   elif card.name == "Fannin' the Hammer":
+       if not targetCards or len(targetCards) == 0: return 'ABORT'       
+       shooter = targetCards[0]
+       boot(shooter, silent = True)
+       bullets = compileCardStat(shooter, 'Bullets')
+       opponents = findTarget("AutoTargeted-atDude-targetOpponents-isParticipating")
+       chosenTargets = []
+       i = 1
+       while i <= bullets:
+           choice = SingleChoice("Choose target for {}'s suppressing fire {}/{} (If you do not want to select more dudes, press Cancel)".format(shooter.name, i, bullets), makeChoiceListfromCardList(opponents))
+           if choice == None: break
+           chosenTargets.append(opponents.pop(choice))
+           i += 1
+       for target in chosenTargets:
+           if target.properties['Bullets'] == '0': TokensX('Put1Shootout:Draw', '', target)
+           target.markers[mdict['BulletShootoutMinus']] += 1
+       notify("{} is {} to provide a suppressing fire. Suppressed dudes are {}".format(shooter, card, map(lambda card: card.name, chosenTargets)))
+
+
+
 
        
 
@@ -1549,6 +1715,7 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
         else:
             notify("You need to discard a card to use this ability")
             return
+        if not cardChoice: return 'ABORT'
         cardChoice.moveTo(me.piles['Discard Pile'])   
         wanted = findTarget("DemiAutoTargeted-atDude-hasMarker{Bounty}-targetOpponents-choose1")
         if not len(wanted):
@@ -1946,7 +2113,104 @@ def CustomScript(card, action = 'PLAY', skilledDude = None): # Scripts that are 
        if myPosseBullets > oppPosseBullets:
            notify("{} prevails in the {}. Shootout plays cannot cause dudes to join posses or cause dudes to leave shootout!".format(me, card))
        else: notify("{} fails in the {}. Nothing really happens".format(me, card))
+   ## Hell's Coming With Me ##
+   elif card.name == "Rham's Readings":
+       opponents = [pl for pl in getActivePlayers() if (pl != me or len(getActivePlayers()) == 1)]
+       if len(opponents) == 1: choice = 0
+       else: choice = SingleChoice("Choose which player's deck top card to look at",[pl.name for pl in opponents])
+       if choice == None: return 'ABORT'
+       opponent = opponents[choice]
+       remoteCall(opponent, 'RhamReadings', [card, me])
+   elif card.name == "Tsintah":
+       spirits = findTarget("AutoTargeted-atSpirit-onAttachment-isUnbooted", card = card)
+       totems = findTarget("AutoTargeted-atTotem-inLocationSame-isUnbooted", card = card)
+       choice = askCardFromList(spirits + totems, "Select a spirit to boot as cost.", card.name)
+       if not choice: return 'ABORT'
+       boot(choice, silent = True)
+       TokensX("Put1Shootout:Stud", "", card)
+       notifyTXT="{} uses her ability to make herself a stud."
+       location = determineCardLocation(card)
+       if re.search(r'Holy Ground', location.Keywords): 
+           card.markers[mdict['BulletShootoutPlus']] += 1
+           notifyTXT += " She also gets +1 bullets because shootout is taking place on Holy Ground."
+       elif location.Type == 'Deed':
+           adjacentLocations = findTarget("AutoTargeted-atDeed_or_Outfit-inLocationAdjacent-isNotMyself", card = location)
+           for adjLocation in adjacentLocations:
+               if re.search(r'Holy Ground', adjLocation.Keywords): 
+                   card.markers[mdict['BulletShootoutPlus']] += 1
+                   notifyTXT += " She also gets +1 bullets because shootout is taking place in proximity of Holy Ground."
+                   break
+       notify(notifyTXT.format(card))
+   elif card.name == "Vivene Goldsun":
+       attchmnts = fetchAttachments(card)
+       if not attchmnts and len(attchmnts) == 0: 
+           notify("ERROR: {} does not have any attachments!".format(card))
+           return 'ABORT'
+       mysticalAtts = [c for c in attchmnts if re.search(r'Mystical', c.Keywords)]
+       if not mysticalAtts and len(mysticalAtts) == 0: 
+           notify("ERROR: {} does not have any Mystical attachments!".format(card))
+           return 'ABORT'
+       if len(mysticalAtts) == 1: mysticalTarget = mysticalAtts[0]
+       else: choice = SingleChoice("Choose mystical goods to discard.", makeChoiceListfromCardList(mysticalAtts))
+       if choice == None: return 'ABORT'
+       mysticalTarget = mysticalAtts[choice]
+       discard(mysticalTarget, silent = True)
+       targetDudes = findTarget("AutoTargeted-atDude-targetOpponents-isParticipating")
+       validTargets = []
+       value = compileCardStat(mysticalTarget, 'Value')
+       for dude in targetDudes:
+           grit = compileCardStat(dude, 'Grit')
+           if grit < value: validTargets.append(dude)
+       if len(validTargets) == 0:
+           notify("{} does not hit anyone with mystical power of {}. There are no dudes with grit less than value {}!".format(card, mysticalTarget, value))
+           return
+       if len(validTargets) == 1: finalTarget = validTargets[0]
+       else: 
+           dudeChoice = SingleChoice("Choose dude to scare of using the {}.".format(mysticalTarget.name), makeChoiceListfromCardList(validTargets))
+           if dudeChoice == None: 
+               notify("No dude was selected for the {}'s ability!".format(card))
+               return 'ABORT'
+           finalTarget = validTargets[dudeChoice]
+       ModifyStatus('SendHomeBootedTarget-DemiAutoTargeted-atDude', '',finalTarget, [finalTarget])
+       notify("{} uses mystical power of {} to hit {} who stumbles back home.".format(card, mysticalTarget, finalTarget))
+   elif card.name == "Dr. Delphi Wallis":
+       validTargets = findTarget("AutoTargeted-atGadget-onAttachment", card = card)
+       validTargets.append(card)
+       if len(validTargets) == 1: bootCost = validTargets[0]
+       else:
+          choice = SingleChoice("Choose card to boot as cost for {}".format(card.name), makeChoiceListfromCardList(validTargets))
+          if choice == None: return 'ABORT'
+          bootCost = validTargets[choice]
+       boot(bootCost, silent = True)
+       victim = findTarget('DemiAutoTargeted-atDude-targetOpponents-isParticipating-choose1', "Choose victim of {}".format(card.name))
+       if not victim or len(victim) == 0:
+           notify("ERROR: No valid target for {} selected!".format(card))
+           return 'ABORT'
+       skillCheck = fetchSkills(card)
+       pullValue = numrank(pull()[0]) + skillCheck[0][1]
+       victimGrit = compileCardStat(victim[0], 'Grit')
+       if pullValue >= victimGrit:
+           choices = victim[0].Instructions.split('||')
+           if len(choices) == 0:
+               notify("ERROR: {} has no ability!".format(victim[0]))
+               return
+           if len(choices) == 1:
+               TokensX('Put1Disabled Ability', '', victim[0])
+               notify("{} uses {} and boots {} to disable {}'s ability.".format(me, card, bootCost, victim[0]))
+           else:
+               choice = SingleChoice("Choose ability to disable", choices)
+               TokensX('Put1Disabled Ability:#{}'.format(choice + 1), '', victim[0])
+               notify("{} uses {} and boots {} to disable {}'s ability #{}.".format(me, card, bootCost, victim[0], choice + 1))
+       else: notify("{} uses {} and boots {}, but fails skill check against {}'s grit.".format(me, card, bootCost, victim[0]))
 
+
+
+
+
+
+       
+
+           
 
 
 
@@ -2003,17 +2267,18 @@ def markerEffects(Time = 'Start'):
                card.markers[mdict['PermControlPlus']] += 1
             card.markers[marker] = 0
          if Time == 'Sundown' and re.search(r'Sentinel',marker[0]) and card.controller == me and card.owner == me:
-            dudeSpells = findTarget('AutoTargeted-atSpell-onAttachment-isBooted', card = card)
-            if not confirm("Is {} in the Town Square?".format(card.name)):
-                continue
+            dudeSpells = findTarget('AutoTargeted-atSpell-onAttachment', card = card)
+            dudeLoc = determineCardLocation(card)
+            if dudeLoc.name != "Town Square": continue
             for Spell in dudeSpells:                  
                 if Spell.name == "Sentinel":
                     if confirm("Do you want to discard {} to give {} 1 Control Point?".format(Spell.name, card.name)):
                         TokensX("Remove1Sentinel",'', card)
                         card.markers[mdict['PermControlPlus']] += 1
-                        Spell.moveTo(me.piles['Discard Pile'])                       
+                        discard(Spell, silent = True)
+                        notify("{} discards {} to gain 1 Control point.".format(card, Spell))
                     else:
-                        TokensX("Remove1Sentinel",'', card)
+                       TokensX("Remove1Sentinel",'', card)
          
          if Time == 'Sundown' and re.search(r'HandsomeCP',marker[0]) and card.owner == me and me.GhostRock >=4: 
  
@@ -2029,6 +2294,16 @@ def markerEffects(Time = 'Start'):
 
          if Time == 'Sundown' and re.search(r'Rowdy Dude',marker[0]) and card.owner == me : 
             TokensX("Remove1High Noon:Rowdy Dude",'', card)
+
+         if Time == 'Sundown' and re.search(r'Lethargy',marker[0]) and card.owner == me : 
+            if confirm("Do you want to pay therapy (1GR) for {} to cure (unboot) his Lethargy?".format(card.name)):
+                me.GhostRock -= 1
+                boot(card, silent = True, forced = 'unboot')
+                notify("{} decided to pay for {}'s therapy to cure Lethargy and unboot him.".format(me, card))
+            else: notify("{} decided not to pay for {}'s who remains lethargic (does not unboot).".format(me, card))
+            TokensX("Remove1Lethargy",'', card)
+            TokensX("Remove1NoUnboot",'', card)
+
          if (Time == 'ShootoutEnd'
                and (re.search(r'Sun In Yer Eyes',marker[0])
                  or re.search(r'Unprepared',marker[0])
@@ -2061,6 +2336,38 @@ def markerEffects(Time = 'Start'):
 #------------------------------------------------------------------------------
 # Remote Functions
 #------------------------------------------------------------------------------
+
+def JudgeWellsSpicer(card):
+    if confirm("Do you want to reduce {}'s bounty to 0?".format(card.name)):
+        card.markers[mdict['Bounty']] = 0
+        notify("{} decided to reduce {}'s bounty to 0".format(me, card))
+
+def RhamReadings(card, player):
+    if len(me.piles['Deck']) == 0: reshuffle()
+    topDeckCard = me.piles['Deck'].top()
+    jokerTXT = "."
+    while topDeckCard.Type == 'Joker': 
+        ace(topDeckCard, silent = True)
+        if len(me.piles['Deck']) == 0: reshuffle()
+        topDeckCard = me.piles['Deck'].top()
+        jokerTXT = " which is aced. New revealed card is {}({} {}).".format(topDeckCard, fullrank(topDeckCard.Rank), fullsuit(topDeckCard.Suit))
+    notify("{} uses {} to read {}'s fortune and reveals {} {}{}".format(player, card, me, fullrank(topDeckCard.Rank), fullsuit(topDeckCard.Suit), jokerTXT))
+    topCardDiscard = me.piles['Discard Pile'].top()
+    if topDeckCard.Rank == topCardDiscard.Rank or topDeckCard.Suit == topCardDiscard.Suit:
+        player.GhostRock += 1
+        notify("Madame Rham's visions were true, {} gains 1GR.".format(player))
+    else: notify("Madame Rham's visions were incorrect, {} gains nothing.".format(player))
+
+def FrontierFeud(dude, player):
+    if confirm("{} plays Frontier Feud. Do you want to give {} permanent control point?\nIf you select No, you will have to select your in-town dude which then moves to Town Square and calls out {}.".format(player.name, dude.name, dude.name)):
+        dude.markers[mdict['PermControlPlus']] += 1
+        notify("{} decided to chicken out and give {} more control.".format(me, dude))
+    else:
+        targetDude = findTarget("AutoTargeted-atDude-targetMine-inLocationIn Town-choose1")
+        if len(targetDude) == 0: return
+        move(targetDude[0], silent = True, targetCards = [TownSquareToken], needToBoot = False, allowBooted = True)
+        callout(targetDude[0], targetDudes = [dude], silent = True)
+        notify("{} decided to settle the feud between {} and {}.".format(me, dude, targetDude[0]))
 
 def DancingButterfly(shaman, player):
     targetDude = []

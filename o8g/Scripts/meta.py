@@ -124,6 +124,9 @@ def compileCardStat(card, stat = 'Influence'):
    hostCards = eval(getGlobalVariable('Host Cards'))
    attachedCards = [Card(att_id) for att_id in hostCards if hostCards[att_id] == card._id]
    if stat == 'Influence':
+      mindTwist = False
+      for marker in card.markers:
+          if re.search(r'Mind Twist', marker[0]): return 1
       count = num(card.properties[stat])
       count += card.markers[mdict['PermInfluencePlus']] - card.markers[mdict['PermInfluenceMinus']] + card.markers[mdict['InfluencePlus']] - card.markers[mdict['InfluenceMinus']]
       for c in attachedCards: 

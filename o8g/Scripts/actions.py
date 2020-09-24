@@ -1103,6 +1103,13 @@ def checkMoveEffects(card, origin, destination):
           if re.search(r'Tse Che Nako', marker[0]) and origin != destination:
               minusControl(card)
               card.markers[marker] = 0
+      if re.search(r'Abomination', card.Keywords) and (origin.name == 'Crystal Palace' or destination.name == 'Crystal Palace'):
+          if origin.name == 'Crystal Palace':
+              if card.markers[mdict['BulletNoonPlus']] > 0: card.markers[mdict['BulletNoonPlus']] -= 1
+              if card.markers[mdict['InfluencePlus']] > 0: card.markers[mdict['BulletNoonPlus']] -= 1
+          if destination.name == 'Crystal Palace':
+              card.markers[mdict['BulletNoonPlus']] += 1
+              card.markers[mdict['InfluencePlus']] += 1
       
 def moveTownSquare(card, x = 0, y = 0): # Notifies that this dude is moving by booting
    mute()
@@ -1353,14 +1360,15 @@ def playcard(card,retainPos = False, costReduction = 0, preHost = None, scripted
          if retainPos: card.moveTo(me.piles['Play Hand'])
          return
       else:
-         grimme = 0
-         for c in table:
-            if c.name == 'Ezekiah Grimme' and c.controller == me:
-                grimme = 1
-         if grimme:
-            for c in table:
-                if c.name == card.name:
-                    costReduction -= 1
+         if card.Type == "Spell":
+             grimme = 0
+             for c in table:
+                if c.name == 'Ezekiah Grimme' and c.controller == me:
+                    grimme = 1
+             if grimme:
+                for c in table:
+                    if c.name == card.name:
+                        costReduction -= 1
       
          if payCost(num(card.Cost) - costReduction - reduction, loud) == 'ABORT' : return # Check if the player can pay the cost. If not, abort.
          if card.Type == "Goods" or card.Type == "Spell":

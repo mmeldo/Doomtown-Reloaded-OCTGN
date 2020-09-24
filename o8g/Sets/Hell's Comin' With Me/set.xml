@@ -496,7 +496,7 @@
 		         <property name="Influence" value="0" />
 		         <property name="Control" value="" />
 		         <property name="Outfit" value="Drifter" />
-		         <property name="Keywords" value="Harrowed-Gadget 6-Mystical" />
+		         <property name="Keywords" value="Harrowed-Mystical-Gadget-Difficulty 6" />
 		         <property name="Text" value="QUATERMAN PRIME must be invented, and enters play at the Mad Scientist's location.&amp;#xD;&amp;#xD;QUATERMAN PRIME'S bullets cannot be modified except by his attached goods. Cards cannot boot or move QUATERMAN PRIME. &amp;#xD;&amp;#xD;Each time a player reveals a cheatin' hand in QUATERMAN PRIME'S shootout, that player takes an additional casualty." />
 		         <property name="Instructions" value="" />
       </card>
@@ -683,7 +683,7 @@
 		         <property name="Influence" value="" />
 		         <property name="Control" value="" />
 		         <property name="Outfit" value="" />
-		         <property name="Keywords" value="Horse-Gadget 4" />
+		         <property name="Keywords" value="Horse-Gadget-Difficulty 4" />
 		         <property name="Text" value="If Iron Mole is at an Out of Town deed, increase that deed's production by 1.&amp;#xD;&amp;#xD;Noon, Boot: Move this dude to an Out of Town deed.&amp;#xD;&amp;#xD;Shootout, Boot: If this dude is at an Out of Town deed, this dude joins your posse (moving if necessary)." />
 		         <property name="Instructions" value="Noon, Boot: Move this dude to an Out of Town deed. || Shootout, Boot: If this dude is at an Out of Town deed, this dude joins your posse (moving if necessary)." />
       </card>
@@ -700,7 +700,7 @@
 		         <property name="Influence" value="" />
 		         <property name="Control" value="" />
 		         <property name="Outfit" value="" />
-		         <property name="Keywords" value="Weapon-Gadget 5" />
+		         <property name="Keywords" value="Weapon-Gadget-Difficulty 5" />
 		         <property name="Text" value="Shootout, Boot: This dude makes a Mad Scientist skill check against an opposing dude's value. If successful, discard this card and and make that dude a draw." />
 		         <property name="Instructions" value="" />
       </card>
@@ -787,7 +787,7 @@
 		         <property name="Outfit" value="" />
 		         <property name="Keywords" value="Hex" />
 		         <property name="Text" value="Noon/Shootout Hex 6, Boot: Boot a spell attached to a dude at this location. If this is a shootout, the spell must be in the opposing posse.&amp;#xD;&amp;#xD;Noon Hex 6, Boot: Choose a dude at this location. Until after Sundown, that dude's influence is set to 1 (and cannot be modified)." />
-		         <property name="Instructions" value="" />
+		         <property name="Instructions" value="Noon/Shootout Hex 6, Boot: Boot a spell attached to a dude at this location. If this is a shootout, the spell must be in the opposing posse. || Noon Hex 6, Boot: Choose a dude at this location. Until after Sundown, that dude's influence is set to 1 (and cannot be modified)." />
       </card>
 		<card id="bc5335d6-0519-45c7-b937-1afc9a20050b" name="Dies Irae">
 		         <property name="Rank" value="A" />

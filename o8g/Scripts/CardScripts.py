@@ -1339,7 +1339,7 @@ Mortimer Parsons
 -----
 e0434a23-02b1-406b-a683-0b230b73111d
 -----
-whileInPlay:SendHomeBootedMyself-onlyInShootouts-isParticipating-foreachCheatinRevealed-byMe$$Put1InfluenceMinus-perProperty{Influence}
+whileInPlay:UseCustomAbility-onlyInShootouts-foreachCheatinRevealed-byMe
 +++++
 
 .....
@@ -3243,7 +3243,7 @@ An Accidental Reunion
 -----
 79ec0f19-cc3a-4f63-930e-f3dadf2645f7
 -----
-onPlay:SimplyAnnounce{force each cheating player to take 2 casualties}$$Lose2Ghost Rock-isCost-isOptional$$UninstallMyself
+onPlay:SimplyAnnounce{force each cheating player to take 2 casualties}$$Lose2Ghost Rock-isCost-isOptional$$ReturnMyself
 +++++
 
 .....
@@ -3508,7 +3508,7 @@ Luke, the Errand Boy
 -----
 
 +++++
-GR0B0R0:RehostTarget-Targeted-atGadget_and_Goods-rehostToDude-isMine-inLocationSame_or_Adjacent
+GR0B0R0:RehostTarget-Targeted-atGadget_and_Goods-rehostToDude-targetMine-inLocationSame_or_Adjacent
 .....
 Arnold McCadish
 -----
@@ -4373,7 +4373,7 @@ ef1b01c0-82e5-4243-8839-2136df14d4b1
 -----
 
 +++++
-GR0B1R0:CustomScript
+GR0B1R0:UseCustomAbility-DemiAutoTargeted-atDude_and_Huckster-targetMine-choose1
 .....
 J.W. Byrne, P. I.
 -----
@@ -4701,7 +4701,7 @@ a12b3e09-b8af-4620-8479-20b5065df197
 -----
 
 +++++
-GR0B1R0:Pull1Card-testHex5-spellEffects<SimplyAnnounce{mark the opposing shooter to be aced, and reduce the opponent's casualties by 3},None>-onlyInShootouts
+GR0B1R0:Pull1Card-testHex5-spellEffects<SimplyAnnounce{mark the opposing shooter to be aced, and reduce the opponent casualties by 3},None>-onlyInShootouts
 .....
 Amazing Grace
 -----
@@ -4765,7 +4765,7 @@ e415100e-91bb-4d9e-87aa-ec2f23d63f84
 -----
 
 +++++
-GR0B1R0:CustomScript
+GR0B1R0:BootTarget-Targeted-atDude-targetMine-inLocationDeed-choose1-isCost$$UseCustomAbility-Targeted-atDude-targetMine
 .....
 Morgan Regulators
 -----
@@ -4773,7 +4773,7 @@ b94ed693-16ed-4c7c-84d8-375498922a74
 -----
 
 +++++
-GR0B1R0:MoveTarget-DemiAutoTargeted-atDude-targetMine-choose1-isCost-moveToTown Square$$Put1High Noon:Stud-Targeted-atDude-targetMine$$UseCustomAbility
+GR0B1R0:MoveTarget-Targeted-atDude-targetMine-choose1-isCost-moveToTown Square$$Put1High Noon:Stud-Targeted-atDude-targetMine$$UseCustomAbility-Targeted-atDude-targetMine
 .....
 Full Moon Brotherhood
 -----
@@ -6229,36 +6229,36 @@ Andrew Lane
 -----
 ac361a31-dd5f-4fca-91fd-67a43c202ae3
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B1R0:PlayTarget-DemiAutoTargeted-atGoods_and_Weapon_and_nonUnique-choose1-payCost-fromHand-onlyInShootouts
 
 .....
 Hank Ketchum
 -----
 d8173547-1e8d-43b1-9433-f99f0017115f
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B1R0:Put1Shootout:Harrowed-AutoTargeted-atDude-isParticipating-targetMine
 
 .....
 Lacy O'Malley
 -----
 dff6d14c-e693-4d52-b6c7-edbdef001e6a
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+
 
 .....
 The Tombstone Haint
 -----
 30871624-02ac-0d3e-0a05-4a2860a9fabf
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+
 
 .....
 Rock Woofstone
@@ -6283,9 +6283,9 @@ Gabriel Prior
 -----
 8972e73e-3ce9-c28f-f18a-d86c28ff4feb
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+
 
 .....
 Mr. Baird
@@ -6301,63 +6301,63 @@ Harlan Stanton
 -----
 902822a9-9591-0a5f-15f0-3858408570bd
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B0R0:ParticipateMyself
 
 .....
 Dr. Delphi Wallis
 -----
 c48079e7-60b1-ddb8-1729-404fd10edcdc
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B0R0:CustomScript
 
 .....
 Cooper Grannon
 -----
 aea80f2c-e226-ca1c-59fe-e01fd4a65b97
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B0R0:UseCustomAbility-DemiAutoTargeted-atGadget-onAttachment-choose1-isCost
 
 .....
 Vivene Goldsun
 -----
 38a6347d-ad73-9cc0-d7e5-557d9c8d7158
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B1R0:CustomScript
 
 .....
 Maurice Croker
 -----
 c59a067e-d293-9403-cb80-49106ec4e38d
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B0R0:Remove999Shootout:Stud-isSilent-Targeted-atDude-targetOpponents-isParticipating-choose1$$Put1Shootout:Draw-Targeted-atDude-isParticipating-targetOpponents
 
 .....
 Bogie Man
 -----
 c4c882aa-f96f-b6bb-830a-6482099009fa
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+
 
 .....
 Evan Lucas
 -----
 7ca0b92e-4508-8535-20f1-4796ae094c2b
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+
 
 .....
 Tawodi
@@ -6373,52 +6373,52 @@ Tsintah
 -----
 ebfb026f-eb45-02c8-0bbd-0c2b5fa5cfdd
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B0R0:CustomScript
 
 .....
 Jackie Sanjuro
 -----
 e622aa3b-c00e-e807-9e58-cb9a2932d34e
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+
 
 .....
 Speaks-with-Buffalo
 -----
 51e08e8f-12b8-9897-c380-5bfbb5bcde96
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B1R0:Put1Shootout:Stud$$SimplyAnnounce{use influence instead of bullets when forming draw hands this shootout}$$StartJob-DemiAutoTargeted-atDude-targetOpponents-choose1-jobEffects<UnbootMyself++Draw2Card++DiscardMulti-DemiAutoTargeted-fromHand-choose2,None>
 
 .....
 Judge Wells Spicer
 -----
 085d6a20-5cbd-6b09-43bc-68720e213848
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B1R0:UseCustomAbility-AutoTargeted-atDude-targetOpponents-inLocationSame-isCost
 
 .....
 Joan McGruder
 -----
 5b6b6aa0-1824-60a5-98ef-cd2fd4edadb0
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+
 
 .....
 Virgil Earp
 -----
 6ddde887-06b9-a3d4-2b93-f02cd2183ea8
 -----
-onPlay:
+
 +++++
 GR0B0R0:
 
@@ -6436,18 +6436,18 @@ Florentino Indian Charlie Cruz
 -----
 0debb6d1-05fa-83ee-ef73-e0f0b21d696e
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+
 
 .....
 Tomas Ramirez
 -----
 f5cfecaf-af17-e447-2223-86a8e393e1fd
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B0R0:BootTarget-Targeted-atSpell-isUnbooted-onAttachment-choose1-isCost$$Pull1Card-testHexX-difficultyValue-Targeted-atGoods_and_Weapon-isParticipating-spellEffects<DiscardMulti-ResetTarget-Targeted-atGoods_and_Weapon_or_Spell_and_Hex,None>
 
 .....
 Pete Spence
@@ -6463,9 +6463,9 @@ Jonah Essex (Exp.1)
 -----
 8c7fd924-8962-daee-9631-2ee5e61491af
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B0R0:CustomScript
 
 .....
 Camillus S. Fly
@@ -6481,9 +6481,9 @@ QUATERMAN PRIME
 -----
 ba276f31-01f8-4845-af82-e12fab75eed4
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+
 
 .....
 Winona Rein-Breaker
@@ -6499,9 +6499,9 @@ Nicole Sumner
 -----
 d58589b0-6da3-4dc6-afb3-5956e24a0cc4
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B0R0:Remove999Bounty
 
 .....
 Red River Roulette
@@ -6526,36 +6526,36 @@ Crystal Palace
 -----
 291194ef-0102-4843-a105-f5fec8bfb5e3
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+
 
 .....
 Rham's Readings
 -----
 c23fb989-758e-4065-8388-c41e9bc8a7ae
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B1R0:CustomScript
 
 .....
 Jonah's Retreat
 -----
 b4a19ef0-c40b-45e0-bc9a-754c301630fb
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+
 
 .....
 Schieffelin Hall
 -----
 306fa2f3-ad06-42ca-b4b4-22fcfe916018
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+
 
 .....
 Blue Lightnin'
@@ -6571,9 +6571,9 @@ Magnum Rounds
 -----
 74bcca3c-7e81-43d7-a26d-cf98f4de2f63
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B0R0:Put1BulletShootoutPlus-onHost-onlyInShootouts$$SimplyAnnounce{to prevent rank modification this round of shootout by other means than traits or Cheatin Resolutions.}$$DiscardMyself
 
 .....
 Iron Mole
@@ -6589,16 +6589,16 @@ Net Gun
 -----
 50c6b016-a26e-44dc-baab-0eb822d07fe5
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B1R0:Pull1Card-testMad ScienceX-difficultyValue-Targeted-atDude-targetOpponents-isParticipating-spellEffects<Put1Shootout:Draw-Targeted-atDude-isParticipating-targetOpponents++DiscardMyself,None>
 
 .....
 Scratch
 -----
 d9830f56-75da-4f3f-8e53-9538c3686662
 -----
-
+onDiscard:DiscardTarget-DemiAutoTargeted-choose1-fromHand$$Draw1Card
 +++++
 GR0B1R0:RehostMyself-Targeted-atDude-targetMine-inLocationAdjacent-isCost
 
@@ -6616,36 +6616,36 @@ Bolts o' Doom
 -----
 9fac6b82-b073-483a-a47b-ebb1499d4e9e
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B1R0:Pull1Card-testHex6-spellEffects<UseCustomAbility-DemiAutoTargeted-atDude-targetOpponents-isParticipating-choose1,None>
 
 .....
 Lethargy
 -----
 d5639bec-8794-46e6-b368-9421c1670750
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B1R0:Pull1Card-testHexX-difficultyGrit-Targeted-atDude-isUnbooted-inLocationSame_or_Adjacent-spellEffects<Put1Lethargy-Targeted-atDude++Put1NoUnboot-Targeted-atDude,None>
 
 .....
 Mind Twist
 -----
 31fc67cf-32e2-4bdd-9998-b30dda2ec532
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B1R0:Pull1Card-testHex6-spellEffects<BootTarget-DemiAutoTargeted-onAttachment-atSpell-targetOpponents-inLocationSame-choose1,None>||GR0B1R0:Pull1Card-testHex6-spellEffects<Remove999InfluencePlus-Targeted-atDude-inSameLocation++Put1Mind Twist-Targeted-atDude-inSameLocation++UseCustomAbility-Targeted-atDude-inSameLocation,None>
 
 .....
 Dies Irae
 -----
 bc5335d6-0519-45c7-b937-1afc9a20050b
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B1R0:Pull1Card-testMiracle8-onlyInShootouts-spellEffects<SimplyAnnounce{make up to four dudes in their Boot Hill contribute bullets to their draw and stud bonus. Their dudes cannot flee shootout this round},None>
 
 .....
 Babble On
@@ -6670,27 +6670,27 @@ Secret Paths
 -----
 46dc8b80-1f05-4a1f-a5ea-f452c4e3dbac
 -----
-onPlay:
+
 +++++
-GR0B0R0:
+GR0B1R0:Pull1Card-testSpirit8-spellEffects<MoveMulti-Targeted-atDude-targetMine-isUnbooted-inLocationSame-moveToDeed_or_Town Square_or_Outfit,None>
 
 .....
 Fannin' the Hammer
 -----
 b1d66665-08d0-4adb-9ea2-62c0aac08f4e
 -----
-onPlay:
+onPlay:UseCustomAbility-DemiAutoTargeted-atDude-targetMine-isParticipating-choose1-isCost
 +++++
-GR0B0R0:
+
 
 .....
 Tumblebleeds!
 -----
 c9e9547f-9c3e-4917-8b56-7c9eb93c38df
 -----
-onPlay:
+onPlay:BootTarget-DemiAutoTargeted-atDude_and_Huckster-targetMine-choose1-isCost$$RehostMyself-rehostToTown Square
 +++++
-GR0B0R0:
+GR0B0R0:StartJob-AutoTargeted-atTown Square-jobEffects<UseCustomAbility,None>
 
 .....
 Takin' Cover
@@ -6715,18 +6715,18 @@ Frontier Feud
 -----
 7405fcab-efba-4de4-83e9-f33364cfcb0f
 -----
-onPlay:
+onPlay:MoveTarget-DemiAutoTargeted-atDude-isUnbooted-targetMine-inLocationIn Town-choose1-moveToTown Square-isCost$$BootTarget$$UseCustomAbility
 +++++
-GR0B0R0:
+
 
 .....
 Seizing the Pearl of Death
 -----
 ac4bae3a-8570-4b07-8818-4dc8626c848f
 -----
-onPlay:
+onPlay:Pull1Card
 +++++
-GR0B0R0:
+GR0B0R0:Draw1Card$$SendHomeBootedTarget-DemiAutoTargeted-atDude-targetOpponents-choose1
 
 
 .....

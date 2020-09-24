@@ -228,6 +228,10 @@ def fetchHost(card):
    if hostID: host = Card(hostID) 
    return host
 
+def fetchAttachments(card):
+   hostCards = eval(getGlobalVariable('Host Cards'))
+   return [Card(att_id) for att_id in hostCards if hostCards[att_id] == card._id]
+
 def getCardsFromProperties(card, propertyName):
    propertyCardsStr = card.properties[propertyName]
    debugNotify("{} property for card {}: {}".format(propertyName, card, propertyCardsStr))
