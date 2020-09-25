@@ -67,7 +67,7 @@ if overall_cp != 0:
     exit(-1)
 
 print("## o8build starting ...")
-cp = run([".\\internal\\o8build", "--directory=./o8g"])
+cp = run([".\\internal\\o8build", "-d=./o8g"])
 if cp.returncode == 0: print("++ o8build SUCCESS")
 else: 
     print("!! o8build FAILED rc={}".format(cp.returncode))

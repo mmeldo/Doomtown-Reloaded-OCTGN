@@ -415,7 +415,7 @@
 		         <property name="Text" value="Controller Noon, Boot: Move a dude at this deed to town square, booted. That dude's owner may pay 2 ghost rock to unboot them." />
 		         <property name="Instructions" value="" />
       </card>
-		<card id="162aaf13-fe99-4bb6-8fbe-9587d71bd666" name="The Oriental">
+		<card id="162aaf13-fe99-4bb6-8fbe-9587d71bd666" name="The Oriental Saloon">
 		         <property name="Rank" value="10" />
 		         <property name="Suit" value="Diamonds" />
 		         <property name="Type" value="Deed" />

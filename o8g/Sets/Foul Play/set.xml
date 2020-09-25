@@ -146,7 +146,7 @@
          <property name="Draw Type" value="Stud" />
          <property name="Influence" value="0" />
          <property name="Control" value="" />
-         <property name="Outfit" value="Sloane Gang" />
+         <property name="Outfit" value="The Sloane Gang" />
          <property name="Keywords" value="" />
          <property name="Text" value="While Miranda has a control point, she has +2 influence.&#xD;&#xA;&#xD;&#xA;While Miranda has at least 2 bounty, she has +2 bullets." />
          <property name="Instructions" value="" />
@@ -164,7 +164,7 @@
          <property name="Draw Type" value="Draw" />
          <property name="Influence" value="1" />
          <property name="Control" value="" />
-         <property name="Outfit" value="Sloane Gang" />
+         <property name="Outfit" value="The Sloane Gang" />
          <property name="Keywords" value="" />
          <property name="Text" value="React: After goes home booted following a successful job initiated by a dude's ability or an action card, unboot your leader and gain 1 ghost rock." />
          <property name="Instructions" value="" />
