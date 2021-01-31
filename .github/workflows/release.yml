@@ -9,7 +9,8 @@ on:
 jobs:
   release_build:
     runs-on: [windows-latest]
-
+    env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE
     - uses: actions/checkout@v2
